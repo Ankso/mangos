@@ -4320,6 +4320,25 @@ void Unit::RemoveSingleAuraDueToSpellByDispel(uint32 spellId, uint64 casterGUID,
             caster->CastSpell(caster, triggeredSpell, true);
         return;
     }
+    // Vampiric touch (first dummy aura)
+    else if (spellEntry->SpellFamilyName == SPELLFAMILY_PRIEST && spellEntry->SpellFamilyFlags & UI64LIT(0x0000040000000000))
+    {
+        if (Aura *dot = GetAura(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_PRIEST, UI64LIT(0x0000040000000000), 0x00000000, casterGUID))
+        {
+            if(Unit* caster = dot->GetCaster())
+            {
+                // use clean value for initial damage
+                int32 bp0 = dot->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_1);
+                bp0 *= 8;
+
+                // Remove spell auras from stack
+                RemoveSingleSpellAurasByCasterSpell(spellId, casterGUID, AURA_REMOVE_BY_DISPEL);
+
+                CastCustomSpell(this, 64085, &bp0, NULL, NULL, true, NULL, NULL, casterGUID);
+                return;
+            }
+        }
+    }
 
     RemoveSingleSpellAurasByCasterSpell(spellId, casterGUID, AURA_REMOVE_BY_DISPEL);
 }
@@ -6936,51 +6955,6 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                 triggered_spell_id = 379;
                 break;
             }
-            // Flametongue Weapon (Passive)
-            if (dummySpell->SpellFamilyFlags & UI64LIT(0x200000))
-            {
-                if(GetTypeId()!=TYPEID_PLAYER)
-                    return false;
-
-                if(!castItem || !castItem->IsEquipped())
-                    return false;
-
-                //  firehit =  dummySpell->EffectBasePoints[0] / ((4*19.25) * 1.3);
-                float fire_onhit = dummySpell->EffectBasePoints[0] / 100.0;
-
-                float add_spellpower = SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_FIRE) +
-                                       pVictim->SpellBaseDamageBonusTaken(SPELL_SCHOOL_MASK_FIRE);
-
-                // 1.3speed = 5%, 2.6speed = 10%, 4.0 speed = 15%, so, 1.0speed = 3.84%
-                add_spellpower= add_spellpower / 100.0 * 3.84;
-
-                // Enchant on Off-Hand and ready?
-                if ( castItem->GetSlot() == EQUIPMENT_SLOT_OFFHAND && isAttackReady(OFF_ATTACK))
-                {
-                    float BaseWeaponSpeed = GetAttackTime(OFF_ATTACK)/1000.0;
-
-                    // Value1: add the tooltip damage by swingspeed + Value2: add spelldmg by swingspeed
-                    basepoints[0] = int32( (fire_onhit * BaseWeaponSpeed) + (add_spellpower * BaseWeaponSpeed) );
-                    triggered_spell_id = 10444;
-                }
-
-                // Enchant on Main-Hand and ready?
-                else if ( castItem->GetSlot() == EQUIPMENT_SLOT_MAINHAND && isAttackReady(BASE_ATTACK))
-                {
-                    float BaseWeaponSpeed = GetAttackTime(BASE_ATTACK)/1000.0;
-
-                    // Value1: add the tooltip damage by swingspeed +  Value2: add spelldmg by swingspeed
-                    basepoints[0] = int32( (fire_onhit * BaseWeaponSpeed) + (add_spellpower * BaseWeaponSpeed) );
-                    triggered_spell_id = 10444;
-                }
-
-                // If not ready, we should  return, shouldn't we?!
-                else
-                    return false;
-
-                CastCustomSpell(pVictim,triggered_spell_id,&basepoints[0],NULL,NULL,true,castItem,triggeredByAura);
-                return true;
-            }
             // Improved Water Shield
             if (dummySpell->SpellIconID == 2287)
             {
@@ -9257,6 +9231,7 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
         }
     }
 
+<<<<<<< HEAD
     // custom scripted mod from dummy
     AuraList const& mDummy = owner->GetAurasByType(SPELL_AURA_DUMMY);
     for(AuraList::const_iterator i = mDummy.begin(); i != mDummy.end(); ++i)
@@ -9273,6 +9248,8 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
         }
     }
 
+=======
+>>>>>>> 3ec6a552b1f4c223d2e28316aa004c682811ab98
      // Custom scripted damage
     switch(spellProto->SpellFamilyName)
     {
@@ -9529,7 +9506,11 @@ uint32 Unit::SpellDamageBonusTaken(Unit *pCaster, SpellEntry const *spellProto, 
     // Taken fixed damage bonus auras
     int32 TakenAdvertisedBenefit = SpellBaseDamageBonusTaken(GetSpellSchoolMask(spellProto));
 
+<<<<<<< HEAD
     float LvlPenalty = CalculateLevelPenalty(spellProto);
+=======
+    float LvlPenalty = pCaster->CalculateLevelPenalty(spellProto);
+>>>>>>> 3ec6a552b1f4c223d2e28316aa004c682811ab98
 
     // Check for table values
     if (SpellBonusEntry const* bonus = sSpellMgr.GetSpellBonusData(spellProto->Id))
@@ -9991,8 +9972,11 @@ uint32 Unit::SpellHealingBonusDone(Unit *pVictim, SpellEntry const *spellProto, 
     int32 DoneAdvertisedBenefit  = SpellBaseHealingBonusDone(GetSpellSchoolMask(spellProto));
 
     float LvlPenalty = CalculateLevelPenalty(spellProto);
-
-    Player* modOwner = GetSpellModOwner();
+    // Spellmod SpellDamage
+    float SpellModSpellDamage = 100.0f;
+    if(Player* modOwner = GetSpellModOwner())
+        modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_SPELL_BONUS_DAMAGE, SpellModSpellDamage);
+    SpellModSpellDamage /= 100.0f;
 
     // Check for table values
     SpellBonusEntry const* bonus = sSpellMgr.GetSpellBonusData(spellProto->Id);
@@ -10007,6 +9991,7 @@ uint32 Unit::SpellHealingBonusDone(Unit *pVictim, SpellEntry const *spellProto, 
         if (bonus->ap_bonus)
             DoneTotal += int32(bonus->ap_bonus * GetTotalAttackPowerValue(BASE_ATTACK));
 
+<<<<<<< HEAD
         // Spellmod SpellBonusDamage
         if (modOwner)
         {
@@ -10016,6 +10001,9 @@ uint32 Unit::SpellHealingBonusDone(Unit *pVictim, SpellEntry const *spellProto, 
         }
 
         DoneTotal  += int32(DoneAdvertisedBenefit * coeff);
+=======
+        DoneTotal  += int32(DoneAdvertisedBenefit * coeff * SpellModSpellDamage);
+>>>>>>> 3ec6a552b1f4c223d2e28316aa004c682811ab98
     }
     // Default calculation
     else if (DoneAdvertisedBenefit)
@@ -10043,6 +10031,7 @@ uint32 Unit::SpellHealingBonusDone(Unit *pVictim, SpellEntry const *spellProto, 
                 break;
             }
         }
+<<<<<<< HEAD
 
         float coeff = (CastingTime / 3500.0f) * DotFactor * 1.88f;
 
@@ -10055,6 +10044,9 @@ uint32 Unit::SpellHealingBonusDone(Unit *pVictim, SpellEntry const *spellProto, 
         }
 
         DoneTotal  += int32(DoneAdvertisedBenefit * coeff * LvlPenalty);
+=======
+        DoneTotal  += int32(DoneAdvertisedBenefit * (CastingTime / 3500.0f) * DotFactor * LvlPenalty * SpellModSpellDamage * 1.88f);
+>>>>>>> 3ec6a552b1f4c223d2e28316aa004c682811ab98
     }
 
     // use float as more appropriate for negative values and percent applying
@@ -10097,7 +10089,7 @@ uint32 Unit::SpellHealingBonusTaken(Unit *pCaster, SpellEntry const *spellProto,
     // Taken fixed damage bonus auras
     int32 TakenAdvertisedBenefit = SpellBaseHealingBonusTaken(GetSpellSchoolMask(spellProto));
 
-    float LvlPenalty = CalculateLevelPenalty(spellProto);
+    float LvlPenalty = pCaster->CalculateLevelPenalty(spellProto);
 
     // Check for table values
     SpellBonusEntry const* bonus = sSpellMgr.GetSpellBonusData(spellProto->Id);
@@ -10653,7 +10645,7 @@ uint32 Unit::MeleeDamageBonusTaken(Unit *pCaster, uint32 pdamage,WeaponAttackTyp
     // scaling of non weapon based spells
     if (!isWeaponDamageBasedSpell)
     {
-        float LvlPenalty = CalculateLevelPenalty(spellProto);
+        float LvlPenalty = pCaster->CalculateLevelPenalty(spellProto);
 
         // Check for table values
         if (SpellBonusEntry const* bonus = sSpellMgr.GetSpellBonusData(spellProto->Id))
