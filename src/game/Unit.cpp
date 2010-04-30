@@ -2510,6 +2510,9 @@ MeleeHitOutcome Unit::RollMeleeOutcomeAgainst(const Unit *pVictim, WeaponAttackT
     // Critical hit chance
     float crit_chance = GetUnitCriticalChance(attType, pVictim);
 
+	if (crit_chance < 0.0f)
+        crit_chance = 0.0f;
+
     // stunned target cannot dodge and this is check in GetUnitDodgeChance() (returned 0 in this case)
     float dodge_chance = pVictim->GetUnitDodgeChance();
     float block_chance = pVictim->GetUnitBlockChance();
@@ -3325,8 +3328,7 @@ float Unit::GetUnitCriticalChance(WeaponAttackType attackType, const Unit *pVict
     // Apply crit chance from defence skill
     crit += (int32(GetMaxSkillValueForLevel(pVictim)) - int32(pVictim->GetDefenseSkillValue(this))) * 0.04f;
 
-    if (crit < 0.0f)
-        crit = 0.0f;
+    // we need to keep this non-capped by null, because of further calculations in IsSpellCrit()
     return crit;
 }
 
