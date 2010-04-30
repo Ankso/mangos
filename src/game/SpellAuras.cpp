@@ -2577,11 +2577,13 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             }
             case 58600:                                     // Restricted Flight Area
             {
-                // Remove Flight Auras
-                m_target->CastSpell(m_target, 58601, true);
-                // Parachute
-                m_target->CastSpell(m_target, 45472, true);
+                if (GetAuraDuration() == 0)
+				{
+                m_target->CastSpell(m_target, 58601, true);   // Remove Flight Auras
+                m_target->CastSpell(m_target, 45472, true);   // Parachute Buff
+                m_target->CastSpell(m_target, 61243, true);   // Parachute Visual
                 return;
+				}
             }
         }
 

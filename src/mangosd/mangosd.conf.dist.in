@@ -578,6 +578,12 @@ LexicsCutterNoActionOnGM = 1
 #        Default: 0 (false)
 #                 1 (true)
 #
+#    DalaranRestrictedFlightArea
+#        Players that try to fly over Dalaran for more than 10 sec will be dismounted.
+#        Default 0 (Disabled)
+#                1 (Enable.DalaranRestrictedFlightArea)
+#                2 (Enable.SafeZones+1)
+#
 #    AlwaysMaxSkillForLevel
 #        Players will automatically gain max level dependent (weapon/defense) skill when logging in, leveling up etc.
 #        Default: 0 (false)
@@ -759,6 +765,7 @@ StartArenaPoints = 0
 InstantLogout = 1
 DisableWaterBreath = 4
 AllFlightPaths = 0
+DalaranRestrictedFlightArea = 0
 AlwaysMaxSkillForLevel = 0
 ActivateWeather = 1
 CastUnstuck = 1

@@ -103,7 +103,7 @@ bool ChatHandler::HandleServerInfoCommand(const char* /*args*/)
     PSendSysMessage(LANG_USING_EVENT_AI,sWorld.GetCreatureEventAIVersion());
     PSendSysMessage(LANG_CONNECTED_USERS, activeClientsNum, maxActiveClientsNum, queuedClientsNum, maxQueuedClientsNum);
     PSendSysMessage(LANG_UPTIME, str.c_str());
-	SendSysMessage("Revision ReinoDeLaOscuridad: [9] || Version modificada de MaNGOS para nuestro Servidor");
+	SendSysMessage("Revision ReinoDeLaOscuridad: [10] || Version modificada de MaNGOS para nuestro Servidor");
 
     return true;
 }
