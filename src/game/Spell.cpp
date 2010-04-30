@@ -1624,12 +1624,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 }
             }
             break;
-=======
-        {
-            // used for targeting gameobjects
-            targetUnitMap.push_back(m_caster);
-            break;
->>>>>>> b9ed04b4a357a4144d5d9e3d0b60e2d82d5b0a1e
         }
         case TARGET_RANDOM_ENEMY_CHAIN_IN_AREA:
         {
@@ -1825,7 +1819,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         case TARGET_ALL_ENEMY_IN_AREA:
             FillAreaTargets(targetUnitMap, m_targets.m_destX, m_targets.m_destY, radius, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_DAMAGE);
             break;
-        case TARGET_AREAEFFECT_CUSTOM:
         case TARGET_AREAEFFECT_CUSTOM_2:
         case TARGET_AREAEFFECT_INSTANT:
         {

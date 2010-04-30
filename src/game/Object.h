@@ -478,12 +478,9 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         void BuildUpdateData(UpdateDataMapType &);
 
         Creature* SummonCreature(uint32 id, float x, float y, float z, float ang,TempSummonType spwtype,uint32 despwtime);
-<<<<<<< HEAD
         GameObject* SummonGameobject(uint32 id, float x, float y, float z, float angle, uint32 despwtime);
-=======
         Vehicle* SummonVehicle(uint32 id, float x, float y, float z, float ang, uint32 vehicleId = NULL);
 
->>>>>>> b9ed04b4a357a4144d5d9e3d0b60e2d82d5b0a1e
     protected:
         explicit WorldObject();
 
