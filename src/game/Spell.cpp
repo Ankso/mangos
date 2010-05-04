@@ -1624,40 +1624,51 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
 					else if (m_spellInfo->Effect[effIndex] == SPELL_EFFECT_SUMMON)
 					{
 						targetUnitMap.push_back(m_caster);
-						break;
+							break;
 					}
 
-					std::list<Unit*> tempTargetUnitMap;
+					UnitList tempTargetUnitMap;
 					SpellScriptTargetBounds bounds = sSpellMgr.GetSpellScriptTargetBounds(m_spellInfo->Id);
 					// fill real target list if no spell script target defined
 					FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap, m_targets.m_destX, m_targets.m_destY, radius, PUSH_DEST_CENTER, SPELL_TARGETS_ALL);
            
 					if (!tempTargetUnitMap.empty())
 					{
-						for (std::list<Unit*>::const_iterator iter = tempTargetUnitMap.begin(); iter != tempTargetUnitMap.end(); ++iter)
+						for (UnitList::const_iterator iter = tempTargetUnitMap.begin(); iter != tempTargetUnitMap.end(); ++iter)
 						{
 							if ((*iter)->GetTypeId() != TYPEID_UNIT)
-							continue;
+								continue;
 
 							for(SpellScriptTarget::const_iterator i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
 							{
 								// only creature entries supported for this target type
 								if (i_spellST->second.type == SPELL_TARGET_TYPE_GAMEOBJECT)
-								continue;
+									continue;
 
 								if ((*iter)->GetEntry() == i_spellST->second.targetEntry)
 								{
 									targetUnitMap.push_back((*iter));
-									break;
+										break;
 								}
 							}
 						}
 					}
+					else
+					{
+						// remove not targetable units if spell has no script targets
+						for (UnitList::const_iterator itr = targetUnitMap.begin(); itr != targetUnitMap.end(); )
+						{
+							if (!(*itr)->isTargetableForAttack(m_spellInfo->AttributesEx3 & SPELL_ATTR_EX3_CAST_ON_DEAD))
+								targetUnitMap.erase(itr++);
+							else
+								++itr;
+						}
+					}
 					break;
-                }
-            }
-            break;
-        }
+				}
+			}
+			break;
+		}
         case TARGET_RANDOM_ENEMY_CHAIN_IN_AREA:
         {
             m_targets.m_targetMask = 0;
@@ -1864,55 +1875,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
 
             // exclude caster
             targetUnitMap.remove(m_caster);
-            break;
-        }
-        case TARGET_AREAEFFECT_CUSTOM:
-        {
-            if (m_spellInfo->Effect[effIndex] == SPELL_EFFECT_PERSISTENT_AREA_AURA)
-                break;
-            else if (m_spellInfo->Effect[effIndex] == SPELL_EFFECT_SUMMON)
-            {
-                targetUnitMap.push_back(m_caster);
-                break;
-            }
-
-            UnitList tempTargetUnitMap;
-            SpellScriptTargetBounds bounds = sSpellMgr.GetSpellScriptTargetBounds(m_spellInfo->Id);
-            // fill real target list if no spell script target defined
-            FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap, m_targets.m_destX, m_targets.m_destY, radius, PUSH_DEST_CENTER, SPELL_TARGETS_ALL);
-           
-            if (!tempTargetUnitMap.empty())
-            {
-                for (UnitList::const_iterator iter = tempTargetUnitMap.begin(); iter != tempTargetUnitMap.end(); ++iter)
-                {
-                    if ((*iter)->GetTypeId() != TYPEID_UNIT)
-                        continue;
-
-                    for(SpellScriptTarget::const_iterator i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
-                    {
-                        // only creature entries supported for this target type
-                        if (i_spellST->second.type == SPELL_TARGET_TYPE_GAMEOBJECT)
-                            continue;
-
-                        if ((*iter)->GetEntry() == i_spellST->second.targetEntry)
-                        {
-                            targetUnitMap.push_back((*iter));
-                            break;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                // remove not targetable units if spell has no script targets
-                for (UnitList::const_iterator itr = targetUnitMap.begin(); itr != targetUnitMap.end(); )
-                {
-                    if (!(*itr)->isTargetableForAttack(m_spellInfo->AttributesEx3 & SPELL_ATTR_EX3_CAST_ON_DEAD))
-                        targetUnitMap.erase(itr++);
-                    else
-                        ++itr;
-                }
-            }
             break;
         }
         case TARGET_ALL_ENEMY_IN_AREA_INSTANT:
