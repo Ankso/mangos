@@ -2312,6 +2312,8 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         bool isActiveObject() const { return true; }
         bool canSeeSpellClickOn(Creature const* creature) const;
+		
+		Player* LastDmgDealer;
     protected:
 
         uint32 m_contestedPvPTimer;
