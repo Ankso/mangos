@@ -7203,6 +7203,8 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     // not all charge effects used in negative spells
     if (unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id))
         m_caster->Attack(unitTarget, true);
+	//Warbringer - remove movement imparing effects for Intervene
+    if(m_caster->HasAura(57499) && m_spellInfo->Id == 3411)
 }
 
 void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
