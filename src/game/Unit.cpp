@@ -3941,6 +3941,7 @@ bool Unit::AddAura(Aura *Aur)
                     case SPELL_AURA_OBS_MOD_HEALTH:
                     case SPELL_AURA_PERIODIC_MANA_LEECH:
                     case SPELL_AURA_OBS_MOD_MANA:
+					case SPELL_AURA_MOD_STUN:
                     case SPELL_AURA_POWER_BURN_MANA:
                         break;
                     case SPELL_AURA_PERIODIC_ENERGIZE:      // all or self or clear non-stackable
@@ -7259,6 +7260,12 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     }
                 }
                 break;
+            }
+			// Hungering Cold - not break from diseases
+            if (dummySpell->SpellIconID == 2797)
+            {
+                if (procSpell && procSpell->Dispel == DISPEL_DISEASE)
+                    return false;
             }
             // Wandering Plague
             if (dummySpell->SpellIconID == 1614)
