@@ -883,6 +883,7 @@ uint32 Player::EnvironmentalDamage(EnviromentalDamage type, uint32 damage)
     SendMessageToSet(&data, true);
 
     Player* DmgSource = this;
+	uint32 final_damage = EnvironmentalDamage(DAMAGE_FALL, damage);
     if(isInCombat() && GetHealth() <= final_damage )
     {
         AttackerSet const& attackers = getAttackers();
@@ -899,7 +900,6 @@ uint32 Player::EnvironmentalDamage(EnviromentalDamage type, uint32 damage)
         }
     }
 
-    uint32 final_damage = DmgSource->DealDamage(this, damage, NULL, SELF_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false, absorb);
     
 	if(!isAlive())
     {
