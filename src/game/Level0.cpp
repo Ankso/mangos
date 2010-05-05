@@ -98,7 +98,7 @@ bool ChatHandler::HandleServerInfoCommand(const char* /*args*/)
         full = _FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,REVISION_ID);
 
     SendSysMessage(full);
-	SendSysMessage("Revision ReinoDeLaOscuridad: [28] || Version modificada de MaNGOS para nuestro Servidor");
+	SendSysMessage("Revision ReinoDeLaOscuridad: [29] || Version modificada de MaNGOS para nuestro Servidor");
 	SendSysMessage("Libreria de Scripts: ScriptDev2 (Version modificada)");
 	SendSysMessage("Base de datos: YTDB (www.ytdb.ru)");
 	SendSysMessage("EventAI: ACID & YTDB");
