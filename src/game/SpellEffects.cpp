@@ -641,7 +641,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
 
                             if(needConsume)
                                 for (uint32 i = 0; i < doses; ++i)
-                                    unitTarget->RemoveSingleSpellAurasFromStack(spellId);
+                                    unitTarget->RemoveSingleSpellAurasByCasterSpell(spellId, m_caster->GetGUID());
 
                             damage *= doses;
                             damage += int32(((Player*)m_caster)->GetTotalAttackPowerValue(BASE_ATTACK) * 0.09f * doses);
@@ -1801,13 +1801,18 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 if(!original_rage)
                     m_caster->SetPower(POWER_RAGE,executeInfo->manaCost);
 
-                // up to max 30 rage cost
-                if (int32(rage) > (300 - GetPowerCost()))
-                    rage = (300 - GetPowerCost());
+                if (!rage)
+                    m_caster->SetPower(POWER_RAGE, 1);
+
+                uint32 rage_addition = rage;
+
+                // up to max 30 total rage cost
+                if (rage_addition + GetPowerCost() > 300)
+                    rage_addition = 300 - GetPowerCost();
+
+                uint32 rage_modified = rage_addition;
 
                 // Glyph of Execution bonus
-                uint32 rage_modified = rage;
-
                 if (Aura *aura = m_caster->GetDummyAura(58367))
                     rage_modified +=  aura->GetModifier()->m_amount*10;
 
@@ -1818,12 +1823,16 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 				uint32 rageLeft = original_rage-rage; // for easier sudden death calculation
                 uint32 lastrage=0;
 
+                uint32 new_rage = rage - rage_addition;
+
                 // Sudden Death
-                if (m_caster->HasAura(52437))
+                Unit::AuraList const& auras = m_caster->GetAurasByType(SPELL_AURA_PROC_TRIGGER_SPELL);
+                for (Unit::AuraList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
                 {
-                    Unit::AuraList const& auras = m_caster->GetAurasByType(SPELL_AURA_PROC_TRIGGER_SPELL);
-                    for (Unit::AuraList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+                    // Only Sudden Death have this SpellIconID with SPELL_AURA_PROC_TRIGGER_SPELL
+                    if ((*itr)->GetSpellProto()->SpellIconID == 1989)
                     {
+<<<<<<< HEAD
                         // Only Sudden Death have this SpellIconID with SPELL_AURA_PROC_TRIGGER_SPELL
                         if ((*itr)->GetSpellProto()->SpellIconID == 1989)
                         {
@@ -1837,6 +1846,19 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 }
 
                 m_caster->SetPower(POWER_RAGE,rageLeft);
+=======
+                        // saved rage top stored in next affect
+                        uint32 save_rage = (*itr)->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_1)*10;
+
+                        if (new_rage < save_rage)
+                            new_rage = save_rage;
+
+                        break;
+                    }
+                }
+
+                m_caster->SetPower(POWER_RAGE, new_rage);
+>>>>>>> b4cca1df280b890e75e22a5cb5b9392f674d9234
                 return;
             }
             // Slam
@@ -2635,30 +2657,7 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
             if (unitTarget->GetTypeId() != TYPEID_PLAYER)
                 return;
 
-            // get highest rank of the Stealth spell
-            uint32 spellId = 0;
-            const PlayerSpellMap& sp_list = ((Player*)unitTarget)->GetSpellMap();
-            for (PlayerSpellMap::const_iterator itr = sp_list.begin(); itr != sp_list.end(); ++itr)
-            {
-                // only highest rank is shown in spell book, so simply check if shown in spell book
-                if (!itr->second.active || itr->second.disabled || itr->second.state == PLAYERSPELL_REMOVED)
-                    continue;
-
-                SpellEntry const *spellInfo = sSpellStore.LookupEntry(itr->first);
-                if (!spellInfo)
-                    continue;
-
-                if (spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE && spellInfo->SpellFamilyFlags & SPELLFAMILYFLAG_ROGUE_STEALTH)
-                {
-                    spellId = spellInfo->Id;
-                    break;
-                }
-            }
-
-            // no Stealth spell found
-            if (!spellId)
-                return;
-
+            uint32 spellId = 1784;
             // reset cooldown on it if needed
             if (((Player*)unitTarget)->HasSpellCooldown(spellId))
                 ((Player*)unitTarget)->RemoveSpellCooldown(spellId);
@@ -5911,6 +5910,36 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         unitTarget->CastSpell(unitTarget, 47325, true);
 
                     break;
+                }
+                case 47393:                                 // The Focus on the Beach: Quest Completion Script
+                {
+                    if (!unitTarget)
+                        return;
+
+                    if (unitTarget->HasAura(47391, EFFECT_INDEX_0))
+                        unitTarget->RemoveAurasDueToSpell(47391);
+
+                    return;
+                }
+                case 47615:                                 // Atop the Woodlands: Quest Completion Script
+                {
+                    if (!unitTarget)
+                        return;
+
+                    if (unitTarget->HasAura(47473, EFFECT_INDEX_0))
+                        unitTarget->RemoveAurasDueToSpell(47473);
+
+                    return;
+                }
+                case 47638:                                 // The End of the Line: Quest Completion Script
+                {
+                    if (!unitTarget)
+                        return;
+
+                    if (unitTarget->HasAura(47636, EFFECT_INDEX_0))
+                        unitTarget->RemoveAurasDueToSpell(47636);
+
+                    return;
                 }
                 case 48603:                                 // High Executor's Branding Iron
                     // Torture the Torturer: High Executor's Branding Iron Impact
