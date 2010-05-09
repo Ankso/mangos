@@ -1832,21 +1832,6 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     // Only Sudden Death have this SpellIconID with SPELL_AURA_PROC_TRIGGER_SPELL
                     if ((*itr)->GetSpellProto()->SpellIconID == 1989)
                     {
-<<<<<<< HEAD
-                        // Only Sudden Death have this SpellIconID with SPELL_AURA_PROC_TRIGGER_SPELL
-                        if ((*itr)->GetSpellProto()->SpellIconID == 1989)
-                        {
-                            // saved rage top stored in next affect
-                            uint32 lastrage = (*itr)->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_1)*10;
-                            if(rageLeft < lastrage)
-			                    rageLeft = lastrage;
-                            break;
-                        }
-                    }
-                }
-
-                m_caster->SetPower(POWER_RAGE,rageLeft);
-=======
                         // saved rage top stored in next affect
                         uint32 save_rage = (*itr)->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_1)*10;
 
@@ -1858,7 +1843,6 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 }
 
                 m_caster->SetPower(POWER_RAGE, new_rage);
->>>>>>> b4cca1df280b890e75e22a5cb5b9392f674d9234
                 return;
             }
             // Slam
