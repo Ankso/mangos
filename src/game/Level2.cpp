@@ -1130,6 +1130,9 @@ bool ChatHandler::HandleNpcAddVendorItemCommand(const char* args)
 
     char* fextendedcost = strtok(NULL, " ");                //add ExtendedCost, default: 0
     uint32 extendedcost = fextendedcost ? atol(fextendedcost) : 0;
+    
+    char* fsortorder = strtok(NULL, " ");                   //add SortOrder, default: 0
+    uint32 sortorder = fsortorder ? atol(fsortorder) : 0;
 
     Creature* vendor = getSelectedCreature();
 
@@ -1141,12 +1144,43 @@ bool ChatHandler::HandleNpcAddVendorItemCommand(const char* args)
         return false;
     }
 
-    sObjectMgr.AddVendorItem(vendor_entry,itemId,maxcount,incrtime,extendedcost);
+    sObjectMgr.AddVendorItem(vendor_entry,itemId,maxcount,incrtime,extendedcost,sortorder);
 
     ItemPrototype const* pProto = ObjectMgr::GetItemPrototype(itemId);
 
     PSendSysMessage(LANG_ITEM_ADDED_TO_LIST,itemId,pProto->Name1,maxcount,incrtime,extendedcost);
     return true;
+}
+
+//move item in vendor list
+bool ChatHandler::HandleNpcMoveVendorItemCommand(const char* args)
+{
+	char* pitem  = extractKeyFromLink((char*)args,"Hitem");
+    if (!pitem)
+    {
+        SendSysMessage(LANG_COMMAND_NEEDITEMSEND);
+        SetSentErrorMessage(true);
+        return false;
+    }
+    uint32 itemId = atol(pitem);
+    
+    char* fsortorder = strtok(NULL, " ");                //add SortOrder, default: 0
+    uint32 sortorder = fsortorder ? atol(fsortorder) : 0;
+    
+    Creature* vendor = getSelectedCreature();
+    if (!vendor || !vendor->isVendor())
+    {
+        SendSysMessage(LANG_COMMAND_VENDORSELECTION);
+        SetSentErrorMessage(true);
+        return false;
+    }
+    uint32 vendor_entry = vendor ? vendor->GetEntry() : 0;
+    
+    sObjectMgr.MoveVendorItem(vendor_entry,itemId,sortorder);
+    ItemPrototype const* pProto = ObjectMgr::GetItemPrototype(itemId);
+    
+	PSendSysMessage(LANG_ITEM_MOVED_IN_LIST,itemId,pProto->Name1,sortorder);
+	return true;
 }
 
 //del item from vendor list

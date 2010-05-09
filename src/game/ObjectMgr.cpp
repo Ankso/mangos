@@ -8104,7 +8104,7 @@ void ObjectMgr::LoadVendors()
 
     std::set<uint32> skip_vendors;
 
-    QueryResult *result = WorldDatabase.Query("SELECT entry, item, maxcount, incrtime, ExtendedCost FROM npc_vendor");
+    QueryResult *result = WorldDatabase.Query("SELECT entry, item, maxcount, incrtime, ExtendedCost FROM npc_vendor ORDER BY sortOrder");
     if( !result )
     {
         barGoLink bar( 1 );
@@ -8406,12 +8406,14 @@ void ObjectMgr::LoadGossipMenuItems()
     sLog.outString(">> Loaded %u gossip_menu_option entries", count);
 }
 
-void ObjectMgr::AddVendorItem( uint32 entry,uint32 item, uint32 maxcount, uint32 incrtime, uint32 extendedcost )
+void ObjectMgr::AddVendorItem( uint32 entry,uint32 item, uint32 maxcount, uint32 incrtime, uint32 extendedcost, uint32 sortOrder )
 {
     VendorItemData& vList = m_mCacheVendorItemMap[entry];
     vList.AddItem(item,maxcount,incrtime,extendedcost);
 
-    WorldDatabase.PExecuteLog("INSERT INTO npc_vendor (entry,item,maxcount,incrtime,extendedcost) VALUES('%u','%u','%u','%u','%u')",entry, item, maxcount,incrtime,extendedcost);
+    WorldDatabase.PExecuteLog("UPDATE npc_vendor SET sortOrder = sortOrder + 1 WHERE entry = %u AND sortOrder >= %u",entry,sortOrder);
+
+    WorldDatabase.PExecuteLog("INSERT INTO npc_vendor (entry,item,maxcount,incrtime,extendedcost,sortOrder) VALUES('%u','%u','%u','%u','%u','%u')",entry, item,maxcount,incrtime,extendedcost,sortOrder);
 }
 
 bool ObjectMgr::RemoveVendorItem( uint32 entry,uint32 item )
@@ -8423,7 +8425,24 @@ bool ObjectMgr::RemoveVendorItem( uint32 entry,uint32 item )
     if(!iter->second.RemoveItem(item))
         return false;
 
+    WorldDatabase.PExecuteLog("UPDATE npc_vendor list, npc_vendor currentitem SET list.sortOrder = list.sortOrder - 1 WHERE list.sortOrder > currentitem.sortOrder AND currentitem.entry='%u' AND currentitem.entry=list.entry AND currentitem.item = '%u';",entry,item);
+    
     WorldDatabase.PExecuteLog("DELETE FROM npc_vendor WHERE entry='%u' AND item='%u'",entry, item);
+    return true;
+}
+
+bool ObjectMgr::MoveVendorItem( uint32 entry,uint32 item,uint32 sortorder )
+{
+    CacheVendorItemMap::iterator  iter = m_mCacheVendorItemMap.find(entry);
+    if(iter == m_mCacheVendorItemMap.end())
+        return false;
+
+    if(!iter->second.RemoveItem(item))
+        return false;
+    
+    WorldDatabase.PExecuteLog("UPDATE npc_vendor list, npc_vendor currentitem SET list.sortOrder = list.sortOrder - 1 WHERE list.sortOrder > currentitem.sortOrder AND currentitem.entry='%u' AND currentitem.entry=list.entry AND currentitem.item = '%u';",entry,item);
+    WorldDatabase.PExecuteLog("UPDATE npc_vendor SET `sortOrder`=`sortOrder`+1 WHERE `entry`='%u' AND `sortOrder`>='%u'", entry, sortorder);
+    WorldDatabase.PExecuteLog("UPDATE npc_vendor SET `sortOrder`='%u' WHERE `entry`='%u' AND `item`='%u'", sortorder, entry, item);
     return true;
 }
 
