@@ -6098,6 +6098,11 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     m_caster->CastSpell(unitTarget, 72588, true);
                     return;
                 }
+				case 71563:
+				{
+					m_caster->CastSpell(m_caster, 71564, true);
+					return;
+				}
             }
             break;
         }
