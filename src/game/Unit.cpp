@@ -9732,14 +9732,14 @@ int32 Unit::GetMaxSpellBaseDamageBonus(SpellSchoolMask schoolMask)
     for (int i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; i++)
         if (schoolMask & SpellSchoolMask(1 << i))
         {
-            int32 current = SpellBaseDamageBonus(SpellSchoolMask(1 << i));
+            int32 current = SpellBaseDamageBonusDone(SpellSchoolMask(1 << i));
             if (current > bonus)
                 bonus = current;
         }
     return bonus > 0 ? bonus : 0;
 }
 
-bool Unit::isSpellCrit(Unit *pVictim, SpellEntry const *spellProto, SpellSchoolMask schoolMask, WeaponAttackType attackType)
+bool Unit::IsSpellCrit(Unit *pVictim, SpellEntry const *spellProto, SpellSchoolMask schoolMask, WeaponAttackType attackType)
 {
     // not critting spell
     if((spellProto->AttributesEx2 & SPELL_ATTR_EX2_CANT_CRIT))

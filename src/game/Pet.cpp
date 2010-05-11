@@ -922,13 +922,13 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
                     statBonus[STAT_STAMINA] = owner->GetStat(STAT_STAMINA) * 0.3f;
                     statBonus[STAT_INTELLECT] = owner->GetStat(STAT_INTELLECT) * 0.3f;
                     armorBonus = owner->GetArmor() * 0.35f;
-                    bonusDamage = owner->SpellBaseDamageBonus(SPELL_SCHOOL_MASK_FROST) * 0.4f;
+                    bonusDamage = owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_FROST) * 0.4f;
                     break;
                 }
                 // priest's Shadowfiend
                 case 19668:
                 {
-                    apBonus = owner->SpellBaseDamageBonus(SPELL_SCHOOL_MASK_SHADOW) * 0.565f;
+                    apBonus = owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_SHADOW) * 0.565f;
                     break;
                 }
                 // Feral Spirit Wolves
@@ -1956,7 +1956,7 @@ void Pet::UpdateScalingAuras()
     {
         SpellEntry const* spellInfo = (*itr)->GetSpellProto();
         // check if we need to update aura
-        int32 amount = CalculateSpellDamage(spellInfo, (*itr)->GetEffIndex(), 0 ,this);
+        int32 amount = CalculateSpellDamage(this, spellInfo, (*itr)->GetEffIndex(), 0);
         if ((*itr)->GetModifier()->m_amount == amount)
             continue;
 
@@ -2177,7 +2177,7 @@ uint32 Pet::CalcScalingAuraBonus(SpellEntry const* spellInfo, uint8 effect_index
             scale = 1.0f;
             break;
         }
-        case SPELL_AURA_MELEE_SLOW:
+        case SPELL_AURA_HASTE_ALL:
         {
             // find owners maximum haste (== minimum speedPct factor)
             float cur = 1.0f, factor[3] = {owner->m_modAttackSpeedPct[BASE_ATTACK], m_modAttackSpeedPct[RANGED_ATTACK], owner->GetFloatValue(UNIT_MOD_CAST_SPEED)};
