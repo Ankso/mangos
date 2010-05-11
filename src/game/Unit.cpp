@@ -1827,6 +1827,10 @@ void Unit::CalculateAbsorbAndResist(Unit *pCaster, SpellSchoolMask schoolMask, D
         // Ignore resistance by self SPELL_AURA_MOD_TARGET_RESISTANCE aura
         tmpvalue2 += (float)pCaster->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_TARGET_RESISTANCE, schoolMask);
 
+        // all pets receive 100% of owner's spell penetration
+        if (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->isPet() && GetOwner())
+            tmpvalue2 += float(GetOwner()->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_TARGET_RESISTANCE, schoolMask));
+
         tmpvalue2 *= (float)(0.15f / getLevel());
         if (tmpvalue2 < 0.0f)
             tmpvalue2 = 0.0f;
@@ -4015,6 +4019,10 @@ bool Unit::AddAura(Aura *Aur)
     {
         m_modAuras[aurName].push_back(Aur);
     }
+    if (aurSpellInfo->AttributesEx4 & SPELL_ATTR_EX4_PET_SCALING_AURA && GetTypeId() == TYPEID_UNIT && ((Creature*)this)->isPet())
+    {
+        ((Pet*)this)->m_scalingauras.push_back(Aur);
+    }
 
     Aur->ApplyModifier(true,true);
     DEBUG_LOG("Aura %u now is in use", aurName);
@@ -4549,6 +4557,10 @@ void Unit::RemoveAura(AuraMap::iterator &i, AuraRemoveMode mode)
     if (Aur->GetModifier()->m_auraname < TOTAL_AURAS)
     {
         m_modAuras[Aur->GetModifier()->m_auraname].remove(Aur);
+    }
+    if (AurSpellInfo->AttributesEx4 & SPELL_ATTR_EX4_PET_SCALING_AURA && GetTypeId() == TYPEID_UNIT && ((Creature*)this)->isPet())
+    {
+        ((Pet*)this)->m_scalingauras.remove(Aur);
     }
 
     // Set remove mode
@@ -9180,9 +9192,22 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
     float DoneTotalMod = 1.0f;
     int32 DoneTotal = 0;
 
+<<<<<<< HEAD
     // Creature damage
     if( GetTypeId() == TYPEID_UNIT && !((Creature*)this)->isPet() )
         DoneTotalMod *= ((Creature*)this)->GetSpellDamageMod(((Creature*)this)->GetCreatureInfo()->rank);
+=======
+    // ..done
+
+    // creature and pet bonus mods
+    if (GetTypeId() == TYPEID_UNIT)
+    {
+        if (!((Creature*)this)->isPet())
+            DoneTotalMod *= ((Creature*)this)->GetSpellDamageMod(((Creature*)this)->GetCreatureInfo()->rank);
+        else
+            DoneTotalMod *= ((Pet*)this)->GetHappinessDamageMod();
+    }
+>>>>>>> def54d088ccb78d66b4855d83bd29e25f8a88115
 
     if (!(spellProto->AttributesEx6 & SPELL_ATTR_EX6_NO_DMG_PERCENT_MODS))
     {
@@ -9707,7 +9732,24 @@ int32 Unit::SpellBaseDamageBonusTaken(SpellSchoolMask schoolMask)
     return TakenAdvertisedBenefit;
 }
 
+<<<<<<< HEAD
 bool Unit::IsSpellCrit(Unit *pVictim, SpellEntry const *spellProto, SpellSchoolMask schoolMask, WeaponAttackType attackType)
+=======
+int32 Unit::GetMaxSpellBaseDamageBonus(SpellSchoolMask schoolMask)
+{
+    int32 bonus = 0;
+    for (int i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; i++)
+        if (schoolMask & SpellSchoolMask(1 << i))
+        {
+            int32 current = SpellBaseDamageBonus(SpellSchoolMask(1 << i));
+            if (current > bonus)
+                bonus = current;
+        }
+    return bonus > 0 ? bonus : 0;
+}
+
+bool Unit::isSpellCrit(Unit *pVictim, SpellEntry const *spellProto, SpellSchoolMask schoolMask, WeaponAttackType attackType)
+>>>>>>> def54d088ccb78d66b4855d83bd29e25f8a88115
 {
     // not critting spell
     if((spellProto->AttributesEx2 & SPELL_ATTR_EX2_CANT_CRIT))
@@ -10425,7 +10467,8 @@ uint32 Unit::MeleeDamageBonusDone(Unit *pVictim, uint32 pdamage,WeaponAttackType
         AuraList const& mModDamageDone = GetAurasByType(SPELL_AURA_MOD_DAMAGE_DONE);
         for(AuraList::const_iterator i = mModDamageDone.begin(); i != mModDamageDone.end(); ++i)
         {
-            if ((*i)->GetModifier()->m_miscvalue & schoolMask &&                                    // schoolmask has to fit with the intrinsic spell school
+            if ((*i)->GetSpellProto()->AttributesEx4 & SPELL_ATTR_EX4_PET_SCALING_AURA ||           // completely schoolmask-independend: pet scaling auras, see note
+                (*i)->GetModifier()->m_miscvalue & schoolMask &&                                    // schoolmask has to fit with the intrinsic spell school
                 (*i)->GetModifier()->m_miscvalue & GetMeleeDamageSchoolMask() &&                    // AND schoolmask has to fit with weapon damage school (essential for non-physical spells)
                 ((*i)->GetSpellProto()->EquippedItemClass == -1 ||                                  // general, weapon independent
                 pWeapon && pWeapon->IsFitToSpellRequirements((*i)->GetSpellProto())))               // OR used weapon fits aura requirements
@@ -10433,8 +10476,14 @@ uint32 Unit::MeleeDamageBonusDone(Unit *pVictim, uint32 pdamage,WeaponAttackType
                 DoneFlat += (*i)->GetModifier()->m_amount;
             }
         }
+        /* Additional note to pet scaling auras:
+           Those auras have SPELL_SCHOOL_MASK_MAGIC, but anyway should also
+           affect physical damage from non-weapon-damage-based spells (claw, swipe etc.).
+           Alternatively we could use pet::m_bonusdamage (that is currently still used for pet's
+           without dynamic scaling auras), but this would make the scaling aura idea inconsistent in some way :-/
+        */
 
-        // Pets just add their bonus damage to their melee damage
+        // Pets (without scaling auras) just add their bonus damage to their melee damage
         if (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->isPet())
             DoneFlat += ((Pet*)this)->GetBonusDamage();
     }
@@ -10475,6 +10524,15 @@ uint32 Unit::MeleeDamageBonusDone(Unit *pVictim, uint32 pdamage,WeaponAttackType
 
         if (attType == OFF_ATTACK)
             DonePercent *= GetModifierValue(UNIT_MOD_DAMAGE_OFFHAND, TOTAL_PCT);                    // no school check required
+
+        // creature and pet bonus mods
+        if (GetTypeId() == TYPEID_UNIT)
+        {
+            if (!((Creature*)this)->isPet())
+                DonePercent *= ((Creature*)this)->GetSpellDamageMod(((Creature*)this)->GetCreatureInfo()->rank);
+            else
+                DonePercent *= ((Pet*)this)->GetHappinessDamageMod();
+        }
     }
 
     // ..done pct (by creature type mask)
@@ -12038,6 +12096,7 @@ int32 Unit::CalculateSpellDamage(Unit const* target, SpellEntry const* spellProt
             (spellProto->Effect[effect_index] != SPELL_EFFECT_APPLY_AURA || spellProto->EffectApplyAuraName[effect_index] != SPELL_AURA_MOD_DECREASE_SPEED))
         value = int32(value*0.25f*exp(getLevel()*(70-spellProto->spellLevel)/1000.0f));
 
+<<<<<<< HEAD
     // Frostbite trigger aura: if Fingers of Frost is active, it has saved a roll:
     if(spellProto->EffectTriggerSpell[effect_index] == 12494)
     {
@@ -12049,6 +12108,11 @@ int32 Unit::CalculateSpellDamage(Unit const* target, SpellEntry const* spellProt
         }
         sLog.outDebug("CalculateSpellDamage: no  saved roll for 12494 (Frostbite)");
     }
+=======
+    if(spellProto->AttributesEx4 & SPELL_ATTR_EX4_PET_SCALING_AURA && GetTypeId() == TYPEID_UNIT &&
+        ((Creature*)this)->isPet())
+        value += ((Pet*)this)->CalcScalingAuraBonus(spellProto, effect_index);
+>>>>>>> def54d088ccb78d66b4855d83bd29e25f8a88115
 
     return value;
 }
