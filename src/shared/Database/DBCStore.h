@@ -114,8 +114,11 @@ class DBCStorage
             }
             char * sqlDataTable;
             fieldCount = dbc.GetCols();
+
+			// load raw non-string data
             m_dataTable = (T*)dbc.AutoProduceData(fmt,nCount,(char**&)indexTable, sqlRecordCount, sqlHighestIndex, sqlDataTable);
 
+            // load strings from dbc data
             m_stringPoolList.push_back(dbc.AutoProduceStrings(fmt,(char*)m_dataTable));
 
             // Insert sql data into arrays
@@ -233,6 +236,7 @@ class DBCStorage
             if(!dbc.Load(fn, fmt))
                 return false;
 
+            // load strings from another locale dbc data
             m_stringPoolList.push_back(dbc.AutoProduceStrings(fmt,(char*)m_dataTable));
 
             return true;
@@ -266,4 +270,5 @@ class DBCStorage
         T* m_dataTable;
         StringPoolList m_stringPoolList;
 };
+
 #endif
