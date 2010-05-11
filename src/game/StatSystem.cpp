@@ -877,32 +877,6 @@ bool Pet::UpdateStats(Stats stat)
 
     // value = ((base_value * base_pct) + total_value) * total_pct
     float value  = GetTotalStatValue(stat);
-<<<<<<< HEAD
-
-    Unit *owner = GetOwner();
-    if ( stat == STAT_STAMINA )
-    {
-        if(owner && owner->GetTypeId() == TYPEID_PLAYER  && owner->getClass() == CLASS_WARLOCK)
-            value += float(owner->GetStat(stat)) * 0.75f;
-        else if (owner)
-            value += float(owner->GetStat(stat)) * 0.3f;
-    }
-	else if ( stat == STAT_STRENGTH && getPetType() == SUMMON_PET )
-    {
-        if (owner && (owner->getClass() == CLASS_DEATH_KNIGHT))
-        {
-            value += float(owner->GetStat(stat)) * 0.3f;
-        }
-    }
-                                                            //warlock's and mage's pets gain 30% of owner's intellect
-    else if ( stat == STAT_INTELLECT && getPetType() == SUMMON_PET )
-    {
-        if(owner && (owner->getClass() == CLASS_WARLOCK || owner->getClass() == CLASS_MAGE) )
-            value += float(owner->GetStat(stat)) * 0.3f;
-    }
-
-=======
->>>>>>> def54d088ccb78d66b4855d83bd29e25f8a88115
     SetStat(stat, int32(value));
 
     switch(stat)
@@ -954,16 +928,6 @@ void Pet::UpdateMaxHealth()
     float stamina = GetStat(STAT_STAMINA) - GetCreateStat(STAT_STAMINA);
     float multiplicator;
 
-<<<<<<< HEAD
-    // nesocips warlock pet stats calculation
-    switch(GetEntry())
-    {
-        case 416:   multiplicator = 8.4f;  break; // imp
-        case 1860:                                // voidwalker
-        case 17252: multiplicator = 11.0f; break; // felguard
-        case 1863:  multiplicator = 9.1f;  break; // succubus
-        case 417:   multiplicator = 9.5f;  break; // felhunter
-=======
     // some pets don't gain 10 hp per stamina
     switch(GetEntry())
     {
@@ -972,7 +936,6 @@ void Pet::UpdateMaxHealth()
         case 1863:  multiplicator = 9.1f;  break; // succubus
         case 1860:                                // voidwalker
         case 17252: multiplicator = 11.0f; break; // felguard
->>>>>>> def54d088ccb78d66b4855d83bd29e25f8a88115
         default:    multiplicator = 10.0f; break;
     }
 
@@ -991,15 +954,6 @@ void Pet::UpdateMaxPower(Powers power)
     float addValue = (power == POWER_MANA) ? GetStat(STAT_INTELLECT) - GetCreateStat(STAT_INTELLECT) : 0.0f;
     float multiplicator;
 
-<<<<<<< HEAD
-    // nesocips warlock pet stats calculation
-    switch(GetEntry())
-    {
-        case 416:   multiplicator = 4.95f; break; // imp
-        case 1860:                                // voidwalker
-        case 1863:                                // succubus
-        case 417:                                 // felhunter
-=======
     // some pets don't gain 15 mana per intellect
     switch(GetEntry())
     {
@@ -1007,18 +961,13 @@ void Pet::UpdateMaxPower(Powers power)
         case 417:                                 // felhunter
         case 1860:                                // voidwalker
         case 1863:                                // succubus
->>>>>>> def54d088ccb78d66b4855d83bd29e25f8a88115
         case 17252: multiplicator = 11.5f; break; // felguard
         default:    multiplicator = 15.0f; break;
     }
 
     float value  = GetModifierValue(unitMod, BASE_VALUE) + GetCreatePowers(power);
     value *= GetModifierValue(unitMod, BASE_PCT);
-<<<<<<< HEAD
     value += GetModifierValue(unitMod, TOTAL_VALUE) + addValue * multiplicator;
-=======
-    value += GetModifierValue(unitMod, TOTAL_VALUE) +  addValue * multiplicator;
->>>>>>> def54d088ccb78d66b4855d83bd29e25f8a88115
     value *= GetModifierValue(unitMod, TOTAL_PCT);
 
     SetMaxPower(power, uint32(value));
@@ -1035,46 +984,7 @@ void Pet::UpdateAttackPowerAndDamage(bool ranged)
     if(GetEntry() == 416)                                   // imp's attack power (probably this is correct for all "casters",
         val = GetStat(STAT_STRENGTH) - 10.0f;               // e.g. also mage's water elemental
     else
-<<<<<<< HEAD
-        val = 2 * GetStat(STAT_STRENGTH) - 20.0f;
-
-    Unit* owner = GetOwner();
-    if( owner && owner->GetTypeId()==TYPEID_PLAYER)
-    {
-        if(getPetType() == HUNTER_PET)                      //hunter pets benefit from owner's attack power
-        {
-            bonusAP = owner->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.22f;
-            SetBonusDamage( int32(owner->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.1287f));
-        }
-		//ghouls benefit from deathknight's attack power
-        else if(getPetType() == SUMMON_PET && owner->getClass() == CLASS_DEATH_KNIGHT)
-        {
-            bonusAP = owner->GetTotalAttackPowerValue(BASE_ATTACK) * 0.22f;
-            SetBonusDamage( int32(owner->GetTotalAttackPowerValue(BASE_ATTACK) * 0.1287f));
-        }
-        //demons benefit from warlocks shadow or fire damage
-        else if(getPetType() == SUMMON_PET && owner->getClass() == CLASS_WARLOCK)
-        {
-            int32 fire  = int32(owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SPELL_SCHOOL_FIRE)) - owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_NEG + SPELL_SCHOOL_FIRE);
-            int32 shadow = int32(owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SPELL_SCHOOL_SHADOW)) - owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_NEG + SPELL_SCHOOL_SHADOW);
-            int32 maximum  = (fire > shadow) ? fire : shadow;
-            if(maximum < 0)
-                maximum = 0;
-            SetBonusDamage( int32(maximum * 0.15f));
-            bonusAP = maximum * 0.57f;
-        }
-        //water elementals benefit from mage's frost damage
-        else if(getPetType() == SUMMON_PET && owner->getClass() == CLASS_MAGE)
-        {
-            int32 frost = int32(owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SPELL_SCHOOL_FROST)) - owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_NEG + SPELL_SCHOOL_FROST);
-            if(frost < 0)
-                frost = 0;
-            SetBonusDamage( int32(frost * 0.4f));
-        }
-    }
-=======
         val = 2 * GetStat(STAT_STRENGTH) - 20.0f;           // this is also not correct for all pets, e.g. dk ghoul gets less ap
->>>>>>> def54d088ccb78d66b4855d83bd29e25f8a88115
 
     SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, val);
 

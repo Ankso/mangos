@@ -9192,11 +9192,6 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
     float DoneTotalMod = 1.0f;
     int32 DoneTotal = 0;
 
-<<<<<<< HEAD
-    // Creature damage
-    if( GetTypeId() == TYPEID_UNIT && !((Creature*)this)->isPet() )
-        DoneTotalMod *= ((Creature*)this)->GetSpellDamageMod(((Creature*)this)->GetCreatureInfo()->rank);
-=======
     // ..done
 
     // creature and pet bonus mods
@@ -9207,7 +9202,6 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
         else
             DoneTotalMod *= ((Pet*)this)->GetHappinessDamageMod();
     }
->>>>>>> def54d088ccb78d66b4855d83bd29e25f8a88115
 
     if (!(spellProto->AttributesEx6 & SPELL_ATTR_EX6_NO_DMG_PERCENT_MODS))
     {
@@ -9732,9 +9726,6 @@ int32 Unit::SpellBaseDamageBonusTaken(SpellSchoolMask schoolMask)
     return TakenAdvertisedBenefit;
 }
 
-<<<<<<< HEAD
-bool Unit::IsSpellCrit(Unit *pVictim, SpellEntry const *spellProto, SpellSchoolMask schoolMask, WeaponAttackType attackType)
-=======
 int32 Unit::GetMaxSpellBaseDamageBonus(SpellSchoolMask schoolMask)
 {
     int32 bonus = 0;
@@ -9749,7 +9740,6 @@ int32 Unit::GetMaxSpellBaseDamageBonus(SpellSchoolMask schoolMask)
 }
 
 bool Unit::isSpellCrit(Unit *pVictim, SpellEntry const *spellProto, SpellSchoolMask schoolMask, WeaponAttackType attackType)
->>>>>>> def54d088ccb78d66b4855d83bd29e25f8a88115
 {
     // not critting spell
     if((spellProto->AttributesEx2 & SPELL_ATTR_EX2_CANT_CRIT))
@@ -12096,7 +12086,6 @@ int32 Unit::CalculateSpellDamage(Unit const* target, SpellEntry const* spellProt
             (spellProto->Effect[effect_index] != SPELL_EFFECT_APPLY_AURA || spellProto->EffectApplyAuraName[effect_index] != SPELL_AURA_MOD_DECREASE_SPEED))
         value = int32(value*0.25f*exp(getLevel()*(70-spellProto->spellLevel)/1000.0f));
 
-<<<<<<< HEAD
     // Frostbite trigger aura: if Fingers of Frost is active, it has saved a roll:
     if(spellProto->EffectTriggerSpell[effect_index] == 12494)
     {
@@ -12108,11 +12097,9 @@ int32 Unit::CalculateSpellDamage(Unit const* target, SpellEntry const* spellProt
         }
         sLog.outDebug("CalculateSpellDamage: no  saved roll for 12494 (Frostbite)");
     }
-=======
     if(spellProto->AttributesEx4 & SPELL_ATTR_EX4_PET_SCALING_AURA && GetTypeId() == TYPEID_UNIT &&
         ((Creature*)this)->isPet())
         value += ((Pet*)this)->CalcScalingAuraBonus(spellProto, effect_index);
->>>>>>> def54d088ccb78d66b4855d83bd29e25f8a88115
 
     return value;
 }
