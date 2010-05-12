@@ -8819,6 +8819,7 @@ void Aura::HandleAuraCloneCaster(bool Apply, bool Real)
     // Set item visual
     m_target->SetDisplayId(caster->GetDisplayId());
     m_target->SetUInt32Value(UNIT_FIELD_FLAGS_2, 2064);
+}
 
 void Aura::HandleAllowOnlyAbility(bool apply, bool Real)
 {
