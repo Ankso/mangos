@@ -39,21 +39,6 @@ bool Player::UpdateStats(Stats stat)
 
     SetStat(stat, int32(value));
 
-    // deathknight's ghoul benefit from owner's strength	
-    if(stat == STAT_STAMINA || stat == STAT_INTELLECT || stat == STAT_STRENGTH)
-    {
-        Pet *pet = GetPet();
-        if(pet)
-		{
-            pet->UpdateStats(stat);
-			 if (getClass() == CLASS_DEATH_KNIGHT && pet->getPetType() == SUMMON_PET)
-            {
-                pet->RemoveAllAuras();
-                pet->CastPetAuras(true);
-            }
-        }
-    }
-
     switch(stat)
     {
         case STAT_STRENGTH:
