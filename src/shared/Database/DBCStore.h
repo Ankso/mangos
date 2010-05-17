@@ -115,8 +115,7 @@ class DBCStorage
             char * sqlDataTable;
             fieldCount = dbc.GetCols();
 
-			// load raw non-string data
-
+            // load raw non-string data
             m_dataTable = (T*)dbc.AutoProduceData(fmt,nCount,(char**&)indexTable, sqlRecordCount, sqlHighestIndex, sqlDataTable);
 
             // load strings from dbc data

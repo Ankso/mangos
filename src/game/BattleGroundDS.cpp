@@ -98,7 +98,6 @@ void BattleGroundDS::RemovePlayer(Player* /*plr*/, uint64 /*guid*/)
     UpdateWorldState(0xe10, GetAlivePlayersCountByTeam(HORDE));
 
     CheckArenaWinConditions();
->>>>>>> 319aed40d0c5a07e732b40f2249a97c4211bf4b6
 }
 
 void BattleGroundDS::HandleKillPlayer(Player *player, Player *killer)
