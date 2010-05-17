@@ -583,7 +583,7 @@ bool ChatHandler::HandleReloadSpellProcEventCommand(const char*)
 bool ChatHandler::HandleReloadSpellBonusesCommand(const char*)
 {
     sLog.outString( "Re-Loading Spell Bonus Data..." );
-    sSpellMgr.LoadSpellBonusess();
+    sSpellMgr.LoadSpellBonuses();
     SendGlobalSysMessage("DB table `spell_bonus_data` (spell damage/healing coefficients) reloaded.");
     return true;
 }
@@ -5459,7 +5459,7 @@ bool ChatHandler::HandleGMFlyCommand(const char* args)
     {
         data.SetOpcode(SMSG_MOVE_SET_CAN_FLY);
         ((Player*)(target))->SetCanFly(true);
-    } 
+    }
     else if (strncmp(args, "off", 4) == 0)
     {
         data.SetOpcode(SMSG_MOVE_UNSET_CAN_FLY);

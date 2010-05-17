@@ -178,7 +178,7 @@ char* DBCFileLoader::AutoProduceData(const char* format, uint32& records, char**
     else
     {
         records = recordCount + sqlRecordCount;
-        indexTable = new ptr[recordCount+ sqlRecordCount];
+        indexTable = new ptr[recordCount + sqlRecordCount];
     }
 
     char* dataTable= new char[(recordCount + sqlRecordCount)*recordsize];

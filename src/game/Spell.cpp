@@ -1618,7 +1618,52 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
 		}
 		case TARGET_AREAEFFECT_CUSTOM:
-        {
+		{
+			if (m_spellInfo->Effect[effIndex] == SPELL_EFFECT_PERSISTENT_AREA_AURA)
+				break;
+			else if (m_spellInfo->Effect[effIndex] == SPELL_EFFECT_SUMMON)
+			{
+				targetUnitMap.push_back(m_caster);
+					break;
+			}
+
+			UnitList tempTargetUnitMap;
+			SpellScriptTargetBounds bounds = sSpellMgr.GetSpellScriptTargetBounds(m_spellInfo->Id);
+			// fill real target list if no spell script target defined
+			FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap, m_targets.m_destX, m_targets.m_destY, radius, PUSH_DEST_CENTER, SPELL_TARGETS_ALL);
+          
+			if (!tempTargetUnitMap.empty())
+			{
+				for (UnitList::const_iterator iter = tempTargetUnitMap.begin(); iter != tempTargetUnitMap.end(); ++iter)
+				{
+					if ((*iter)->GetTypeId() != TYPEID_UNIT)
+						continue;
+
+					for(SpellScriptTarget::const_iterator i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
+					{
+						// only creature entries supported for this target type
+						if (i_spellST->second.type == SPELL_TARGET_TYPE_GAMEOBJECT)
+							continue;
+
+						if ((*iter)->GetEntry() == i_spellST->second.targetEntry)
+						{
+							targetUnitMap.push_back((*iter));
+								break;
+						}
+					}
+				}
+			}
+			else
+			{
+				// remove not targetable units if spell has no script targets
+				for (UnitList::iterator itr = targetUnitMap.begin(); itr != targetUnitMap.end(); )
+				{
+					if (!(*itr)->isTargetableForAttack(m_spellInfo->AttributesEx3 & SPELL_ATTR_EX3_CAST_ON_DEAD))
+						targetUnitMap.erase(itr++);
+					else
+						++itr;
+				}
+			}
             switch (m_spellInfo->SpellFamilyName)
             {
                 case SPELLFAMILY_DEATHKNIGHT:
@@ -1634,7 +1679,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                                 (m_targets.getUnitTarget()->getDeathState() != CORPSE && m_targets.getUnitTarget()->getDeathState() != GHOULED) ||
                                 (m_targets.getUnitTarget()->GetCreatureTypeMask() & CREATURE_TYPEMASK_MECHANICAL_OR_ELEMENTAL)!=0 ||
                                 (m_targets.getUnitTarget()->GetDisplayId() != m_targets.getUnitTarget()->GetNativeDisplayId()) ))
-                            {
                                 targetUnitMap.clear();
                                 CleanupTargetList();
 
@@ -1657,61 +1701,12 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                                     SendCastResult(SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW);
                                     finish(false);
                                 }
-                            }
                             break;
                         }
                     }
                     break;
                 }
                 default :
-				{
-					if (m_spellInfo->Effect[effIndex] == SPELL_EFFECT_PERSISTENT_AREA_AURA)
-						break;
-					else if (m_spellInfo->Effect[effIndex] == SPELL_EFFECT_SUMMON)
-					{
-						targetUnitMap.push_back(m_caster);
-							break;
-					}
-
-					UnitList tempTargetUnitMap;
-					SpellScriptTargetBounds bounds = sSpellMgr.GetSpellScriptTargetBounds(m_spellInfo->Id);
-					// fill real target list if no spell script target defined
-					FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap, m_targets.m_destX, m_targets.m_destY, radius, PUSH_DEST_CENTER, SPELL_TARGETS_ALL);
-           
-					if (!tempTargetUnitMap.empty())
-					{
-						for (UnitList::const_iterator iter = tempTargetUnitMap.begin(); iter != tempTargetUnitMap.end(); ++iter)
-						{
-							if ((*iter)->GetTypeId() != TYPEID_UNIT)
-								continue;
-
-							for(SpellScriptTarget::const_iterator i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
-							{
-								// only creature entries supported for this target type
-								if (i_spellST->second.type == SPELL_TARGET_TYPE_GAMEOBJECT)
-									continue;
-
-								if ((*iter)->GetEntry() == i_spellST->second.targetEntry)
-								{
-									targetUnitMap.push_back((*iter));
-										break;
-								}
-							}
-						}
-					}
-					else
-					{
-						// remove not targetable units if spell has no script targets
-						for (UnitList::iterator itr = targetUnitMap.begin(); itr != targetUnitMap.end(); )
-						{
-							if (!(*itr)->isTargetableForAttack(m_spellInfo->AttributesEx3 & SPELL_ATTR_EX3_CAST_ON_DEAD))
-								targetUnitMap.erase(itr++);
-							else
-								++itr;
-						}
-					}
-					break;
-				}
 			}
 			break;
 		}
@@ -2989,6 +2984,13 @@ void Spell::cast(bool skipCheck)
                 AddTriggeredSpell(64380);                     // Shattering Throw
             break;
         }
+        case SPELLFAMILY_DEATHKNIGHT:
+        {
+            // Chains of Ice
+            if (m_spellInfo->Id == 45524)
+                AddTriggeredSpell(55095);                     // Frost Fever
+            break;
+        }
         default:
             break;
     }
@@ -3237,6 +3239,9 @@ void Spell::update(uint32 difftime)
         {
             if(m_timer)
             {
+                if (m_targets.getUnitTarget() && !m_targets.getUnitTarget()->isVisibleForOrDetect(m_caster, m_caster, false))
+                    cancel();
+
                 if(difftime >= m_timer)
                     m_timer = 0;
                 else
@@ -4374,9 +4379,7 @@ SpellCastResult Spell::CheckCast(bool strict)
         return SPELL_FAILED_CASTER_AURASTATE;
 
     // Caster aura req check if need
-    if(m_spellInfo->casterAuraSpell &&
-        sSpellStore.LookupEntry(m_spellInfo->casterAuraSpell) &&
-        !m_caster->HasAura(m_spellInfo->casterAuraSpell))
+    if(m_spellInfo->casterAuraSpell && !m_caster->HasAura(m_spellInfo->casterAuraSpell))
         return SPELL_FAILED_CASTER_AURASTATE;
     if(m_spellInfo->excludeCasterAuraSpell)
     {
@@ -4741,7 +4744,8 @@ SpellCastResult Spell::CheckCast(bool strict)
                                 MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck u_check(*m_caster, i_spellST->second.targetEntry, i_spellST->second.type != SPELL_TARGET_TYPE_DEAD, range);
                                 MaNGOS::CreatureLastSearcher<MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck> searcher(m_caster, p_Creature, u_check);
 
-                                Cell::VisitGridObjects(m_caster, searcher, range);
+                                // Visit all, need to find also Pet* objects
+                                Cell::VisitAllObjects(m_caster, searcher, range);
 
                                 range = u_check.GetLastRange();
                             }
@@ -5209,19 +5213,6 @@ SpellCastResult Spell::CheckCast(bool strict)
             case SPELL_EFFECT_LEAP:
             case SPELL_EFFECT_TELEPORT_UNITS_FACE_CASTER:
             {
-                float dis = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[i]));
-                float fx = m_caster->GetPositionX() + dis * cos(m_caster->GetOrientation());
-                float fy = m_caster->GetPositionY() + dis * sin(m_caster->GetOrientation());
-                // teleport a bit above terrain level to avoid falling below it
-                float fz = m_caster->GetBaseMap()->GetHeight(fx, fy, m_caster->GetPositionZ(), true);
-                if(fz <= INVALID_HEIGHT)                    // note: this also will prevent use effect in instances without vmaps height enabled
-                    return SPELL_FAILED_TRY_AGAIN;
-
-                float caster_pos_z = m_caster->GetPositionZ();
-                // Control the caster to not climb or drop when +-fz > 8
-                if(!(fz <= caster_pos_z + 8 && fz >= caster_pos_z - 8))
-                    return SPELL_FAILED_TRY_AGAIN;
-
                 // not allow use this effect at battleground until battleground start
                 if(m_caster->GetTypeId() == TYPEID_PLAYER)
                     if(BattleGround const *bg = ((Player*)m_caster)->GetBattleGround())
@@ -6713,7 +6704,7 @@ SpellCastResult Spell::CanOpenLock(SpellEffectIndex effIndex, uint32 lockId, Ski
     return SPELL_CAST_OK;
 }
 
-/*
+/**
  * Fill target list by units around (x,y) points at radius distance
 
  * @param targetUnitMap        Reference to target list that filled by function

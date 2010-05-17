@@ -261,14 +261,14 @@ inline void LoadDBC(LocalData& localeData,barGoLink& bar, StoreProblemList& errl
     // compatibility format and C++ structure sizes
     ASSERT(DBCFileLoader::GetFormatRecordSize(storage.GetFormat()) == sizeof(T) || LoadDBC_assert_print(DBCFileLoader::GetFormatRecordSize(storage.GetFormat()),sizeof(T),filename));
 
-    std::string dbc_filename = dbc_path + filename; 	
+    std::string dbc_filename = dbc_path + filename;
 
-    SqlDbc * sql = NULL; 	
+    SqlDbc * sql = NULL;
 
     if (custom_entries)
-        sql = new SqlDbc(&filename,custom_entries, idname,storage.GetFormat()); 	
+        sql = new SqlDbc(&filename,custom_entries,idname,storage.GetFormat());
 
-    if(storage.Load(dbc_filename.c_str(), sql))
+    if(storage.Load(dbc_filename.c_str(),sql))
     {
         bar.step();
         for(uint8 i = 0; fullLocaleNameList[i].name; ++i)
@@ -321,10 +321,9 @@ inline void LoadDBC(LocalData& localeData,barGoLink& bar, StoreProblemList& errl
         }
         else
             errlist.push_back(dbc_filename);
-    } 	
-
+    }
     if (sql)
-       delete sql;
+        delete sql;
 }
 
 void LoadDBCStores(const std::string& dataPath)
