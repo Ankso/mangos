@@ -1707,6 +1707,10 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     break;
                 }
                 default :
+				{
+                    targetUnitMap.push_back(m_caster);
+                    break;
+                }
 			}
 			break;
 		}
