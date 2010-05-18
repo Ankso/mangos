@@ -14439,7 +14439,7 @@ void Player::KilledMonsterCredit( uint32 entry, ObjectGuid guid )
             continue;
         // just if !ingroup || !noraidgroup || raidgroup
         QuestStatusData& q_status = mQuestStatus[questid];
-        if( q_status.m_status == QUEST_STATUS_INCOMPLETE && (!GetGroup() || !GetGroup()->isRaidGroup() || qInfo->GetType() == QUEST_TYPE_RAID))
+        if( q_status.m_status == QUEST_STATUS_INCOMPLETE && (!GetGroup() || !GetGroup()->isRaidGroup() || qInfo->IsAllowedInRaid())
         {
             if( qInfo->HasFlag( QUEST_MANGOS_FLAGS_KILL_OR_CAST) )
             {
@@ -14682,8 +14682,7 @@ bool Player::HasQuestForItem( uint32 itemid ) const
                 continue;
 
             // hide quest if player is in raid-group and quest is no raid quest
-            if (GetGroup() && GetGroup()->isRaidGroup() && qinfo->GetType() != QUEST_TYPE_RAID
-                && !InBattleGround())
+            if (GetGroup() && GetGroup()->isRaidGroup() && qinfo->IsAllowedInRaid() && !InBattleGround())
                 continue;
 
             // There should be no mixed ReqItem/ReqSource drop
@@ -15617,9 +15616,6 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
 
 bool Player::isAllowedToLoot(Creature* creature)
 {
-    if(creature && creature->isDead() && !creature->AreLootAndRewardAllowed())
-        return false;
-
     if(Player* recipient = creature->GetLootRecipient())
     {
         if (recipient == this)
@@ -20039,7 +20035,7 @@ bool Player::HasQuestForGO(int32 GOId) const
             if(!qinfo)
                 continue;
 
-            if(GetGroup() && GetGroup()->isRaidGroup() && qinfo->GetType() != QUEST_TYPE_RAID)
+            if(GetGroup() && GetGroup()->isRaidGroup() && qinfo->IsAllowedInRaid())
                 continue;
 
             for (int j = 0; j < QUEST_OBJECTIVES_COUNT; ++j)
