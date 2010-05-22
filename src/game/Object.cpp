@@ -303,6 +303,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
 
                 if(((Unit*)this)->GetVehicleGUID())
                     moveFlags2 |= (MOVEFLAG_ONTRANSPORT | MOVEFLAG_ROOT);
+
                 if(player->isInFlight())
                 {
                     ASSERT(player->GetMotionMaster()->GetCurrentMovementGeneratorType() == FLIGHT_MOTION_TYPE);
@@ -1758,6 +1759,7 @@ Vehicle* WorldObject::SummonVehicle(uint32 id, float x, float y, float z, float 
     if(GetTypeId()==TYPEID_UNIT && ((Creature*)this)->AI())
         ((Creature*)this)->AI()->JustSummoned((Creature*)v);
 
+	v->InstallAllAccessories();
     return v;
 }
 

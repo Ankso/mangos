@@ -22,7 +22,6 @@
 #include "ObjectGuid.h"
 #include "Creature.h"
 #include "Unit.h"
-#include "ObjectMgr.h"
 
 struct VehicleSeat
 {
@@ -30,9 +29,10 @@ struct VehicleSeat
     Unit* passenger;
     uint8 flags;
     uint32 vs_flags;
+	bool IsUsable() const { return seatInfo->m_flags & SF_ISUSABLE; }
 };
 
-enum VehicleSeatFlags
+enum VehicleSeatFLags
 {
     SEAT_FREE           = 0x01,                             // free seat
     SEAT_FULL           = 0x02,                             // seat occupied by player/creature
@@ -46,6 +46,18 @@ enum PowerType
     POWER_TYPE_PYRITE = 41,
     POWER_TYPE_STEAM  = 61
 };
+
+struct VehicleAccessory
+{
+    explicit VehicleAccessory(uint32 _uiAccessory, int8 _uiSeat, bool _isVehicle, bool _bMinion) : uiAccessory(_uiAccessory), uiSeat(_uiSeat), isVehicle(_isVehicle), bMinion(_bMinion) {}
+    uint32 uiAccessory;
+    int8 uiSeat;
+	uint32 isVehicle;
+    uint32 bMinion;
+};
+
+typedef std::vector<VehicleAccessory> VehicleAccessoryList;
+typedef std::map<uint32, VehicleAccessoryList> VehicleAccessoryMap;
 
 #define MAX_SEAT 8
 
@@ -96,21 +108,22 @@ class Vehicle : public Creature
             duration < 1 ? despawn = false : despawn = true;
             m_spawnduration = duration;
         }
-        VehicleDataStructure const* GetVehicleData() { return m_VehicleData; }
-        uint32 GetVehicleFlags() { return m_VehicleData ? m_VehicleData->v_flags : NULL; }
+        //uint32 GetVehicleFlags() { return m_vehicleInfo ? m_vehicleInfo->m_flags : NULL; }
+		uint32 GetHackVehicleFlags();
         uint32 GetCreationTime() { return m_creation_time; }
         void BuildVehicleActionBar(Player *plr) const;
         void InstallAllAccessories();
         Unit *GetPassenger(int8 seatId) const;
+
     protected:
         uint32 m_vehicleId;
         VehicleEntry const *m_vehicleInfo;
-        VehicleDataStructure const *m_VehicleData;
         uint32 m_creation_time;
         SeatMap m_Seats;
         bool despawn;
         int32 m_spawnduration;
         void InstallAccessory(uint32 entry, int8 seatId, bool isVehicle = false, bool minion = true);
+
     private:
         void SaveToDB(uint32, uint8)                        // overwrited of Creature::SaveToDB     - don't must be called
         {

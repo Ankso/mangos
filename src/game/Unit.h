@@ -230,7 +230,7 @@ enum UnitRename
     UNIT_CAN_BE_ABANDONED   = 0x02,
 };
 
-#define CREATURE_MAX_SPELLS     4
+#define CREATURE_MAX_SPELLS     8
 
 enum Swing
 {
@@ -1473,7 +1473,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         Player* GetCharmerOrOwnerPlayerOrPlayerItself();
         float GetCombatDistance( const Unit* target ) const;
 
-        void SetPet(Pet* pet);
+		void SetPet(Pet* pet);
         void SetCharm(Unit* pet);
 
         void AddGuardian(Pet* pet);
@@ -1860,7 +1860,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
          // using extra variables to avoid problems with transports
          SeatData m_SeatData;
          void BuildVehicleInfo(Unit *target = NULL);
-         void ChangeSeat(int8 seatId, bool next);
+		 void ChangeSeat(int8 seatId, bool next);
 
     protected:
         explicit Unit ();
@@ -1909,9 +1909,9 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         uint32 m_reactiveTimer[MAX_REACTIVE];
         uint32 m_regenTimer;
         uint32 m_lastManaUseTimer;
-        float m_lastAuraProcRoll;
         uint64  m_auraUpdateMask;
         uint64 m_vehicleGUID;
+        float m_lastAuraProcRoll;
 
     private:
         void CleanupDeletedAuras();

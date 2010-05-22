@@ -476,6 +476,17 @@ void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
         plMover->m_transport = NULL;
         movementInfo.ClearTransportData();
     }
+    if (movementInfo.HasMovementFlag(MOVEFLAG_SWIMMING))
+    {
+        if(mover->GetTypeId() == TYPEID_UNIT)
+        {
+            if(((Creature*)mover)->isVehicle() && !((Creature*)mover)->canSwim())
+            {
+                // NOTE : we should enter evade mode here, but...
+                ((Vehicle*)mover)->SetSpawnDuration(1);
+            }
+        }
+    }
 
     // fall damage generation (ignore in flight case that can be triggered also at lags in moment teleportation to another map).
     if (opcode == MSG_MOVE_FALL_LAND && plMover && !plMover->isInFlight())
@@ -488,17 +499,6 @@ void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
         if(plMover->GetBaseMap()->IsUnderWater(movementInfo.GetPos()->x, movementInfo.GetPos()->y, movementInfo.GetPos()->z-7.0f))
         {
             plMover->m_anti_BeginFallZ=INVALID_HEIGHT;
-        }
-    }
-    if (movementInfo.HasMovementFlag(MOVEFLAG_SWIMMING))
-    {
-        if(mover->GetTypeId() == TYPEID_UNIT)
-        {
-            if(((Creature*)mover)->isVehicle() && !((Creature*)mover)->canSwim())
-            {
-                // NOTE : we should enter evade mode here, but...
-                ((Vehicle*)mover)->SetSpawnDuration(1);
-            }
         }
     }
 
@@ -847,7 +847,7 @@ void WorldSession::HandleDismissControlledVehicle(WorldPacket &recv_data)
 
     if(Vehicle *vehicle = ObjectAccessor::GetVehicle(vehicleGUID))
     {
-        if(vehicle->GetVehicleFlags() & VF_DESPAWN_AT_LEAVE)
+        if(vehicle->/*GetVehicleFlags()*/GetHackVehicleFlags() & VF_DESPAWN_AT_LEAVE)
             vehicle->Dismiss();
         else
             _player->ExitVehicle();
@@ -882,17 +882,18 @@ void WorldSession::HandleRequestVehicleSwitchSeat(WorldPacket &recv_data)
 
     if(Vehicle *vehicle = ObjectAccessor::GetVehicle(vehicleGUID))
     {
-        ObjectGuid guid;
-        recv_data >> guid.ReadAsPacked();
+        uint64 guid = 0;
+		if(!recv_data.readPackGUID(/*guid*/))
+            return;
 
         int8 seatId = 0;
         recv_data >> seatId;
 
-        if(!guid.IsEmpty())
+        if(guid)
         {
-            if(vehicleGUID != guid.GetRawValue())
+            if(vehicleGUID != guid)
             {
-                if(Vehicle *veh = ObjectAccessor::GetVehicle(guid.GetRawValue()))
+                if(Vehicle *veh = ObjectAccessor::GetVehicle(guid))
                 {
                     if(!_player->IsWithinDistInMap(veh, 10))
                         return;

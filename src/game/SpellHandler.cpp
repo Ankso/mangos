@@ -573,9 +573,9 @@ void WorldSession::HandleSpellClick( WorldPacket & recv_data )
         return;
 
     uint32 vehicleId = 0;
-    CreatureDataAddon const *cainfo = unit->GetCreatureAddon();
-    if(cainfo)
-        vehicleId = cainfo->vehicle_id;
+    CreatureInfo const *cinfo = sObjectMgr.GetCreatureTemplate(unit->GetEntry());
+    if(cinfo)
+		vehicleId = cinfo->VehicleId;
 
     // handled other (hacky) way to avoid overwriting auras
     if(vehicleId || unit->isVehicle())
@@ -593,7 +593,7 @@ void WorldSession::HandleSpellClick( WorldPacket & recv_data )
             if(!v)
                 return;
 
-            if(v->GetVehicleFlags() & VF_DESPAWN_NPC)
+            if(v->/*GetVehicleFlags()*/GetHackVehicleFlags() & VF_DESPAWN_NPC)
             {
                 v->SetSpawnDuration(unit->GetRespawnDelay()*IN_MILLISECONDS);
                 unit->setDeathState(JUST_DIED);
@@ -603,8 +603,8 @@ void WorldSession::HandleSpellClick( WorldPacket & recv_data )
             unit = v;
         }
 
-        if(((Vehicle*)unit)->GetVehicleData())
-            if(uint32 r_aura = ((Vehicle*)unit)->GetVehicleData()->req_aura)
+        if(uint32 r_aura = cinfo->v_aura)
+            if(r_aura != 0)
                 if(!_player->HasAura(r_aura))
                     return;
 

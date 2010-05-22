@@ -35,6 +35,7 @@
 #include "ObjectGuid.h"
 #include "Policies/Singleton.h"
 #include "Database/SQLStorage.h"
+#include "Vehicle.h"
 
 #include <string>
 #include <map>
@@ -377,8 +378,9 @@ extern LanguageDesc lang_description[LANGUAGES_COUNT];
 MANGOS_DLL_SPEC LanguageDesc const* GetLanguageDescByID(uint32 lang);
 
 class PlayerDumpReader;
+
 // vehicle system
-#define MAX_VEHICLE_SPELLS 6
+typedef std::map<uint32,uint32> VehicleSeatDataMap;
 
 template<typename T>
 class IdGenerator
@@ -397,16 +399,6 @@ class IdGenerator
         char const* m_name;
         T m_nextGuid;
 };
-
-struct VehicleDataStructure
-{
-    uint32 v_flags;                                         // vehicle flags, see enum CustomVehicleFLags
-    uint32 v_spells[MAX_VEHICLE_SPELLS];                    // spells
-    uint32 req_aura;                                        // requieres aura on player to enter (eg. in wintergrasp)
-};
-
-typedef UNORDERED_MAP<uint32, VehicleDataStructure> VehicleDataMap;
-typedef std::map<uint32,uint32> VehicleSeatDataMap;
 
 class ObjectMgr
 {
@@ -584,6 +576,14 @@ class ObjectMgr
             return NULL;
         }
 
+        VehicleAccessoryList const* GetVehicleAccessoryList(uint32 uiEntry) const
+        {
+            VehicleAccessoryMap::const_iterator itr = m_VehicleAccessoryMap.find(uiEntry);
+            if (itr != m_VehicleAccessoryMap.end())
+                return &itr->second;
+            return NULL;
+        }
+
         void LoadGuilds();
         void LoadArenaTeams();
         void LoadGroups();
@@ -636,6 +636,7 @@ class ObjectMgr
         void LoadPointOfInterestLocales();
         void LoadInstanceTemplate();
         void LoadMailLevelRewards();
+		void LoadVehicleAccessories();
 
         void LoadGossipText();
 
@@ -672,7 +673,6 @@ class ObjectMgr
         void LoadVendors();
         void LoadTrainerSpell();
 
-        void LoadVehicleData();
         void LoadVehicleSeatData();
 
         std::string GeneratePetName(uint32 entry);
@@ -907,7 +907,6 @@ class ObjectMgr
 
         int GetOrNewIndexForLocale(LocaleConstant loc);
 
-        VehicleDataMap mVehicleData;
         VehicleSeatDataMap mVehicleSeatData;
 
         uint32 GetSeatFlags(uint32 seatid)
@@ -917,12 +916,6 @@ class ObjectMgr
                 return NULL;
             else
                 return i->second;
-        }
-        VehicleDataStructure const* GetVehicleData(uint32 entry) const
-        {
-            VehicleDataMap::const_iterator itr = mVehicleData.find(entry);
-            if(itr==mVehicleData.end()) return NULL;
-            return &itr->second;
         }
 
         SpellClickInfoMapBounds GetSpellClickInfoMapBounds(uint32 creature_id) const
@@ -1009,6 +1002,8 @@ class ObjectMgr
 
         ItemRequiredTargetMap m_ItemRequiredTarget;
 
+		VehicleAccessoryMap m_VehicleAccessoryMap;
+
         typedef             std::vector<LocaleConstant> LocalForIndex;
         LocalForIndex        m_LocalForIndex;
 
@@ -1019,7 +1014,6 @@ class ObjectMgr
         void CheckScriptTexts(ScriptMapMap const& scripts,std::set<int32>& ids);
         void LoadCreatureAddons(SQLStorage& creatureaddons, char const* entryName, char const* comment);
         void ConvertCreatureAddonAuras(CreatureDataAddon* addon, char const* table, char const* guidEntryStr);
-        void ConvertCreatureAddonPassengers(CreatureDataAddon* addon, char const* table, char const* guidEntryStr);
         void LoadQuestRelationsHelper(QuestRelations& map,char const* table);
 
         MailLevelRewardMap m_mailLevelRewardMap;

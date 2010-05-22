@@ -44,6 +44,7 @@
 #include "VMapFactory.h"
 #include "BattleGround.h"
 #include "Util.h"
+#include "Vehicle.h"
 
 #define SPELL_CHANNEL_UPDATE_INTERVAL (1 * IN_MILLISECONDS)
 
@@ -120,8 +121,7 @@ SpellCastTargets::SpellCastTargets()
     m_itemTargetGUID   = 0;
     m_itemTargetEntry  = 0;
 
-    m_srcX = m_srcY = m_srcZ = m_srcO = m_destX = m_destY = m_destZ = 0.0f;
-    m_elevation = m_speed = 0.0f;
+    m_srcX = m_srcY = m_srcZ = m_destX = m_destY = m_destZ = 0.0f;
     m_strTarget = "";
     m_targetMask = 0;
 }
@@ -205,7 +205,7 @@ void SpellCastTargets::Update(Unit* caster)
     }
 }
 
-void SpellCastTargets::read( ByteBuffer& data, Unit *caster )
+void SpellCastTargets::read( ByteBuffer& data, Unit *caster, SpellEntry const* spell )
 {
     data >> m_targetMask;
 
@@ -214,8 +214,20 @@ void SpellCastTargets::read( ByteBuffer& data, Unit *caster )
         m_destX = caster->GetPositionX();
         m_destY = caster->GetPositionY();
         m_destZ = caster->GetPositionZ();
-        m_unitTarget = caster;
-        m_unitTargetGUID = caster->GetGUID();
+        bool skiptarget = false;
+        if(spell)
+        {
+            for(int j=0;j<3;j++)
+            {
+                // this is requiered, otherwise it will return SPELL_FAILED_BAD_TARGETS
+                skiptarget |= (spell->EffectImplicitTargetA[j] == TARGET_IN_FRONT_OF_CASTER || spell->EffectImplicitTargetA[j] == TARGET_SCRIPT || spell->EffectImplicitTargetA[j] == TARGET_EFFECT_SELECT);
+            }
+        }
+        if(!skiptarget)
+        {
+            m_unitTarget = caster;
+            m_unitTargetGUID = caster->GetGUID();
+        }
         return;
     }
 
@@ -246,19 +258,6 @@ void SpellCastTargets::read( ByteBuffer& data, Unit *caster )
         data >> m_destX >> m_destY >> m_destZ;
         if(!MaNGOS::IsValidMapCoord(m_destX, m_destY, m_destZ))
             throw ByteBufferException(false, data.rpos(), 0, data.size());
-
-        if( m_targetMask & TARGET_FLAG_SOURCE_LOCATION )
-        {
-            if(data.rpos() + 4 + 4 <= data.size())
-            {
-                data >> m_elevation >> m_speed;
-                // TODO: should also read
-                m_srcO = caster->GetOrientation();
-                //*data >> uint16 >> uint8 >> uint32 >> uint32;
-                //*data >> float >> float >> float >> float...
-            }
-        }
-
     }
 
     if( m_targetMask & TARGET_FLAG_STRING )
@@ -1612,11 +1611,38 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         case TARGET_TOTEM_FIRE:
         case TARGET_SELF:
         case TARGET_SELF2:
-		{
-            // used for targeting gameobjects
-			targetUnitMap.push_back(m_caster);
+            targetUnitMap.push_back(m_caster);
             break;
-		}
+		case TARGET_AREAEFFECT_CUSTOM_2:
+		{
+            float x, y, z;
+            if(targetMode == TARGET_OBJECT_AREA_SRC)
+            {
+                 if(m_targets.HasSrc())
+                 {
+                     x = m_targets.m_srcX;
+                     y = m_targets.m_srcY;
+                     z = m_targets.m_srcZ;
+                 }
+                 else
+                     break;
+            }
+            else if(m_targets.HasDst())
+            {
+               x = m_targets.m_destX;
+               y = m_targets.m_destY;
+               z = m_targets.m_destZ;
+            }
+            else
+                break;
+
+            MaNGOS::GameObjectInRangeCheck check(x, y, z, radius + 15);
+            std::list<GameObject*> goList;
+            MaNGOS::GameObjectListSearcher<MaNGOS::GameObjectInRangeCheck> searcher(m_caster, goList, check);
+            m_caster->GetMap()->VisitGrid(x, y, radius, searcher);
+            for(std::list<GameObject*>::iterator itr = goList.begin(); itr != goList.end(); ++itr)
+                AddGOTarget(*itr, effIndex);
+        }
 		case TARGET_AREAEFFECT_CUSTOM:
 		{
 			if (m_spellInfo->Effect[effIndex] == SPELL_EFFECT_PERSISTENT_AREA_AURA)
@@ -1711,6 +1737,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     targetUnitMap.push_back(m_caster);
                     break;
                 }
+
 			}
 			break;
 		}
@@ -1908,36 +1935,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         case TARGET_ALL_ENEMY_IN_AREA:
             FillAreaTargets(targetUnitMap, m_targets.m_destX, m_targets.m_destY, radius, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_DAMAGE);
             break;
-        case TARGET_AREAEFFECT_CUSTOM_2:
-        {
-            float x, y, z;
-            if(targetMode == TARGET_OBJECT_AREA_SRC)
-            {
-                if(m_targets.HasSrc())
-                {
-                    x = m_targets.m_srcX;
-                    y = m_targets.m_srcY;
-                    z = m_targets.m_srcZ;
-                }
-                else
-                    break;
-            }
-            else if(m_targets.HasDst())
-            {
-                x = m_targets.m_destX;
-                y = m_targets.m_destY;
-                z = m_targets.m_destZ;
-            }
-            else
-                break;
-
-            MaNGOS::GameObjectInRangeCheck check(x, y, z, radius + 15);
-            std::list<GameObject*> goList;
-            MaNGOS::GameObjectListSearcher<MaNGOS::GameObjectInRangeCheck> searcher(m_caster, goList, check);
-            m_caster->GetMap()->VisitGrid(x, y, radius, searcher);
-            for(std::list<GameObject*>::iterator itr = goList.begin(); itr != goList.end(); ++itr)
-                AddGOTarget(*itr, effIndex);
-        }
         case TARGET_AREAEFFECT_INSTANT:
         {
             SpellTargets targetB = SPELL_TARGETS_AOE_DAMAGE;
@@ -2451,13 +2448,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         case TARGET_DYNAMIC_OBJECT_LEFT_SIDE:
         case TARGET_DYNAMIC_OBJECT_RIGHT_SIDE:
         {
-            //This should be targeting of destructible objects by vehicles (ram spells...)
-            if(m_spellInfo->EffectImplicitTargetB[effIndex] == TARGET_AREAEFFECT_CUSTOM_2)
-            {
-                //FIXME
-                break;
-            }
-            else if (!(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
+            if (!(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
             {
                 float angle = m_caster->GetOrientation();
                 switch(targetMode)
@@ -2526,6 +2517,34 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             targetUnitMap.push_back(m_caster);
             break;
         }
+		case TARGET_PASSENGER_0:
+		case TARGET_PASSENGER_1:
+		case TARGET_PASSENGER_2:
+		case TARGET_PASSENGER_3:
+		case TARGET_PASSENGER_4:
+		case TARGET_PASSENGER_5:
+		case TARGET_PASSENGER_6:
+		case TARGET_PASSENGER_7:
+		{
+			if (m_caster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_caster)->isVehicle())
+			{
+				uint32 seatid;
+				switch(targetMode)
+				{
+                   case TARGET_PASSENGER_0: seatid = 0; break;
+                   case TARGET_PASSENGER_1: seatid = 1; break;
+                   case TARGET_PASSENGER_2: seatid = 2; break;
+                   case TARGET_PASSENGER_3: seatid = 3; break;
+                   case TARGET_PASSENGER_4: seatid = 4; break;
+                   case TARGET_PASSENGER_5: seatid = 5; break;
+                   case TARGET_PASSENGER_6: seatid = 6; break;
+                   case TARGET_PASSENGER_7: seatid = 7; break;
+				}
+				if (Unit *unit = ((Vehicle*)m_caster)->GetPassenger(seatid))
+					m_targets.setUnitTarget(unit);
+			}
+			break;
+		}
         case TARGET_EFFECT_SELECT:
         {
             // add here custom effects that need default target.
@@ -5517,7 +5536,7 @@ SpellCastResult Spell::CheckPetCast(Unit* target)
                 return SPELL_FAILED_BAD_TARGETS;
 
             if(!IsValidSingleTargetSpell(_target))
-                return SPELL_FAILED_BAD_TARGETS;
+                return SPELL_FAILED_BAD_TARGETS; 
         }
                                                             //cooldown
         if(((Creature*)m_caster)->HasSpellCooldown(m_spellInfo->Id))
@@ -5537,7 +5556,7 @@ bool Spell::IsValidSingleTargetEffect(Unit const* target, Targets type) const
         case TARGET_SINGLE_FRIEND:
         case TARGET_AREAEFFECT_PARTY:
             return m_caster->IsFriendlyTo(target);
-       case TARGET_SINGLE_PARTY:
+        case TARGET_SINGLE_PARTY:
             return m_caster != target && m_caster->IsInPartyWith(target);
         case TARGET_SINGLE_FRIEND_2:
             return m_caster->IsInRaidWith(target);

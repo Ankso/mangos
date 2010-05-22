@@ -268,7 +268,7 @@ bool Creature::InitEntry(uint32 Entry, uint32 team, const CreatureData *data )
     SetSpeedRate(MOVE_WALK, cinfo->speed_walk);
     SetSpeedRate(MOVE_RUN,  cinfo->speed_run);
     SetSpeedRate(MOVE_SWIM, 1.0f);                          // using 1.0 rate
-    SetSpeedRate(MOVE_FLIGHT, 1.0f);                        // using 1.0 rate
+    SetSpeedRate(MOVE_FLIGHT, cinfo->speed_run);            // using 1.0 rate
 
     SetFloatValue(OBJECT_FIELD_SCALE_X, cinfo->scale);
 
@@ -610,6 +610,9 @@ bool Creature::Create(uint32 guidlow, Map *map, uint32 phaseMask, uint32 Entry, 
 
     //oX = x;     oY = y;    dX = x;    dY = y;    m_moveTime = 0;    m_startMove = 0;
     const bool bResult = CreateFromProto(guidlow, Entry, team, data);
+
+	// fix bugs
+	SetHealth(GetMaxHealth());
 
     if (bResult)
     {
@@ -1134,9 +1137,9 @@ bool Creature::CreateFromProto(uint32 guidlow, uint32 Entry, uint32 team, const 
     }
     m_originalEntry = Entry;
 
-   Object::_Create(guidlow, Entry, HIGHGUID_UNIT);
+    Object::_Create(guidlow, Entry, HIGHGUID_UNIT);
 
-    if (!UpdateEntry(Entry, team, data, false))
+    if(!UpdateEntry(Entry, team, data))
         return false;
 
     return true;
@@ -1462,7 +1465,7 @@ bool Creature::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIn
     }
 
     // Heal immunity
-    if (isVehicle() && !(((Vehicle*)this)->GetVehicleFlags() & VF_CAN_BE_HEALED))
+    if (isVehicle() && !(((Vehicle*)this)->/*GetVehicleFlags()*/GetHackVehicleFlags() & VF_CAN_BE_HEALED))
     {
         switch(spellInfo->Effect[index])
         {
@@ -2002,7 +2005,7 @@ float Creature::GetBaseSpeed() const
             case HUNTER_PET:
             {
                 //fixed speed fur hunter (and summon!?) pets
-                return 1.15;
+                return 1.15f;
             }
             case GUARDIAN_PET:
             case MINI_PET:
