@@ -435,13 +435,14 @@ void GameObject::Update(uint32 diff)
                 return;
 
             if(!m_spawnedByDefault)
-           {
+            {
+
                 m_respawnTime = 0;
 
                 if (IsInWorld())
                     UpdateObjectVisibility();
 
-               break;
+                break;
             }
 
             // since pool system can fail to roll unspawned object, this one can remain spawned, so must set respawn nevertheless
@@ -1548,16 +1549,4 @@ bool GameObject::IsFriendlyTo(Unit const* unit) const
 
     // common faction based case (GvC,GvP)
     return tester_faction->IsFriendlyTo(*target_faction);
-}
-
-void GameObject::DealSiegeDamage(uint32 damage)
-{
-    m_actualHealth -= damage;
-
-    // TODO : there are a lot of thinghts to do here
-    if(m_actualHealth < 0)
-    {
-        m_actualHealth = GetGOInfo()->destructibleBuilding.intactNumHits;
-        SetLootState(GO_JUST_DEACTIVATED);
-    }
 }

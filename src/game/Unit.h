@@ -302,7 +302,6 @@ class Item;
 class Pet;
 class PetAura;
 class Totem;
-class Vehicle;
 
 struct SpellImmune
 {
@@ -437,25 +436,24 @@ enum UnitState
     UNIT_STAT_FOLLOW_MOVE     = 0x00008000,
     UNIT_STAT_FLEEING         = 0x00010000,                     // FleeMovementGenerator/TimedFleeingMovementGenerator active/onstack
     UNIT_STAT_FLEEING_MOVE    = 0x00020000,
-    UNIT_STAT_ON_VEHICLE      = 0x00040000,                     // Unit is on vehicle
 
     // masks (only for check)
 
     // can't move currently
-    UNIT_STAT_CAN_NOT_MOVE    = UNIT_STAT_ROOT | UNIT_STAT_STUNNED | UNIT_STAT_DIED | UNIT_STAT_ON_VEHICLE,
+    UNIT_STAT_CAN_NOT_MOVE    = UNIT_STAT_ROOT | UNIT_STAT_STUNNED | UNIT_STAT_DIED,
 
     // stay by different reasons
     UNIT_STAT_NOT_MOVE        = UNIT_STAT_ROOT | UNIT_STAT_STUNNED | UNIT_STAT_DIED |
-                                UNIT_STAT_DISTRACTED | UNIT_STAT_ON_VEHICLE,
+                                UNIT_STAT_DISTRACTED,
 
     // stay or scripted movement for effect( = in player case you can't move by client command)
     UNIT_STAT_NO_FREE_MOVE    = UNIT_STAT_ROOT | UNIT_STAT_STUNNED | UNIT_STAT_DIED |
                                 UNIT_STAT_IN_FLIGHT |
-                                UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING | UNIT_STAT_ON_VEHICLE,
+                                UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING,
 
     // not react at move in sight or other
     UNIT_STAT_CAN_NOT_REACT   = UNIT_STAT_STUNNED | UNIT_STAT_DIED |
-                                UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING | UNIT_STAT_ON_VEHICLE,
+                                UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING,
 
     // masks (for check or reset)
 
@@ -1078,24 +1076,6 @@ typedef std::set<uint64> GuardianPetList;
 
 struct SpellProcEventEntry;                                 // used only privately
 
-// vehicle system
-struct SeatData
-{
-    SeatData() : OffsetX(0.0f), OffsetY(0.0f),  OffsetZ(0.0f), Orientation(0.0f),
-                c_time(0), dbc_seat(0), seat(0), s_flags(0), v_flags(0) {}
-
-    float OffsetX;
-    float OffsetY;
-    float OffsetZ;
-    float Orientation;
-    uint32 c_time;
-    uint32 dbc_seat;
-    uint8 seat;
-    //custom, used as speedup
-    uint32 s_flags;
-    uint32 v_flags;
-};
-
 class MANGOS_DLL_SPEC Unit : public WorldObject
 {
     public:
@@ -1224,8 +1204,6 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool IsHostileTo(Unit const* unit) const;
         bool IsHostileToPlayers() const;
         bool IsFriendlyTo(Unit const* unit) const;
-        bool IsInRaidWith(Unit const* unit) const;
-        bool IsInPartyWith(Unit const* unit) const;
         bool IsNeutralToAll() const;
         bool IsContestedGuard() const
         {
@@ -1356,10 +1334,6 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         }
         bool HasAura(uint32 spellId) const;
 
-        const uint64& GetAuraUpdateMask() const { return m_auraUpdateMask; }
-        void SetAuraUpdateMask(uint8 slot) { m_auraUpdateMask |= (uint64(1) << slot); }
-        void ResetAuraUpdateMask() { m_auraUpdateMask = 0; }
-
         bool virtual HasSpell(uint32 /*spellID*/) const { return false; }
 
         bool HasStealthAura()      const { return HasAuraType(SPELL_AURA_MOD_STEALTH); }
@@ -1461,13 +1435,12 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         Unit* GetCharm() const;
         void Uncharm();
         Unit* GetCharmerOrOwner() const { return GetCharmerGUID() ? GetCharmer() : GetOwner(); }
-        Unit* GetCharmOrPet() const { return GetCharmGUID() ? GetCharm() : (Unit*)GetPet(); }
-        Unit* GetCharmerOrOwnerOrSelf() const
+        Unit* GetCharmerOrOwnerOrSelf()
         {
             if(Unit* u = GetCharmerOrOwner())
                 return u;
 
-            return (Unit*)this;
+            return this;
         }
         bool IsCharmerOrOwnerPlayerOrPlayerItself() const;
         Player* GetCharmerOrOwnerPlayerOrPlayerItself();
@@ -1852,16 +1825,6 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         // Movement info
         MovementInfo m_movementInfo;
 
-         // vehicle system
-         void EnterVehicle(Vehicle *vehicle, int8 seat_id, bool force = false);
-         void ExitVehicle();
-         uint64 GetVehicleGUID() { return m_vehicleGUID; }
-         void SetVehicleGUID(uint64 guid) { m_vehicleGUID = guid; }
-         // using extra variables to avoid problems with transports
-         SeatData m_SeatData;
-         void BuildVehicleInfo(Unit *target = NULL);
-         void ChangeSeat(int8 seatId, bool next);
-
     protected:
         explicit Unit ();
 
@@ -1910,8 +1873,6 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         uint32 m_regenTimer;
         uint32 m_lastManaUseTimer;
         float m_lastAuraProcRoll;
-        uint64  m_auraUpdateMask;
-        uint64 m_vehicleGUID;
 
     private:
         void CleanupDeletedAuras();
