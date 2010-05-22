@@ -8544,7 +8544,7 @@ void Player::SendInitWorldStates(uint32 zoneid, uint32 areaid)
             break;
         case 4384:                                          // SA
             if (bg && bg->GetTypeID() == BATTLEGROUND_SA)
-                bg->FillInitialWorldStates(data);
+                bg->FillInitialWorldStates(data, count);
             else
             {
                 // 1-3 A defend, 4-6 H defend, 7-9 unk defend, 1 - ok, 2 - half destroyed, 3 - destroyed

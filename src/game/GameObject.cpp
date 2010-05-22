@@ -1655,7 +1655,7 @@ void GameObject::DealSiegeDamage(uint32 damage)
     // TODO : there are a lot of thinghts to do here
     if(m_actualHealth < 0)
     {
-        m_actualHealth = GetGOInfo()->destructibleBuilding.intactNumHits;
+        //m_actualHealth = GetGOInfo()->destructibleBuilding.intactNumHits;
         SetLootState(GO_JUST_DEACTIVATED);
     }
 }
