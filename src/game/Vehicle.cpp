@@ -25,15 +25,13 @@
 #include "InstanceData.h"
 
 Vehicle::Vehicle() : Creature(CREATURE_SUBTYPE_VEHICLE), m_vehicleId(0), m_vehicleInfo(NULL), m_spawnduration(0),
-                     despawn(false), m_creation_time(0)
+                     despawn(false), m_creation_time(0), m_VehicleData(NULL)
 {
     m_updateFlag = (UPDATEFLAG_LIVING | UPDATEFLAG_HAS_POSITION | UPDATEFLAG_VEHICLE);
 }
 
 Vehicle::~Vehicle()
 {
-    for (SeatMap::const_iterator itr = m_Seats.begin(); itr != m_Seats.end(); ++itr)
-        assert(!itr->second.passenger);
 }
 
 void Vehicle::AddToWorld()
@@ -60,7 +58,7 @@ void Vehicle::setDeathState(DeathState s)                       // overwrite vir
     Creature::setDeathState(s);
     if(s == JUST_DIED)
     {
-        if(/*GetVehicleFlags()*/GetHackVehicleFlags() & VF_DESPAWN_NPC)
+        if(GetVehicleFlags() & VF_DESPAWN_NPC)
             Dismiss();
         else
             RemoveAllPassengers();
@@ -70,7 +68,7 @@ void Vehicle::setDeathState(DeathState s)                       // overwrite vir
 void Vehicle::Update(uint32 diff)
 {
     Creature::Update(diff);
-    //InstallAllAccessories();
+    InstallAllAccessories();
 
     if(despawn)
     {
@@ -120,15 +118,19 @@ bool Vehicle::Create(uint32 guidlow, Map *map, uint32 phaseMask, uint32 Entry, u
         sLog.outErrorDb("Creature entry %u does not exist.", Entry);
         return false;
     }
-    
+
     Object::_Create(guidlow, Entry, HIGHGUID_VEHICLE);
 
     if(!UpdateEntry(Entry, team, data))
         return false;
 
     if(!vehicleId)
-        vehicleId = cinfo->VehicleId;
-
+    {
+        CreatureDataAddon const *cainfo = GetCreatureAddon();
+        if(!cainfo)
+            return false;
+        vehicleId = cainfo->vehicle_id;
+    }
     if(!SetVehicleId(vehicleId))
         return false;
 
@@ -162,11 +164,11 @@ bool Vehicle::Create(uint32 guidlow, Map *map, uint32 phaseMask, uint32 Entry, u
     }
     else
     {
-        for (uint32 i = 0; i < CREATURE_MAX_SPELLS; ++i)
+        for (uint32 i = 0; i < MAX_VEHICLE_SPELLS; ++i)
         {
-            if(!cinfo->spells[i])
+            if(!GetVehicleData()->v_spells[i])
                 continue;
-            SpellEntry const *spellInfo = sSpellStore.LookupEntry(cinfo->spells[i]);
+            SpellEntry const *spellInfo = sSpellStore.LookupEntry(GetVehicleData()->v_spells[i]);
             if(!spellInfo)
                 continue;
 
@@ -197,6 +199,11 @@ bool Vehicle::SetVehicleId(uint32 vehicleid)
     m_vehicleId = vehicleid;
     m_vehicleInfo = vehicleInfo;
 
+    // can be NULL
+    VehicleDataStructure const *VDStructure = sObjectMgr.GetVehicleData(vehicleid);
+    if(VDStructure)
+        m_VehicleData = VDStructure;
+
     InitSeats();
     EmptySeatsCountChanged();
     return true;
@@ -214,7 +221,7 @@ void Vehicle::InitSeats()
             if(VehicleSeatEntry const *veSeat = sVehicleSeatStore.LookupEntry(seatId))
             {
                 VehicleSeat newseat;
-                //newseat.seatInfo = veSeat;
+                newseat.seatInfo = veSeat;
                 newseat.passenger = NULL;
                 newseat.flags = SEAT_FREE;
                 newseat.vs_flags = sObjectMgr.GetSeatFlags(seatId);
@@ -326,12 +333,11 @@ int8 Vehicle::GetEmptySeatsCount(bool force)
 
     return count;
 }
-
 int8 Vehicle::GetNextEmptySeatNum(int8 seatId, bool next) const
 {
     SeatMap::const_iterator seat = m_Seats.find(seatId);
     if(seat == m_Seats.end()) return -1;
-    while(seat->second.passenger || !seat->second.IsUsable())
+    while(seat->second.passenger || !seat->second.seatInfo->IsUsable())
     {
         if(next)
         {
@@ -388,6 +394,8 @@ void Vehicle::EmptySeatsCountChanged()
         }
     }
 }
+
+
 
 void Vehicle::Dismiss()
 {
@@ -474,7 +482,7 @@ void Vehicle::AddPassenger(Unit *unit, int8 seatId, bool force)
 
     if(seat->second.vs_flags & SF_MAIN_RIDER)
     {
-        if(!(/*GetVehicleFlags()*/GetHackVehicleFlags() & VF_MOVEMENT))
+        if(!(GetVehicleFlags() & VF_MOVEMENT))
         {
             GetMotionMaster()->Clear(false);
             GetMotionMaster()->MoveIdle();
@@ -482,19 +490,17 @@ void Vehicle::AddPassenger(Unit *unit, int8 seatId, bool force)
             unit->SetUInt64Value(UNIT_FIELD_CHARM, GetGUID());
             if(unit->GetTypeId() == TYPEID_PLAYER)
             {
+                ((Player*)unit)->SetMover(this);
                 ((Player*)unit)->SetMoverInQueve(this);
                 ((Player*)unit)->SetClientControl(this, 1);
             }
-            if(canFly() || HasAuraType(SPELL_AURA_FLY) || HasAuraType(SPELL_AURA_MOD_FLIGHT_SPEED) || GetHackVehicleFlags() & VF_FLYING)
+            if(canFly() || HasAuraType(SPELL_AURA_FLY) || HasAuraType(SPELL_AURA_MOD_FLIGHT_SPEED))
             {
                 WorldPacket data3(SMSG_MOVE_SET_CAN_FLY, 12);
-                data3 << GetPackGUID();
+                data3<< GetPackGUID();
                 data3 << (uint32)(0);
                 SendMessageToSet(&data3,false);
             }
-			//Make vehicle fly (HARD HACK)
-			if(/*GetVehicleFlags()*/GetHackVehicleFlags() & VF_FLYING)
-				CastSpell(this, 48602, false);
         }
 
         SpellClickInfoMapBounds clickPair = sObjectMgr.GetSpellClickInfoMapBounds(GetEntry());
@@ -519,23 +525,18 @@ void Vehicle::AddPassenger(Unit *unit, int8 seatId, bool force)
             BuildVehicleActionBar((Player*)unit);
         }
 
-        if(!(/*GetVehicleFlags()*/GetHackVehicleFlags() & VF_FACTION))
+        if(!(GetVehicleFlags() & VF_FACTION))
             setFaction(unit->getFaction());
 
-        if(/*GetVehicleFlags()*/GetHackVehicleFlags() & VF_CANT_MOVE)
+        if(GetVehicleFlags() & VF_CANT_MOVE)
         {
             WorldPacket data2(SMSG_FORCE_MOVE_ROOT, 10);
-            data2 << GetPackGUID();
+            data2<< GetPackGUID();
             data2 << (uint32)(2);
             SendMessageToSet(&data2,false);
         }
 
-		CreatureInfo const *cinfo = sObjectMgr.GetCreatureTemplate(GetEntry());
-		if(cinfo)
-			if(GetHackVehicleFlags() & VF_CAST_AURA && cinfo->spells[0] != 0)
-				CastSpell(unit, cinfo->spells[0], true);
-
-        if(/*GetVehicleFlags()*/GetHackVehicleFlags() & VF_NON_SELECTABLE)
+        if(GetVehicleFlags() & VF_NON_SELECTABLE)
             SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
     }
     if(seat->second.vs_flags & SF_UNATTACKABLE)
@@ -570,12 +571,8 @@ void Vehicle::RemovePassenger(Unit *unit)
                 SetCharmerGUID(NULL);
                 setFaction(GetCreatureInfo()->faction_A);
             }
-            if(/*GetVehicleFlags()*/GetHackVehicleFlags() & VF_NON_SELECTABLE)
+            if(GetVehicleFlags() & VF_NON_SELECTABLE)
                 RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-			CreatureInfo const *cinfo = sObjectMgr.GetCreatureTemplate(GetEntry());
-			if(cinfo)
-				if(GetHackVehicleFlags() & VF_CAST_AURA && cinfo->spells[0] != 0)
-					unit->RemoveAurasDueToSpell(cinfo->spells[0]);
             if(seat->second.vs_flags & SF_UNATTACKABLE)
                 unit->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             // restore player control
@@ -640,16 +637,12 @@ void Vehicle::RemoveAllPassengers()
 
 bool Vehicle::HasSpell(uint32 spell) const
 {
-    CreatureInfo const *cinfo = sObjectMgr.GetCreatureTemplate(GetEntry());
-    if(!cinfo)
-    {
-        sLog.outErrorDb("Creature entry %u does not exist.", GetEntry());
+    if(!m_VehicleData)
         return false;
-    }
 
-    for(uint8 j = 0; j < CREATURE_MAX_SPELLS; j++)
+    for(uint8 j = 0; j < MAX_VEHICLE_SPELLS; j++)
     {
-        if(cinfo->spells[j] == spell)
+        if(m_VehicleData->v_spells[j] == spell)
             return true;
     }
 
@@ -658,17 +651,15 @@ bool Vehicle::HasSpell(uint32 spell) const
 
 void Vehicle::BuildVehicleActionBar(Player *plr) const
 {
-    CreatureInfo const *cinfo = sObjectMgr.GetCreatureTemplate(GetEntry());
-
-	WorldPacket data(SMSG_PET_SPELLS, 8+2+4+4+4*10+1+1);
+    WorldPacket data(SMSG_PET_SPELLS, 8+2+4+4+4*10+1+1);
     data << uint64(GetGUID());
     data << uint16(0x00000000);                     // creature family, not used in vehicles
     data << uint32(0x00000000);                     // unk
     data << uint32(0x00000101);                     // react state
 
-    for(uint32 i = 0; i <= CREATURE_MAX_SPELLS; ++i)
+    for(uint32 i = 0; i <= MAX_VEHICLE_SPELLS; ++i)
     {
-        data << uint32(MAKE_UNIT_ACTION_BUTTON(cinfo ? cinfo->spells[i] : NULL,i+8));
+        data << uint16(m_VehicleData ? m_VehicleData->v_spells[i] : NULL) << uint8(0) << uint8(i+8);
     }
 
     data << uint8(0);                               //aditional spells in spellbook, not used in vehicles
@@ -704,15 +695,34 @@ void Vehicle::BuildVehicleActionBar(Player *plr) const
     data << uint64(GetGUID());
     plr->GetSession()->SendPacket(&data);
 }
-
 void Vehicle::InstallAllAccessories()
 {
-    VehicleAccessoryList const* mVehicleList = sObjectMgr.GetVehicleAccessoryList(GetEntry());
-    if (!mVehicleList)
-        return;
-
-    for (VehicleAccessoryList::const_iterator itr = mVehicleList->begin(); itr != mVehicleList->end(); ++itr)
-        InstallAccessory(itr->uiAccessory, itr->uiSeat, itr->bMinion);
+    //TODO: Move this into DB!!!
+    switch(GetEntry())
+    {
+        //case 27850:InstallAccessory(27905,1);break;
+        case 28782:InstallAccessory(28768,1,true);break; // Acherus Deathcharger
+        case 28312:InstallAccessory(28319,7,true);break;
+        case 32627:InstallAccessory(32629,7,true);break;
+        case 32930:
+            InstallAccessory(32933,0);
+            InstallAccessory(32934,1);
+            break;
+        case 33109:InstallAccessory(33167,1, true);break;
+        case 33060:InstallAccessory(33067,7, true);break;
+        case 33113:
+            InstallAccessory(33114,0, true);
+            InstallAccessory(33114,1, true);
+            InstallAccessory(33114,2, true);
+            InstallAccessory(33114,3, true);
+            InstallAccessory(33139,7);
+            break;
+        case 33114:
+            InstallAccessory(33143,2); // Overload Control Device
+            InstallAccessory(33142,1); // Leviathan Defense Turret
+            break;
+        case 33214:InstallAccessory(33218,1,false,false);break; // Mechanolift 304-A
+    }
 }
 
 void Vehicle::InstallAccessory(uint32 entry, int8 seatId, bool isVehicle, bool minion)
@@ -733,11 +743,9 @@ void Vehicle::InstallAccessory(uint32 entry, int8 seatId, bool isVehicle, bool m
     {
         if(Vehicle *accessory = SummonVehicle(entry, 0, 0, 0, 0))
         {
-            accessory->EnterVehicle(this, seatId);
+            accessory->EnterVehicle(this, seatId, true);
             // This is not good, we have to send update twice
-            WorldPacket data;
-            accessory->BuildHeartBeatMsg(&data);
-            accessory->SendMessageToSet(&data, false);
+            accessory->BuildVehicleInfo(accessory);
         }
     }else{
         if(Creature *accessory = SummonCreature(entry, 0, 0, 0, 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 30000))
@@ -750,27 +758,17 @@ void Vehicle::InstallAccessory(uint32 entry, int8 seatId, bool isVehicle, bool m
         }
     }
 }
-
 Unit *Vehicle::GetPassenger(int8 seatId) const
 {
     SeatMap::const_iterator seat = m_Seats.find(seatId);
     if(seat == m_Seats.end()) return NULL;
     return seat->second.passenger;
 }
-
 void Vehicle::Die()
 {
     for (SeatMap::iterator itr = m_Seats.begin(); itr != m_Seats.end(); ++itr)
         if(Unit *passenger = itr->second.passenger)
             if(((Creature*)passenger)->isVehicle())
-                passenger->setDeathState(JUST_DIED);
+                ((Vehicle*)passenger)->Dismiss();
     RemoveAllPassengers();
-}
-
-uint32 Vehicle::GetHackVehicleFlags()
-{ 
-    CreatureInfo const *cinfo = sObjectMgr.GetCreatureTemplate(GetEntry());
-	if (!cinfo)
-		return NULL;
-	return cinfo->v_flags; 
 }

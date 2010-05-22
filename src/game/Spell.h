@@ -121,7 +121,7 @@ class SpellCastTargets
         SpellCastTargets();
         ~SpellCastTargets();
 
-        void read( ByteBuffer& data, Unit *caster, SpellEntry const* spell = NULL );
+        void read( ByteBuffer& data, Unit *caster );
         void write( ByteBuffer& data ) const;
 
         SpellCastTargetsReader ReadForCaster(Unit* caster) { return SpellCastTargetsReader(*this,caster); }
@@ -180,13 +180,12 @@ class SpellCastTargets
         }
 
         bool IsEmpty() const { return m_GOTargetGUID.IsEmpty() && m_unitTargetGUID.IsEmpty() && m_itemTarget==NULL && m_CorpseTargetGUID.IsEmpty(); }
-        bool HasSrc() const { return m_targetMask & TARGET_FLAG_SOURCE_LOCATION; }
-        bool HasDst() const { return m_targetMask & TARGET_FLAG_DEST_LOCATION; }
 
         void Update(Unit* caster);
 
-        float m_srcX, m_srcY, m_srcZ;
+        float m_srcX, m_srcY, m_srcZ, m_srcO;
         float m_destX, m_destY, m_destZ;
+        float m_elevation, m_speed;
         std::string m_strTarget;
 
         uint32 m_targetMask;
@@ -354,16 +353,15 @@ class Spell
         void EffectKillCreditPersonal(SpellEffectIndex eff_idx);
         void EffectKillCredit(SpellEffectIndex eff_idx);
         void EffectQuestFail(SpellEffectIndex eff_idx);
-        void EffectWMODamage(SpellEffectIndex eff_idx);
-        void EffectWMORepair(SpellEffectIndex eff_idx);
         void EffectActivateRune(SpellEffectIndex eff_idx);
         void EffectTeachTaxiNode(SpellEffectIndex eff_idx);
         void EffectTitanGrip(SpellEffectIndex eff_idx);
         void EffectEnchantItemPrismatic(SpellEffectIndex eff_idx);
-        void EffectSummonVehicle(SpellEffectIndex eff_idx);
         void EffectPlayMusic(SpellEffectIndex eff_idx);
         void EffectSpecCount(SpellEffectIndex eff_idx);
         void EffectActivateSpec(SpellEffectIndex eff_idx);
+        void EffectSummonVehicle(SpellEffectIndex eff_idx);
+        void EffectDamageBuilding(SpellEffectIndex eff_idx);
 
         Spell( Unit* caster, SpellEntry const *info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), Spell** triggeringContainer = NULL );
         ~Spell();

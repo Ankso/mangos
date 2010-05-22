@@ -866,14 +866,9 @@ struct GameObjectDisplayInfoEntry
 {
     uint32      Displayid;                                  // 0        m_ID
     // char* filename;                                      // 1
-    //uint32  unk1[10];   //2-11
-    float   minX;
-    float   minY;
-    float   minZ;
-    float   maxX;
-    float   maxY;
-    float   maxZ;
-    //uint32  transport;  //18
+    // uint32 unknown2[10];                                 // 2-11     unknown data
+    // float  unknown12[6];                                 // 12-17    unknown data
+    // uint32 unknown18;                                    // 18       unknown data
 };
 
 struct GemPropertiesEntry
@@ -1705,6 +1700,8 @@ struct VehicleEntry
     float   m_cameraFadeDistScalarMin;                      // 15
     float   m_cameraFadeDistScalarMax;                      // 16
     float   m_cameraPitchOffset;                            // 17
+    //int     m_powerType[3];                               //       removed in 3.1
+    //int     m_powerToken[3];                              //       removed in 3.1
     float   m_facingLimitRight;                             // 18
     float   m_facingLimitLeft;                              // 19
     float   m_msslTrgtTurnLingering;                        // 20
@@ -1776,6 +1773,8 @@ struct VehicleSeatEntry
     int32   m_uiSkin;                                       // 44
     uint32  m_flagsB;                                       // 45
                                                             // 46-57 added in 3.1, floats mostly
+
+    bool IsUsable() const { return m_flags & 0x2000000; }
 };
 
 struct WMOAreaTableEntry

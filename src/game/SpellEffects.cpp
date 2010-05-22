@@ -46,10 +46,9 @@
 #include "BattleGround.h"
 #include "BattleGroundEY.h"
 #include "BattleGroundWS.h"
-#include "BattleGroundSA.h"
-#include "VMapFactory.h"
 #include "Language.h"
 #include "SocialMgr.h"
+#include "VMapFactory.h"
 #include "Util.h"
 #include "TemporarySummon.h"
 #include "ScriptCalls.h"
@@ -59,8 +58,6 @@
 #include "GridNotifiers.h"
 #include "GridNotifiersImpl.h"
 #include "CellImpl.h"
-
-#define BOMB_ID			50000
 
 pEffect SpellEffects[TOTAL_SPELL_EFFECTS]=
 {
@@ -151,9 +148,9 @@ pEffect SpellEffects[TOTAL_SPELL_EFFECTS]=
     &Spell::EffectStuck,                                    // 84 SPELL_EFFECT_STUCK
     &Spell::EffectSummonPlayer,                             // 85 SPELL_EFFECT_SUMMON_PLAYER
     &Spell::EffectActivateObject,                           // 86 SPELL_EFFECT_ACTIVATE_OBJECT
-    &Spell::EffectWMODamage,                                // 87 SPELL_EFFECT_WMO_DAMAGE (57 spells in 3.3.2)
-    &Spell::EffectWMORepair,                                // 88 SPELL_EFFECT_WMO_REPAIR (2 spells in 3.3.2)
-    &Spell::EffectNULL,                                     // 89 SPELL_EFFECT_WMO_CHANGE (7 spells in 3.3.2)
+    &Spell::EffectDamageBuilding,                           // 87 SPELL_EFFECT_WMO_DAMAGE
+    &Spell::EffectUnused,                                   // 88 SPELL_EFFECT_WMO_REPAIR
+    &Spell::EffectUnused,                                   // 89 SPELL_EFFECT_WMO_CHANGE
     &Spell::EffectKillCreditPersonal,                       // 90 SPELL_EFFECT_KILL_CREDIT              Kill credit but only for single person
     &Spell::EffectUnused,                                   // 91 SPELL_EFFECT_THREAT_ALL               one spell: zzOLDBrainwash
     &Spell::EffectEnchantHeldItem,                          // 92 SPELL_EFFECT_ENCHANT_HELD_ITEM
@@ -3758,7 +3755,7 @@ void Spell::EffectOpenLock(SpellEffectIndex eff_idx)
             if (BattleGround *bg = player->GetBattleGround())
             {
                 // check if it's correct bg
-                if (bg->GetTypeID() == BATTLEGROUND_AB || bg->GetTypeID() == BATTLEGROUND_AV || bg->GetTypeID() == BATTLEGROUND_SA)
+                if (bg->GetTypeID(true) == BATTLEGROUND_AB || bg->GetTypeID(true) == BATTLEGROUND_AV)
                     bg->EventPlayerClickedOnFlag(player, gameObjTarget);
                 return;
             }
@@ -4045,7 +4042,6 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
             break;
     }
 }
-
 void Spell::DoSummon(SpellEffectIndex eff_idx)
 {
     if (m_caster->GetPetGUID())
@@ -7714,160 +7710,122 @@ void Spell::EffectModifyThreatPercent(SpellEffectIndex /*eff_idx*/)
 
 void Spell::EffectTransmitted(SpellEffectIndex eff_idx)
 {
-    if (m_spellInfo->Id == 52410 || m_spellInfo->Id == 66268 || m_spellInfo->Id == 66674)
-	{
-		if (!((Player*)m_caster)->InBattleGround())
-			return;
+    uint32 name_id = m_spellInfo->EffectMiscValue[eff_idx];
 
-		if (BattleGround *bg = ((Player*)m_caster)->GetBattleGround())
-		{
-			uint32 type = bg->GetTypeID();
-			if (type == BATTLEGROUND_SA)
-				if (bg->GetController() == ((Player*)m_caster)->GetTeam())
-					return;
+    GameObjectInfo const* goinfo = ObjectMgr::GetGameObjectInfo(name_id);
 
-			if (type == BATTLEGROUND_SA || type == BATTLEGROUND_IC)
-			{
-				uint32 team = 0;
-				if (m_caster->GetTypeId()==TYPEID_PLAYER)
-				{
-					if (((Player*)m_caster)->GetTeam() == HORDE)
-						team = BG_IC_TEAM[1];
-					if (((Player*)m_caster)->GetTeam() == ALLIANCE)
-						team = BG_IC_TEAM[0];
- 				}
-				float fx, fy, fz;
-				m_caster->GetPosition(fx, fy, fz);
-				uint32 bombId = 0;
-				if (m_spellInfo->Id == 52410) { bombId = BOMB_ID;}
-				if (m_spellInfo->Id == 66268) { bombId = BOMB_ID;}
-				if (m_spellInfo->Id == 66674) { bombId = BOMB_ID;}
-				Creature* cBomb = m_caster->SummonCreature(bombId, fx, fy, fz, 0, TEMPSUMMON_DEAD_DESPAWN, 0);
-				if (!cBomb)
-					return;
-				cBomb->setFaction(team);
-				cBomb->SetCharmerGUID(m_caster->GetGUID());
-				bg->EventSpawnGOSA(((Player*)m_caster),cBomb,fx,fy,fz);
-			}
-		}
-	}
-	else
-	{
-		uint32 name_id = m_spellInfo->EffectMiscValue[eff_idx];
+    if (!goinfo)
+    {
+        sLog.outErrorDb("Gameobject (Entry: %u) not exist and not created at spell (ID: %u) cast",name_id, m_spellInfo->Id);
+        return;
+    }
 
-		GameObjectInfo const* goinfo = ObjectMgr::GetGameObjectInfo(name_id);
+    float fx, fy, fz;
 
-		if (!goinfo)
-		{
-			sLog.outErrorDb("Gameobject (Entry: %u) not exist and not created at spell (ID: %u) cast",name_id, m_spellInfo->Id);
-			return;
-		}
+    if(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+    {
+        fx = m_targets.m_destX;
+        fy = m_targets.m_destY;
+        fz = m_targets.m_destZ;
+    }
+    //FIXME: this can be better check for most objects but still hack
+    else if(m_spellInfo->EffectRadiusIndex[eff_idx] && m_spellInfo->speed==0)
+    {
+        float dis = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[eff_idx]));
+        m_caster->GetClosePoint(fx, fy, fz, DEFAULT_WORLD_OBJECT_SIZE, dis);
+    }
+    else
+    {
+        float min_dis = GetSpellMinRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
+        float max_dis = GetSpellMaxRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
+        float dis = rand_norm_f() * (max_dis - min_dis) + min_dis;
 
-		float fx, fy, fz;
+        m_caster->GetClosePoint(fx, fy, fz, DEFAULT_WORLD_OBJECT_SIZE, dis);
+    }
 
-		if(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
-		{
-			fx = m_targets.m_destX;
-			fy = m_targets.m_destY;
-			fz = m_targets.m_destZ;
-		}
-		//FIXME: this can be better check for most objects but still hack
-		else if(m_spellInfo->EffectRadiusIndex[eff_idx] && m_spellInfo->speed==0)
-		{
-			float dis = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[eff_idx]));
-			m_caster->GetClosePoint(fx, fy, fz, DEFAULT_WORLD_OBJECT_SIZE, dis);
-		}
-		else
-		{
-    		float min_dis = GetSpellMinRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
-			float max_dis = GetSpellMaxRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
-			float dis = rand_norm_f() * (max_dis - min_dis) + min_dis;
+    Map *cMap = m_caster->GetMap();
 
-			m_caster->GetClosePoint(fx, fy, fz, DEFAULT_WORLD_OBJECT_SIZE, dis);
-		}
+    if(goinfo->type==GAMEOBJECT_TYPE_FISHINGNODE)
+    {
+        LiquidData liqData;
+        if ( !cMap->IsInWater(fx, fy, fz + 1.f/* -0.5f */, &liqData))             // Hack to prevent fishing bobber from failing to land on fishing hole
+        { // but this is not proper, we really need to ignore not materialized objects
+            SendCastResult(SPELL_FAILED_NOT_HERE);
+            SendChannelUpdate(0);
+            return;
+        }
 
-		Map *cMap = m_caster->GetMap();
+        // replace by water level in this case
+        //fz = cMap->GetWaterLevel(fx, fy);
+        fz = liqData.level;
+    }
+    // if gameobject is summoning object, it should be spawned right on caster's position
+    else if(goinfo->type==GAMEOBJECT_TYPE_SUMMONING_RITUAL)
+    {
+        m_caster->GetPosition(fx, fy, fz);
+    }
 
-		if(goinfo->type==GAMEOBJECT_TYPE_FISHINGNODE)
-		{
-			if ( !cMap->IsInWater(fx, fy, fz-0.5f))             // Hack to prevent fishing bobber from failing to land on fishing hole
-			{ // but this is not proper, we really need to ignore not materialized objects
-				SendCastResult(SPELL_FAILED_NOT_HERE);
-				SendChannelUpdate(0);
-				return;
-			}
+    GameObject* pGameObj = new GameObject;
 
-			// replace by water level in this case
-			fz = cMap->GetWaterLevel(fx, fy);
-		}
-		// if gameobject is summoning object, it should be spawned right on caster's position
-		else if(goinfo->type==GAMEOBJECT_TYPE_SUMMONING_RITUAL)
-		{
-			m_caster->GetPosition(fx, fy, fz);
-		}
+    if(!pGameObj->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_GAMEOBJECT), name_id, cMap,
+        m_caster->GetPhaseMask(), fx, fy, fz, m_caster->GetOrientation(), 0.0f, 0.0f, 0.0f, 0.0f, 100, GO_STATE_READY))
+    {
+        delete pGameObj;
+        return;
+    }
 
-		GameObject* pGameObj = new GameObject;
+    int32 duration = GetSpellDuration(m_spellInfo);
 
-		if(!pGameObj->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_GAMEOBJECT), name_id, cMap,
-			m_caster->GetPhaseMask(), fx, fy, fz, m_caster->GetOrientation(), 0.0f, 0.0f, 0.0f, 0.0f, 100, GO_STATE_READY))
-		{
-			delete pGameObj;
-			return;
-		}
+    switch(goinfo->type)
+    {
+        case GAMEOBJECT_TYPE_FISHINGNODE:
+        {
+            m_caster->SetChannelObjectGUID(pGameObj->GetGUID());
+            m_caster->AddGameObject(pGameObj);              // will removed at spell cancel
 
-		int32 duration = GetSpellDuration(m_spellInfo);
+            // end time of range when possible catch fish (FISHING_BOBBER_READY_TIME..GetDuration(m_spellInfo))
+            // start time == fish-FISHING_BOBBER_READY_TIME (0..GetDuration(m_spellInfo)-FISHING_BOBBER_READY_TIME)
+            int32 lastSec = 0;
+            switch(urand(0, 3))
+            {
+                case 0: lastSec =  3; break;
+                case 1: lastSec =  7; break;
+                case 2: lastSec = 13; break;
+                case 3: lastSec = 17; break;
+            }
 
-		switch(goinfo->type)
-		{
-			case GAMEOBJECT_TYPE_FISHINGNODE:
-			{
-				m_caster->SetChannelObjectGUID(pGameObj->GetGUID());
-				m_caster->AddGameObject(pGameObj);              // will removed at spell cancel
+            duration = duration - lastSec*IN_MILLISECONDS + FISHING_BOBBER_READY_TIME*IN_MILLISECONDS;
+            break;
+        }
+        case GAMEOBJECT_TYPE_SUMMONING_RITUAL:
+        {
+            if(m_caster->GetTypeId() == TYPEID_PLAYER)
+            {
+                pGameObj->AddUniqueUse((Player*)m_caster);
+                m_caster->AddGameObject(pGameObj);          // will removed at spell cancel
+            }
+            break;
+        }
+        case GAMEOBJECT_TYPE_FISHINGHOLE:
+        case GAMEOBJECT_TYPE_CHEST:
+        default:
+            break;
+    }
 
-				// end time of range when possible catch fish (FISHING_BOBBER_READY_TIME..GetDuration(m_spellInfo))
-				// start time == fish-FISHING_BOBBER_READY_TIME (0..GetDuration(m_spellInfo)-FISHING_BOBBER_READY_TIME)
-				int32 lastSec = 0;
-				switch(urand(0, 3))
-     		    {
-                    case 0: lastSec =  3; break;
-	    			case 1: lastSec =  7; break;
-					case 2: lastSec = 13; break;
-					case 3: lastSec = 17; break;
-				}
+    pGameObj->SetRespawnTime(duration > 0 ? duration/IN_MILLISECONDS : 0);
 
-				duration = duration - lastSec*IN_MILLISECONDS + FISHING_BOBBER_READY_TIME*IN_MILLISECONDS;
-				break;
-			}
-			case GAMEOBJECT_TYPE_SUMMONING_RITUAL:
-			{
-				if(m_caster->GetTypeId() == TYPEID_PLAYER)
-				{
-					pGameObj->AddUniqueUse((Player*)m_caster);
-					m_caster->AddGameObject(pGameObj);          // will removed at spell cancel
-				}
-				break;
-			}
-			case GAMEOBJECT_TYPE_FISHINGHOLE:
-			case GAMEOBJECT_TYPE_CHEST:
-			default:
-				break;
-		}
+    pGameObj->SetOwnerGUID(m_caster->GetGUID());
 
-		pGameObj->SetRespawnTime(duration > 0 ? duration/IN_MILLISECONDS : 0);
+    pGameObj->SetUInt32Value(GAMEOBJECT_LEVEL, m_caster->getLevel());
+    pGameObj->SetSpellId(m_spellInfo->Id);
 
-		pGameObj->SetOwnerGUID(m_caster->GetGUID());
+    DEBUG_LOG("AddObject at SpellEfects.cpp EffectTransmitted");
+    //m_caster->AddGameObject(pGameObj);
+    //m_ObjToDel.push_back(pGameObj);
 
-		pGameObj->SetUInt32Value(GAMEOBJECT_LEVEL, m_caster->getLevel());
-		pGameObj->SetSpellId(m_spellInfo->Id);
+    cMap->Add(pGameObj);
 
-		DEBUG_LOG("AddObject at SpellEfects.cpp EffectTransmitted");
-		//m_caster->AddGameObject(pGameObj);
-		//m_ObjToDel.push_back(pGameObj);
-
-		cMap->Add(pGameObj);
-
-   	pGameObj->SummonLinkedTrapIfAny();
-	}
+    pGameObj->SummonLinkedTrapIfAny();
 }
 
 void Spell::EffectProspecting(SpellEffectIndex /*eff_idx*/)
@@ -8127,6 +8085,18 @@ void Spell::EffectSummonVehicle(SpellEffectIndex eff_idx)
         v->SetSpawnDuration(duration);
 }
 
+void Spell::EffectDamageBuilding(SpellEffectIndex eff_idx)
+{
+    if(!gameObjTarget)
+        return;
+
+    if(gameObjTarget->GetGoType() != GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING)
+        return;
+
+    // NOTE : this can be increased by scaling stat system in vehicles
+    gameObjTarget->DealSiegeDamage(damage);
+}
+
 void Spell::EffectPlayMusic(SpellEffectIndex eff_idx)
 {
     if(!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
@@ -8264,39 +8234,4 @@ void Spell::EffectTeachTaxiNode( SpellEffectIndex eff_idx )
         data << uint8( 1 );
         player->SendDirectMessage( &data );
     }
-}
- 
-void Spell::EffectWMODamage(SpellEffectIndex /*eff_idx*/)
-{
-	if(gameObjTarget && gameObjTarget->GetGoType() == GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING)
-	{
-        Unit *caster = m_originalCaster;
-        if (!caster)
-            return;
-
-        FactionTemplateEntry const *casterft, *goft;
-        casterft = caster->getFactionTemplateEntry();
-        goft = sFactionTemplateStore.LookupEntry(gameObjTarget->GetUInt32Value(GAMEOBJECT_FACTION));
-        // Do not allow to damage GO's of friendly factions (ie: Wintergrasp Walls)
-        if (casterft && goft && !casterft->IsFriendlyTo(*goft) || ((Player*)caster)->CanUseBattleGroundObject() || ((Player*)caster)->GetBattleGround())
-        {
-            gameObjTarget->TakenDamage(uint32(damage), caster);
-            WorldPacket data(SMSG_DESTRUCTIBLE_BUILDING_DAMAGE, 8+8+8+4+4);
-            data << gameObjTarget->GetPackGUID();
-            data << caster->GetPackGUID();
-            if (Unit *who = caster->GetCharmerOrOwner())
-                data << who->GetPackGUID();
-            else
-                data << uint8(0);
-            data << uint32(damage);
-            data << uint32(m_spellInfo->Id);
-            gameObjTarget->SendMessageToSet(&data, false);
-        }
-	}
-}
-
-void Spell::EffectWMORepair(SpellEffectIndex /*eff_idx*/)
-{
-    if(gameObjTarget && gameObjTarget->GetGoType() == GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING)
-        gameObjTarget->Rebuild(m_caster);
 }

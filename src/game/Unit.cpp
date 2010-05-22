@@ -8531,34 +8531,34 @@ bool Unit::IsHostileTo(Unit const* unit) const
 
 bool Unit::IsInPartyWith(Unit const *unit) const
 {
-	if(this == unit)
-		return true;
+    if(this == unit)
+      return true;
 
-	const Unit *u1 = GetCharmerOrOwnerOrSelf();
-	const Unit *u2 = unit->GetCharmerOrOwnerOrSelf();
-	if(u1 == u2)
-		return true;
+   const Unit *u1 = GetCharmerOrOwnerOrSelf();
+    const Unit *u2 = unit->GetCharmerOrOwnerOrSelf();
+    if(u1 == u2)
+        return true;
 
-	if(u1->GetTypeId() == TYPEID_PLAYER && u2->GetTypeId() == TYPEID_PLAYER)
-		return ((Player*)u1)->IsInSameGroupWith((Player*)u2);
-	else
-		return false;
+    if(u1->GetTypeId() == TYPEID_PLAYER && u2->GetTypeId() == TYPEID_PLAYER)
+        return ((Player*)u1)->IsInSameGroupWith((Player*)u2);
+    else
+       return false;
 }
 
 bool Unit::IsInRaidWith(Unit const *unit) const
 {
-	if(this == unit)
-		return true;
+    if(this == unit)
+        return true;
 
-	const Unit *u1 = GetCharmerOrOwnerOrSelf();
-	const Unit *u2 = unit->GetCharmerOrOwnerOrSelf();
-	if(u1 == u2)
-		return true;
+    const Unit *u1 = GetCharmerOrOwnerOrSelf();
+    const Unit *u2 = unit->GetCharmerOrOwnerOrSelf();
+    if(u1 == u2)
+        return true;
 
-	if(u1->GetTypeId() == TYPEID_PLAYER && u2->GetTypeId() == TYPEID_PLAYER)
-		return ((Player*)u1)->IsInSameRaidWith((Player*)u2);
-	else
-		return false;
+    if(u1->GetTypeId() == TYPEID_PLAYER && u2->GetTypeId() == TYPEID_PLAYER)
+        return ((Player*)u1)->IsInSameRaidWith((Player*)u2);
+    else
+        return false;
 }
 
 bool Unit::IsFriendlyTo(Unit const* unit) const
@@ -8710,14 +8710,7 @@ bool Unit::Attack(Unit *victim, bool meleeAttack)
 
     // player cannot attack in mount state
     if(GetTypeId()==TYPEID_PLAYER && IsMounted())
-    {
-        Vehicle *pVehicle = GetMap()->GetVehicle(GetVehicleGUID());
-        if(!pVehicle)
-            return false;
-
-        if(!(pVehicle->/*GetVehicleFlags()*/GetHackVehicleFlags() & VF_ALLOW_MELEE))
-            return false;
-    }
+        return false;
 
     // player (also npc?) cannot attack on vehicle
     if(GetTypeId()==TYPEID_PLAYER && GetVehicleGUID())
@@ -11961,7 +11954,7 @@ int32 Unit::CalculateSpellDuration(SpellEntry const* spellProto, SpellEffectInde
     if(GetTypeId() == TYPEID_PLAYER)
         unitPlayer = (Player*)this;
     else if(((Creature*)this)->isVehicle())
-        unitPlayer =(Player*)GetCharmer();
+        unitPlayer = (Player*)GetCharmer();
     else
         unitPlayer = NULL;
 
@@ -13981,13 +13974,13 @@ void Unit::NearTeleportTo( float x, float y, float z, float orientation, bool ca
         ((Player*)this)->TeleportTo(GetMapId(), x, y, z, orientation, TELE_TO_NOT_LEAVE_TRANSPORT | TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET | (casting ? TELE_TO_SPELL : 0));
     else
     {
+        ExitVehicle();
         Creature* c = (Creature*)this;
         // Creature relocation acts like instant movement generator, so current generator expects interrupt/reset calls to react properly
         if (!c->GetMotionMaster()->empty())
             if (MovementGenerator *movgen = c->GetMotionMaster()->top())
                 movgen->Interrupt(*c);
-                
-        ExitVehicle();
+
         GetMap()->CreatureRelocation((Creature*)this, x, y, z, orientation);
 
         WorldPacket data;
@@ -14101,7 +14094,7 @@ void Unit::EnterVehicle(Vehicle *vehicle, int8 seat_id, bool force)
     m_SeatData.dbc_seat = veSeat->m_ID;
     m_SeatData.seat = seat_id;
     m_SeatData.s_flags = sObjectMgr.GetSeatFlags(veSeat->m_ID);
-    m_SeatData.v_flags = v->/*GetVehicleFlags()*/GetHackVehicleFlags();
+    m_SeatData.v_flags = v->GetVehicleFlags();
 
     addUnitState(UNIT_STAT_ON_VEHICLE);
     InterruptNonMeleeSpells(false);
@@ -14144,7 +14137,7 @@ void Unit::ExitVehicle()
         {
             if(m_SeatData.s_flags & SF_MAIN_RIDER)
             {
-                if(vehicle->/*GetVehicleFlags()*/GetHackVehicleFlags() & VF_DESPAWN_AT_LEAVE)
+                if(vehicle->GetVehicleFlags() & VF_DESPAWN_AT_LEAVE)
                 {
                     // will be deleted at next update
                     vehicle->SetSpawnDuration(1);
@@ -14197,9 +14190,8 @@ void Unit::BuildVehicleInfo(Unit *target)
     data << float(target->m_SeatData.Orientation);
     data << uint32(veh_time);
     data << uint8 (target->m_SeatData.seat);
-    data << uint32(0);
-    if(GetTypeId() == TYPEID_PLAYER)
-        ((Player*)this)->GetSession()->SendPacket(&data);
+    data << uint32(m_movementInfo.GetFallTime());
+    SendMessageToSet(&data, GetTypeId() == TYPEID_PLAYER ? true : false);
 }
 
 void Unit::SetPvP( bool state )

@@ -303,7 +303,6 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
 
                 if(((Unit*)this)->GetVehicleGUID())
                     moveFlags2 |= (MOVEFLAG_ONTRANSPORT | MOVEFLAG_ROOT);
-
                 if(player->isInFlight())
                 {
                     ASSERT(player->GetMotionMaster()->GetCurrentMovementGeneratorType() == FLIGHT_MOTION_TYPE);
@@ -678,7 +677,7 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer * data, UpdateMask *
             if( updateMask->GetBit( index ) )
             {
                 // send in current format (float as float, uint32 as uint32)
-                if (/*false && */index == GAMEOBJECT_DYNAMIC )
+                if ( index == GAMEOBJECT_DYNAMIC )
                 {
                     if(IsActivateToQuest )
                     {
@@ -1759,7 +1758,6 @@ Vehicle* WorldObject::SummonVehicle(uint32 id, float x, float y, float z, float 
     if(GetTypeId()==TYPEID_UNIT && ((Creature*)this)->AI())
         ((Creature*)this)->AI()->JustSummoned((Creature*)v);
 
-	v->InstallAllAccessories();
     return v;
 }
 
