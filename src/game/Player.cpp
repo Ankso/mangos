@@ -8543,6 +8543,8 @@ void Player::SendInitWorldStates(uint32 zoneid, uint32 areaid)
         case 3703:                                          // Shattrath City
             break;
         case 4384:
+            if (bg && bg->GetTypeID() == BATTLEGROUND_SA)
+                bg->FillInitialWorldStates(data, count);
             break;
         default:
             FillInitialWorldState(data,count, 0x914, 0x0);  // 7
