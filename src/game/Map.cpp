@@ -3425,17 +3425,12 @@ Corpse* Map::GetCorpse(ObjectGuid guid)
     return ret;
 }
 
-Creature* Map::GetCreatureOrPetOrVehicle(ObjectGuid guid)
+Unit* Map::GetCreatureOrPet(ObjectGuid guid)
 {
-    switch(guid.GetHigh())
-    {
-        case HIGHGUID_UNIT:         return GetCreature(guid);
-        case HIGHGUID_PET:          return GetPet(guid);
-        case HIGHGUID_VEHICLE:      return GetVehicle(guid);
-        default:                    break;
-    }
+    if (Unit* ret = GetCreature(guid))
+        return ret;
 
-    return NULL;
+    return GetPet(guid);
 }
 
 GameObject* Map::GetGameObject(ObjectGuid guid)
@@ -3456,7 +3451,7 @@ WorldObject* Map::GetWorldObject(ObjectGuid guid)
         case HIGHGUID_GAMEOBJECT:   return GetGameObject(guid);
         case HIGHGUID_UNIT:         return GetCreature(guid);
         case HIGHGUID_PET:          return GetPet(guid);
-        case HIGHGUID_VEHICLE:      return GetVehicle(guid);
+		case HIGHGUID_VEHICLE:      return GetVehicle(guid);
         case HIGHGUID_DYNAMICOBJECT:return GetDynamicObject(guid);
         case HIGHGUID_CORPSE:       return GetCorpse(guid);
         case HIGHGUID_MO_TRANSPORT:
@@ -3518,8 +3513,6 @@ uint32 Map::GenerateLocalLowGuid(HighGuid guidhigh)
             return m_DynObjectGuids.Generate();
         case HIGHGUID_PET:
             return m_PetGuids.Generate();
-        case HIGHGUID_VEHICLE:
-            return m_VehicleGuids.Generate();
         default:
             ASSERT(0);
     }

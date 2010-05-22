@@ -1705,8 +1705,6 @@ struct VehicleEntry
     float   m_cameraFadeDistScalarMin;                      // 15
     float   m_cameraFadeDistScalarMax;                      // 16
     float   m_cameraPitchOffset;                            // 17
-    //int     m_powerType[3];                               //       removed in 3.1
-    //int     m_powerToken[3];                              //       removed in 3.1
     float   m_facingLimitRight;                             // 18
     float   m_facingLimitLeft;                              // 19
     float   m_msslTrgtTurnLingering;                        // 20
@@ -1724,7 +1722,7 @@ struct VehicleEntry
     uint32  m_uiLocomotionType;                             // 34
     float   m_msslTrgtImpactTexRadius;                      // 35
     uint32  m_uiSeatIndicatorType;                          // 36
-                                                            // 37, new in 3.1
+    uint32  m_powerType;                                    // 37, new in 3.1                                                        // 37, new in 3.1
                                                             // 38, new in 3.1
                                                             // 39, new in 3.1
 };

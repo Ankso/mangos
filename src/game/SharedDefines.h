@@ -1105,7 +1105,22 @@ enum Targets
     TARGET_SELF2                       = 87,
     TARGET_DIRECTLY_FORWARD            = 89,
     TARGET_NONCOMBAT_PET               = 90,
+    TARGET_DEST_DEST_RANDOM_DIR_DIST   = 91,
+    TARGET_UNK_92				       = 92,
+    TARGET_CORPSE_AREA_ENEMY_PLAYER_SRC= 93,
+    TARGET_VEHICLE                     = 94,
+    TARGET_DRIVER                      = 95,
+    TARGET_PASSENGER_0                 = 96,
+    TARGET_PASSENGER_1                 = 97,
+    TARGET_PASSENGER_2                 = 98,
+    TARGET_PASSENGER_3                 = 99,
+    TARGET_PASSENGER_4                 = 100,
+    TARGET_PASSENGER_5                 = 101,
+    TARGET_PASSENGER_6                 = 102,
+    TARGET_PASSENGER_7                 = 103,
     TARGET_IN_FRONT_OF_CASTER_30       = 104,
+    TARGET_UNIT_UNK_105                = 105, // 1 spell
+    TARGET_DEST_UNK_110                = 110  // some kind of traj?
 };
 
 enum SpellMissInfo
@@ -2456,6 +2471,106 @@ enum DiminishingGroup
     // Other
     // Don't Diminish, but limit duration to 10s
     DIMINISHING_LIMITONLY
+};
+
+
+/* NOTE : vehicles and seats has their own flags in DBC,
+but for now, they are too unknown for us, to use them */
+enum CustomVehicleFLags
+{
+    VF_CANT_MOVE                    = 0x0001,                   // vehicle cant move, only turn, maybe handle by some auras?
+    VF_FACTION                      = 0x0002,                   // vehicle retain its own faction
+    VF_DESPAWN_NPC                  = 0x0004,                   // vehicle will delete npc on spellclick
+    VF_DESPAWN_AT_LEAVE             = 0x0008,                   // vehicle will be deleted when rider leaves
+    VF_CAN_BE_HEALED                = 0x0010,                   // vehicle can be healed
+    VF_GIVE_EXP                     = 0x0020,                   // vehicle will give exp for killing enemies
+    VF_MOVEMENT                     = 0x0040,                   // vehicle will move on its own, not depending on rider, however rider can cast spells
+    VF_NON_SELECTABLE               = 0x0080,                   // vehicle will be not selectable after rider enter
+    VF_FLYING                       = 0x0100,                   // Hack for now (256 in DB)
+    VF_CAST_AURA                    = 0x0200,                   // Cast spell1 on player on vehicle enter and remove when he leaves.
+    VF_ALLOW_MELEE                  = 0x0400                    // Allow melee for players on vehicle 
+};
+
+enum CustomVehicleSeatFLags
+{
+    SF_MAIN_RIDER                   = 0x0001,                   // the one who controlls vehicle, can also cast spells
+    SF_UNATTACKABLE                 = 0x0002,                   // hided inside, and unatackable until vehicle is destroyed
+    SF_CAN_CAST                     = 0x0004,                   // player/npc can rotate, and cast OWN spells
+    SF_UNACCESSIBLE                 = 0x0008                    // player cant enter this seat by normal way (only by script)
+};
+
+enum VehicleFlags
+{
+    VF_NONE							= 0x000000000,		   //
+    VF_UNK1							= 0x000000001,		   // 
+    VF_UNK2							= 0x000000002,		   // 
+    VF_UNK3							= 0x000000004,		   //
+    VF_UNK4							= 0x000000008,		   // FOR VEHICLE_ID = 34
+    VF_UNK5							= 0x000000010,		   // 
+    VF_UNK6							= 0x000000020,		   // FOR VEHICLE_ID = 186
+    VF_UNK7							= 0x000000040,		   // 
+    VF_UNK8							= 0x000000080,		   // 
+    VF_UNK9							= 0x000000100,		   // VF_FLYING
+    VF_UNK10						= 0x000000200,		   // 
+    VF_UNK11						= 0x000000400,		   // 
+    VF_UNK12						= 0x000000800,		   //
+    VF_UNK13						= 0x000001000,		   // 
+    VF_UNK14						= 0x000002000,		   // 
+    VF_UNK15						= 0x000004000,		   // FOR VEHICLE_ID = 264
+    VF_UNK16						= 0x000008000,		   // FOR VEHICLE_ID = 295
+    VF_UNK17						= 0x000010000,		   //
+    VF_UNK18						= 0x000020000,		   // FOR VEHICLE_ID = 218
+    VF_UNK19						= 0x000040000,		   //
+    VF_UNK20						= 0x000080000,		   // FOR VEHICLE_ID = 17 //VF_DESPAWN_AT_LEAVE
+    VF_UNK21						= 0x000100000,		   //
+    VF_UNK22						= 0x000200000,		   //
+    VF_UNK23						= 0x000400000,		   // FOR VEHICLE_ID = 210 chopper
+    VF_UNK24						= 0x000800000,		   //
+    VF_UNK25						= 0x001000000,		   //
+    VF_UNK26						= 0x002000000,		   //
+    VF_UNK27						= 0x004000000,		   //
+    VF_UNK28						= 0x008000000,		   //
+    VF_UNK29						= 0x010000000,		   //
+    VF_UNK30						= 0x020000000,		   //
+    VF_UNK31						= 0x040000000,		   // FOR VEHICLE_ID = 328
+    VF_UNK32						= 0x080000000		   //
+};
+
+enum VehicleSeatFlags
+{
+    SF_NONE							= 0x000000000,		   //
+    SF_UNK1							= 0x000000001,		   // 
+    SF_UNK2							= 0x000000002,		   // 
+    SF_UNK3							= 0x000000004,		   //
+    SF_UNK4							= 0x000000008,		   //
+    SF_UNK5							= 0x000000010,		   // 
+    SF_UNK6							= 0x000000020,		   //
+    SF_UNK7							= 0x000000040,		   // 
+    SF_UNK8							= 0x000000080,		   // 
+    SF_UNK9							= 0x000000100,		   //
+    SF_UNK10						= 0x000000200,		   // 
+    SF_UNK11						= 0x000000400,		   // 
+    SF_UNK12						= 0x000000800,		   //
+    SF_UNK13						= 0x000001000,		   // 
+    SF_UNK14						= 0x000002000,		   // 
+    SF_UNK15						= 0x000004000,		   //
+    SF_UNK16						= 0x000008000,		   //
+    SF_UNK17						= 0x000010000,		   //
+    SF_UNK18						= 0x000020000,		   //
+    SF_UNK19						= 0x000040000,		   //
+    SF_UNK20						= 0x000080000,		   //
+    SF_UNK21						= 0x000100000,		   //
+    SF_UNK22						= 0x000200000,		   //
+    SF_UNK23						= 0x000400000,		   //
+    SF_UNK24						= 0x000800000,		   //
+    SF_UNK25						= 0x001000000,		   //
+    SF_ISUSABLE						= 0x002000000,		   //
+    SF_UNK27						= 0x004000000,		   //
+    SF_UNK28						= 0x008000000,		   //
+    SF_UNK29						= 0x010000000,		   //
+    SF_UNK30						= 0x020000000,		   //
+    SF_UNK31						= 0x040000000,		   //
+    SF_UNK32						= 0x080000000		   //
 };
 
 enum ResponseCodes

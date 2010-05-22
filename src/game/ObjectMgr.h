@@ -35,6 +35,7 @@
 #include "ObjectGuid.h"
 #include "Policies/Singleton.h"
 #include "Database/SQLStorage.h"
+#include "Vehicle.h"
 
 #include <string>
 #include <map>
@@ -378,6 +379,9 @@ MANGOS_DLL_SPEC LanguageDesc const* GetLanguageDescByID(uint32 lang);
 
 class PlayerDumpReader;
 
+// vehicle system
+typedef std::map<uint32,uint32> VehicleSeatDataMap;
+
 template<typename T>
 class IdGenerator
 {
@@ -572,6 +576,14 @@ class ObjectMgr
             return NULL;
         }
 
+        VehicleAccessoryList const* GetVehicleAccessoryList(uint32 uiEntry) const
+        {
+            VehicleAccessoryMap::const_iterator itr = m_VehicleAccessoryMap.find(uiEntry);
+            if (itr != m_VehicleAccessoryMap.end())
+                return &itr->second;
+            return NULL;
+        }
+
         void LoadGuilds();
         void LoadArenaTeams();
         void LoadGroups();
@@ -624,6 +636,7 @@ class ObjectMgr
         void LoadPointOfInterestLocales();
         void LoadInstanceTemplate();
         void LoadMailLevelRewards();
+		void LoadVehicleAccessories();
 
         void LoadGossipText();
 
@@ -659,6 +672,8 @@ class ObjectMgr
 
         void LoadVendors();
         void LoadTrainerSpell();
+
+        void LoadVehicleSeatData();
 
         std::string GeneratePetName(uint32 entry);
         uint32 GetBaseXP(uint32 level) const;
@@ -892,6 +907,17 @@ class ObjectMgr
 
         int GetOrNewIndexForLocale(LocaleConstant loc);
 
+        VehicleSeatDataMap mVehicleSeatData;
+
+        uint32 GetSeatFlags(uint32 seatid)
+        {
+            VehicleSeatDataMap::iterator i = mVehicleSeatData.find(seatid);
+            if(i == mVehicleSeatData.end())
+                return NULL;
+            else
+                return i->second;
+        }
+
         SpellClickInfoMapBounds GetSpellClickInfoMapBounds(uint32 creature_id) const
         {
             return SpellClickInfoMapBounds(mSpellClickInfoMap.lower_bound(creature_id),mSpellClickInfoMap.upper_bound(creature_id));
@@ -929,6 +955,7 @@ class ObjectMgr
         ObjectGuidGenerator<HIGHGUID_ITEM>       m_ItemGuids;
         ObjectGuidGenerator<HIGHGUID_GAMEOBJECT> m_GameobjectGuids;
         ObjectGuidGenerator<HIGHGUID_CORPSE>     m_CorpseGuids;
+        ObjectGuidGenerator<HIGHGUID_VEHICLE>    m_VehicleGuids;
 
         QuestMap            mQuestTemplates;
 
@@ -974,6 +1001,8 @@ class ObjectMgr
         SpellClickInfoMap   mSpellClickInfoMap;
 
         ItemRequiredTargetMap m_ItemRequiredTarget;
+
+		VehicleAccessoryMap m_VehicleAccessoryMap;
 
         typedef             std::vector<LocaleConstant> LocalForIndex;
         LocalForIndex        m_LocalForIndex;

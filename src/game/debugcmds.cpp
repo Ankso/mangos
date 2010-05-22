@@ -629,14 +629,20 @@ bool ChatHandler::HandleDebugSpawnVehicle(const char* args)
     if (!ci)
         return false;
 
-    VehicleEntry const *ve = sVehicleStore.LookupEntry(id);
+    /*VehicleEntry const *ve = sVehicleStore.LookupEntry(id);
 
     if (!ve)
-        return false;
+        return false;*/
 
-    Vehicle *v = new Vehicle;
+	Player* pl = m_session->GetPlayer();
+	float x,y,z;
+	pl->GetPosition(x,y,z);
+	Vehicle* vh = pl->SummonVehicle(entry,x,y,z,pl->GetOrientation(),ci->VehicleId);
+	vh->setFaction(35);
+    /*Vehicle *v = new Vehicle;
     Map *map = m_session->GetPlayer()->GetMap();
-    if (!v->Create(map->GenerateLocalLowGuid(HIGHGUID_VEHICLE), map, entry, id, m_session->GetPlayer()->GetTeam()))
+
+    if (!v->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_VEHICLE), map, m_session->GetPlayer()->GetPhaseMaskForSpawn(), entry, id, m_session->GetPlayer()->GetTeam()))
     {
         delete v;
         return false;
@@ -656,6 +662,7 @@ bool ChatHandler::HandleDebugSpawnVehicle(const char* args)
     }
 
     map->Add((Creature*)v);
+    v->AIM_Initialize();*/
 
     return true;
 }

@@ -714,6 +714,18 @@ void ObjectMgr::LoadCreatureTemplates()
             const_cast<CreatureInfo*>(cInfo)->InhabitType = INHABIT_ANYWHERE;
         }
 
+        if (cInfo->VehicleId)
+        {
+            VehicleEntry const* vehId = sVehicleStore.LookupEntry(cInfo->VehicleId);
+            if (!vehId)
+                 sLog.outErrorDb("Creature (Entry: %u) has a non-existing VehicleId (%u). This *WILL* cause the client to freeze!", cInfo->Entry, cInfo->VehicleId);
+        }
+
+        if (cInfo->VehicleId && !cInfo->v_flags)
+        {
+			sLog.outErrorDb("Creature (Entry: %u) has a non-existing vehicle flag for VehicleId (%u). This *WILL* cause the client to freeze!", cInfo->Entry, cInfo->VehicleId);
+        }
+
         if(cInfo->PetSpellDataId)
         {
             CreatureSpellDataEntry const* spellDataId = sCreatureSpellDataStore.LookupEntry(cInfo->PetSpellDataId);
@@ -2134,6 +2146,59 @@ void ObjectMgr::LoadItemPrototypes()
 
     for(std::set<uint32>::const_iterator itr = notFoundOutfit.begin(); itr != notFoundOutfit.end(); ++itr)
         sLog.outErrorDb("Item (Entry: %u) not exist in `item_template` but referenced in `CharStartOutfit.dbc`", *itr);
+}
+
+void ObjectMgr::LoadVehicleAccessories()
+{
+    m_VehicleAccessoryMap.clear();                           // needed for reload case
+
+    uint32 count = 0;
+
+    QueryResult *result = WorldDatabase.Query("SELECT `entry`,`accessory_entry`,`seat_id`, `vehicle`, `minion` FROM `vehicle_accessory`");
+
+    if (!result)
+    {
+        barGoLink bar(1);
+
+        bar.step();
+
+        sLog.outString();
+        sLog.outErrorDb(">> Loaded 0 LoadVehicleAccessor. DB table `vehicle_accessory` is empty.");
+        return;
+    }
+
+    barGoLink bar(result->GetRowCount());
+
+    do
+    {
+        Field *fields = result->Fetch();
+        bar.step();
+
+        uint32 uiEntry       = fields[0].GetUInt32();
+        uint32 uiAccessory   = fields[1].GetUInt32();
+        int8   uiSeat        = int8(fields[2].GetInt16());
+		bool   isVehicle     = fields[3].GetBool();
+        bool   bMinion       = fields[4].GetBool();
+
+        if (!sCreatureStorage.LookupEntry<CreatureInfo>(uiEntry))
+        {
+            sLog.outErrorDb("Table `vehicle_accessory`: creature template entry %u does not exist.", uiEntry);
+            continue;
+        }
+
+        if (!sCreatureStorage.LookupEntry<CreatureInfo>(uiAccessory))
+        {
+            sLog.outErrorDb("Table `vehicle_accessory`: Accessory %u does not exist.", uiAccessory);
+            continue;
+        }
+
+        m_VehicleAccessoryMap[uiEntry].push_back(VehicleAccessory(uiAccessory, uiSeat, isVehicle, bMinion));
+
+        ++count;
+    } while (result->NextRow());
+
+    sLog.outString();
+    sLog.outString(">> Loaded %u Vehicle Accessories", count);
 }
 
 void ObjectMgr::LoadItemRequiredTarget()
@@ -5783,6 +5848,8 @@ uint32 ObjectMgr::GenerateLowGuid(HighGuid guidhigh)
             return m_ItemGuids.Generate();
         case HIGHGUID_UNIT:
             return m_CreatureGuids.Generate();
+        case HIGHGUID_VEHICLE:
+            return m_VehicleGuids.Generate();
         case HIGHGUID_PLAYER:
             return m_CharGuids.Generate();
         case HIGHGUID_GAMEOBJECT:
@@ -8626,6 +8693,52 @@ ObjectMgr::ScriptNameMap & GetScriptNames()
 CreatureInfo const* GetCreatureTemplateStore(uint32 entry)
 {
     return sCreatureStorage.LookupEntry<CreatureInfo>(entry);
+}
+
+void ObjectMgr::LoadVehicleSeatData()
+{
+    mVehicleSeatData.clear();
+
+    QueryResult *result = WorldDatabase.Query("SELECT seat,flags FROM vehicle_seat_data");
+
+    if( !result )
+    {
+        barGoLink bar( 1 );
+
+        bar.step();
+
+        sLog.outString();
+        sLog.outString( ">> Loaded 0 vehicle seat data" );
+        sLog.outErrorDb("`vehicle_seat_data` table is empty!");
+        return;
+    }
+    uint32 count = 0;
+
+    barGoLink bar( result->GetRowCount() );
+    do
+    {
+        bar.step();
+
+        Field *fields = result->Fetch();
+        uint32 entry  = fields[0].GetUInt32();
+        uint32 flag   = fields[1].GetUInt32();
+
+        VehicleSeatEntry const *vsInfo = sVehicleSeatStore.LookupEntry(entry);
+        if(!vsInfo)
+        {
+            sLog.outErrorDb("Vehicle seat %u listed in `vehicle_seat_data` does not exist",entry);
+            continue;
+        }
+
+        mVehicleSeatData[entry] = flag;
+        ++count;
+    }
+    while (result->NextRow());
+
+    delete result;
+
+    sLog.outString();
+    sLog.outString( ">> Loaded %u vehicle seat data", count );
 }
 
 Quest const* GetQuestTemplateStore(uint32 entry)

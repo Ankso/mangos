@@ -1048,6 +1048,9 @@ void World::SetInitialWorldSettings()
     sLog.outString( ">>> Creature Addon Data loaded" );
     sLog.outString();
 
+    sLog.outString("Loading Vehicle Accessories...");
+    sObjectMgr.LoadVehicleAccessories();                          // must be after LoadCreatureTemplates()
+
     sLog.outString( "Loading Creature Respawn Data..." );   // must be after PackInstances()
     sObjectMgr.LoadCreatureRespawnTimes();
 
@@ -1240,6 +1243,9 @@ void World::SetInitialWorldSettings()
 
     sLog.outString( "Loading Scripts text locales..." );    // must be after Load*Scripts calls
     sObjectMgr.LoadDbScriptStrings();
+
+    sLog.outString( "Loading VehicleSeatData..." );
+    sObjectMgr.LoadVehicleSeatData();
 
     sLog.outString( "Loading CreatureEventAI Texts...");
     sEventAIMgr.LoadCreatureEventAI_Texts(false);       // false, will checked in LoadCreatureEventAI_Scripts

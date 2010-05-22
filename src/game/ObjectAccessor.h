@@ -38,6 +38,7 @@
 class Creature;
 class Unit;
 class GameObject;
+class Vehicle;
 class WorldObject;
 class Map;
 
@@ -91,12 +92,16 @@ class MANGOS_DLL_DECL ObjectAccessor : public MaNGOS::Singleton<ObjectAccessor, 
         // global (obj used for map only location local guid objects (pets currently)
         static Unit*   GetUnitInWorld(WorldObject const& obj, ObjectGuid guid);
 
-        // FIXME: map local object with global search
+        // map local object with global search
         static Creature*   GetCreatureInWorld(ObjectGuid guid)   { return FindHelper<Creature>(guid); }
         static GameObject* GetGameObjectInWorld(ObjectGuid guid) { return FindHelper<GameObject>(guid); }
+        static Pet*        GetGameObjectInWorld(ObjectGuid guid, Pet*        /*fake*/) { return FindHelper<Pet>(guid); }
+        static Vehicle*    GetGameObjectInWorld(ObjectGuid guid, Vehicle*    /*fake*/) { return FindHelper<Vehicle>(guid); }
 
         // possible local search for specific object map
         static Unit* GetUnit(WorldObject const &, ObjectGuid guid);
+        static Creature* GetCreatureOrPetOrVehicle(WorldObject const &, ObjectGuid guid);
+        static Vehicle* GetVehicle(uint64 guid) { return GetGameObjectInWorld(guid, (Vehicle*)NULL); }
 
         // Player access
         static Player* FindPlayer(ObjectGuid guid);

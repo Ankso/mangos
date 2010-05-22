@@ -116,6 +116,9 @@ struct CreatureInfo
     int32   resistance6;
     uint32  spells[CREATURE_MAX_SPELLS];
     uint32  PetSpellDataId;
+	uint32  VehicleId;
+	uint32  v_flags;
+	uint32  v_aura;
     uint32  mingold;
     uint32  maxgold;
     char const* AIName;
@@ -209,6 +212,15 @@ struct CreatureDataAddonAura
 {
     uint32 spell_id;
     SpellEffectIndex effect_idx;
+};
+
+struct CreatureDataAddonPassengers
+{
+    CreatureDataAddonPassengers() : entry(0), guid(0), seat_idx(-1) {}
+
+    uint32 entry;
+    uint32 guid;
+    int8 seat_idx;
 };
 
 // from `creature_addon` table
@@ -395,9 +407,11 @@ class MANGOS_DLL_SPEC Creature : public Unit
         void GetRespawnCoord(float &x, float &y, float &z, float* ori = NULL, float* dist =NULL) const;
         uint32 GetEquipmentId() const { return m_equipmentId; }
 
-        CreatureSubtype GetSubtype() const { return m_subtype; }
+		CreatureSubtype GetSubtype() const { return m_subtype; }
         bool isPet() const { return m_subtype == CREATURE_SUBTYPE_PET; }
         bool isVehicle() const { return m_subtype == CREATURE_SUBTYPE_VEHICLE; }
+        bool CreateVehicleKit(uint32 id);
+        Vehicle *GetVehicleKit()const { return m_vehicleKit; }
         bool isTotem() const { return m_subtype == CREATURE_SUBTYPE_TOTEM; }
         bool isTemporarySummon() const { return m_subtype == CREATURE_SUBTYPE_TEMPORARY_SUMMON; }
 
@@ -566,6 +580,7 @@ class MANGOS_DLL_SPEC Creature : public Unit
 
         MovementGeneratorType GetDefaultMovementType() const { return m_defaultMovementType; }
         void SetDefaultMovementType(MovementGeneratorType mgt) { m_defaultMovementType = mgt; }
+        float GetBaseSpeed() const;
 
         // for use only in LoadHelper, Map::Add Map::CreatureCellRelocation
         Cell const& GetCurrentCell() const { return m_currentCell; }
@@ -672,7 +687,7 @@ class MANGOS_DLL_SPEC Creature : public Unit
         float CombatStartX;
         float CombatStartY;
         float CombatStartZ;
-
+        Vehicle* m_vehicleKit;
         float m_summonXpoint;
         float m_summonYpoint;
         float m_summonZpoint;
