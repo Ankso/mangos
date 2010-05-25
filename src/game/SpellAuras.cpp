@@ -1029,7 +1029,7 @@ void Aura::_AddAura()
         if(slot < MAX_AURAS)                        // slot found send data to client
         {
             SetAura(false);
-            SetAuraFlags((1 << GetEffIndex()) | ((caster && caster != m_target) ? AFLAG_NONE : AFLAG_NOT_CASTER) | ((GetAuraMaxDuration() > 0) ? AFLAG_DURATION : AFLAG_NONE) | (IsPositive() ? AFLAG_POSITIVE : AFLAG_NEGATIVE));
+            SetAuraFlags((1 << GetEffIndex()) | ((GetCasterGUID() == GetTarget()->GetGUID()) ? AFLAG_NOT_CASTER : AFLAG_NONE) | ((GetAuraMaxDuration() > 0) ? AFLAG_DURATION : AFLAG_NONE) | (IsPositive() ? AFLAG_POSITIVE : AFLAG_NEGATIVE));
             SetAuraLevel(caster ? caster->getLevel() : sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL));
             SendAuraUpdate(false);
         }
@@ -1261,10 +1261,7 @@ void Aura::SendAuraUpdate(bool remove)
 
     if(!(auraFlags & AFLAG_NOT_CASTER))
     {
-        if(GetCaster())
-            data << GetCaster()->GetPackGUID();
-        else
-            data << uint8(0);
+        data.appendPackGUID(GetCasterGUID());
     }
 
     if(auraFlags & AFLAG_DURATION)
@@ -4339,10 +4336,9 @@ void Aura::HandleAuraModRoot(bool apply, bool Real)
                 data << m_target->GetPackGUID();
                 data << (uint32)2;
                 m_target->SendMessageToSet(&data,true);
-
-                //Clear unit movement flags
-                ((Player*)m_target)->m_movementInfo.SetMovementFlags(MOVEFLAG_NONE);
             }
+            //Clear unit movement flags
+            ((Player*)m_target)->m_movementInfo.SetMovementFlags(MOVEFLAG_NONE);
         }
         else
             m_target->StopMoving();
@@ -4409,7 +4405,7 @@ void Aura::HandleAuraModSilence(bool apply, bool Real)
                 if(spell->m_spellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE)
                     // Stop spells on prepare or casting state
                     m_target->InterruptSpell(CurrentSpellTypes(i), false);
-    }
+	}
     else
     {
         // Real remove called after current aura remove from lists, check if other similar auras active
