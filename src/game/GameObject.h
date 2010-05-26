@@ -710,7 +710,6 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         void TakenDamage(uint32 damage, Unit* pKiller);
         void Rebuild(Unit* pKiller);
 		void EventInform(uint32 eventId);
-        void DealSiegeDamage(uint32 damage);
     protected:
         uint32      m_spellId;
         time_t      m_respawnTime;                          // (secs) time of next respawn (or despawn if GO have owner()),

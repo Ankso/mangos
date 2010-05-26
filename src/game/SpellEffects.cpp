@@ -8160,18 +8160,6 @@ void Spell::EffectSummonVehicle(SpellEffectIndex eff_idx)
         v->SetSpawnDuration(duration);
 }
 
-void Spell::EffectDamageBuilding(SpellEffectIndex eff_idx)
-{
-    if(!gameObjTarget)
-        return;
-
-    if(gameObjTarget->GetGoType() != GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING)
-        return;
-
-    // NOTE : this can be increased by scaling stat system in vehicles
-    gameObjTarget->DealSiegeDamage(damage);
-}
-
 void Spell::EffectPlayMusic(SpellEffectIndex eff_idx)
 {
     if(!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
