@@ -607,7 +607,7 @@ bool ChatHandler::HandleGameObjectTurnCommand(const char* args)
     obj->SaveToDB();
     obj->Refresh();
 
-    PSendSysMessage(LANG_COMMAND_TURNOBJMESSAGE, obj->GetGUIDLow(), obj->GetGOInfo()->name, obj->GetGUIDLow(), o);
+    PSendSysMessage(LANG_COMMAND_TURNOBJMESSAGE, obj->GetGUIDLow(), obj->GetGOInfo()->name, obj->GetGUIDLow());
 
     return true;
 }
@@ -1129,7 +1129,7 @@ bool ChatHandler::HandleNpcAddVendorItemCommand(const char* args)
         incrtime = atol(fincrtime);
 
     char* fextendedcost = strtok(NULL, " ");                //add ExtendedCost, default: 0
-    uint32 extendedcost = fextendedcost ? atol(fextendedcost) : 0;
+    int32 extendedcost = fextendedcost ? atol(fextendedcost) : 0;
     
     char* fsortorder = strtok(NULL, " ");                   //add SortOrder, default: 0
     uint32 sortorder = fsortorder ? atol(fsortorder) : 0;
@@ -1176,7 +1176,7 @@ bool ChatHandler::HandleNpcMoveVendorItemCommand(const char* args)
     }
     uint32 vendor_entry = vendor ? vendor->GetEntry() : 0;
     
-    sObjectMgr.MoveVendorItem(vendor_entry,itemId,sortorder);
+    //sObjectMgr.MoveVendorItem(vendor_entry,itemId,sortorder);
     ItemPrototype const* pProto = ObjectMgr::GetItemPrototype(itemId);
     
 	PSendSysMessage(LANG_ITEM_MOVED_IN_LIST,itemId,pProto->Name1,sortorder);
