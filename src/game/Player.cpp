@@ -1034,7 +1034,9 @@ void Player::HandleDrowning(uint32 time_diff)
                 uint32 damage = urand(600, 700);
                 if (m_MirrorTimerFlags&UNDERWATER_INLAVA)
                     EnvironmentalDamage(DAMAGE_LAVA, damage);
-                else
+                // need to skip Slime damage in Undercity,
+                // maybe someone can find better way to handle environmental damage
+                else if (m_zoneUpdateId != 1497)
                     EnvironmentalDamage(DAMAGE_SLIME, damage);
             }
         }
@@ -1383,6 +1385,13 @@ void Player::Update( uint32 p_time )
 
     UpdateEnchantTime(p_time);
     UpdateHomebindTime(p_time);
+
+    if(sWorld.getConfig(CONFIG_UINT32_VMAP_INDOOR_INTERVAL) &&
+       (m_IndoorCheckTimer+=p_time) >=  sWorld.getConfig(CONFIG_UINT32_VMAP_INDOOR_INTERVAL))
+    {
+        PerformIndoorCheck();
+    }
+
 
     // group update
     SendUpdateToOutOfRangeGroupMembers();
@@ -20502,8 +20511,8 @@ void Player::UpdateUnderwaterState( Map* m, float x, float y, float z )
     {
         m_MirrorTimerFlags &= ~(UNDERWATER_INWATER|UNDERWATER_INLAVA|UNDERWATER_INSLIME|UNDERWATER_INDARKWATER);
         // Small hack for enable breath in WMO
-        if (IsInWater())
-            m_MirrorTimerFlags|=UNDERWATER_INWATER;
+        /* if (IsInWater())
+            m_MirrorTimerFlags|=UNDERWATER_INWATER; */
         return;
     }
 
@@ -22074,6 +22083,15 @@ void Player::SetHomebindToLocation(WorldLocation const& loc, uint32 area_id)
     // update sql homebind
     CharacterDatabase.PExecute("UPDATE character_homebind SET map = '%u', zone = '%u', position_x = '%f', position_y = '%f', position_z = '%f' WHERE guid = '%u'",
         m_homebindMapId, m_homebindAreaId, m_homebindX, m_homebindY, m_homebindZ, GetGUIDLow());
+}
+
+void Player::PerformIndoorCheck()
+{
+    if(!GetMap()->IsOutdoors(GetPositionX(), GetPositionY(), GetPositionZ()))
+    {
+        RemoveAurasWithAttribute(SPELL_ATTR_OUTDOORS_ONLY);
+    }
+    m_IndoorCheckTimer ^= m_IndoorCheckTimer;
 }
 
 Object* Player::GetObjectByTypeMask(ObjectGuid guid, TypeMask typemask)

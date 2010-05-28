@@ -2578,6 +2578,8 @@ class MANGOS_DLL_SPEC Player : public Unit
                 m_DelayedOperations |= operation;
         }
 
+        void PerformIndoorCheck();
+
         GridReference<Player> m_gridRef;
         MapReference m_mapRef;
 
@@ -2595,6 +2597,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint8 m_MirrorTimerFlags;
         uint8 m_MirrorTimerFlagsLast;
         bool m_isInWater;
+        uint32 m_IndoorCheckTimer;
 
         // Current teleport data
         WorldLocation m_teleport_dest;
