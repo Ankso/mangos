@@ -1386,7 +1386,7 @@ void Player::Update( uint32 p_time )
     UpdateEnchantTime(p_time);
     UpdateHomebindTime(p_time);
 
-    if(sWorld.getConfig(CONFIG_UINT32_VMAP_INDOOR_INTERVAL) &&
+    if(IsInWorld() && sWorld.getConfig(CONFIG_UINT32_VMAP_INDOOR_INTERVAL) &&
        (m_IndoorCheckTimer+=p_time) >=  sWorld.getConfig(CONFIG_UINT32_VMAP_INDOOR_INTERVAL))
     {
         PerformIndoorCheck();
