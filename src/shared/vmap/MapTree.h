@@ -19,7 +19,6 @@
 #ifndef _MAPTREE_H
 #define _MAPTREE_H
 
-#include <map>
 #include "Platform/Define.h"
 #include "Utilities/UnorderedMap.h"
 #include "BIH.h"
@@ -53,7 +52,7 @@ namespace VMAP
             // some maps are not splitted into tiles and we have to make sure, not removing the map before all tiles are removed
             // empty tiles have no tile file, hence map with bool instead of just a set (consistency check)
             loadedTileMap iLoadedTiles;
-            // stores <model-ID, reference count> to invalidate tree values and to be able to report errors
+            // stores <tree_index, reference_count> to invalidate tree values, unload map, and to be able to report errors
             loadedSpawnMap iLoadedSpawns;
             std::string iBasePath;
 
@@ -64,6 +63,7 @@ namespace VMAP
             static std::string getTileFileName(uint32 mapID, uint32 tileX, uint32 tileY);
             static uint32 packTileID(uint32 tileX, uint32 tileY) { return tileX<<16 | tileY; }
             static void unpackTileID(uint32 ID, uint32 &tileX, uint32 &tileY) { tileX = ID>>16; tileY = ID&0xFF; }
+            static bool CanLoadMap(const std::string &basePath, uint32 mapID, uint32 tileX, uint32 tileY);
 
             StaticMapTree(uint32 mapID, const std::string &basePath);
             ~StaticMapTree();
@@ -74,9 +74,10 @@ namespace VMAP
             bool getAreaInfo(G3D::Vector3 &pos, uint32 &flags, int32 &adtId, int32 &rootId, int32 &groupId) const;
             bool GetLocationInfo(const Vector3 &pos, LocationInfo &info) const;
 
-            bool init(const std::string &fname, VMapManager2 *vm);
-            bool loadMap(uint32 tileX, uint32 tileY, VMapManager2 *vm);
-            void unloadMap(uint32 tileX, uint32 tileY, VMapManager2 *vm);
+            bool InitMap(const std::string &fname, VMapManager2 *vm);
+            void UnloadMap(VMapManager2 *vm);
+            bool LoadMapTile(uint32 tileX, uint32 tileY, VMapManager2 *vm);
+            void UnloadMapTile(uint32 tileX, uint32 tileY, VMapManager2 *vm);
             bool isTiled() const { return iIsTiled; }
             uint32 numLoadedTiles() const { return iLoadedTiles.size(); }
     };
