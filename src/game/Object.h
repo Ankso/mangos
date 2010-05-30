@@ -38,7 +38,7 @@
 #define DEFAULT_VISIBILITY_BGARENAS 180.0f      // default visible distance in BG/Arenas, 180 yards
 
 #define DEFAULT_WORLD_OBJECT_SIZE   0.388999998569489f      // player size, also currently used (correctly?) for any non Unit world objects
-#define MAX_STEALTH_DETECT_RANGE    45.0f
+//#define MAX_STEALTH_DETECT_RANGE    45.0f
 #define TERRAIN_LOS_STEP_DISTANCE   3.0f
 
 uint32 GuidHigh2TypeId(uint32 guid_hi);

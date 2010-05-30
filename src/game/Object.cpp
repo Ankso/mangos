@@ -1259,7 +1259,7 @@ bool WorldObject::IsWithinLOS(float ox, float oy, float oz) const
     oz += 2.0f;
 
     // check for line of sight because of terrain height differences
-    Map const *map = GetBaseMap();
+    /*Map const *map = GetBaseMap();
     float dx = ox - x, dy = oy - y, dz = oz - z;
     float dist = sqrt(dx*dx + dy*dy + dz*dz);
     if (dist > ATTACK_DISTANCE && dist < MAX_VISIBILITY_DISTANCE)
@@ -1277,9 +1277,10 @@ bool WorldObject::IsWithinLOS(float ox, float oy, float oz) const
             py += incy;
             pz += incz;
         }
-    }
+    }*/
 
     VMAP::IVMapManager *vMapManager = VMAP::VMapFactory::createOrGetVMapManager();
+    /*return vMapManager->isInLineOfSight(GetMapId(), x, y, z, ox, oy, oz);*/
     return vMapManager->isInLineOfSight(GetMapId(), x, y, z, ox, oy, oz);
 }
 
