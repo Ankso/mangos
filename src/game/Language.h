@@ -856,7 +856,6 @@ enum MangosStrings
     //                                    10000-10999
 
     // Use for custom patches             11000-11999
-    LANG_ITEM_MOVED_IN_LIST				= 10000,
     LANG_ANNOUNCE_CHEAT                 = 11000,
 
 ///////////////////////////// Battle Ground Strand of the Ancients /////////////////////////////

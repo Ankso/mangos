@@ -8130,7 +8130,7 @@ void ObjectMgr::LoadVendors()
 
     std::set<uint32> skip_vendors;
 
-    QueryResult *result = WorldDatabase.Query("SELECT entry, item, maxcount, incrtime, ExtendedCost FROM npc_vendor ORDER BY sortOrder");
+    QueryResult *result = WorldDatabase.Query("SELECT entry, item, maxcount, incrtime, ExtendedCost FROM npc_vendor");
     if( !result )
     {
         barGoLink bar( 1 );
@@ -8432,14 +8432,12 @@ void ObjectMgr::LoadGossipMenuItems()
     sLog.outString(">> Loaded %u gossip_menu_option entries", count);
 }
 
-void ObjectMgr::AddVendorItem( uint32 entry,uint32 item, uint32 maxcount, uint32 incrtime, int32 extendedcost, uint32 sortOrder )
+void ObjectMgr::AddVendorItem( uint32 entry,uint32 item, uint32 maxcount, uint32 incrtime, uint32 extendedcost )
 {
     VendorItemData& vList = m_mCacheVendorItemMap[entry];
     vList.AddItem(item,maxcount,incrtime,extendedcost);
 
-    WorldDatabase.PExecuteLog("UPDATE npc_vendor SET sortOrder = sortOrder + 1 WHERE entry = %u AND sortOrder >= %u",entry,sortOrder);
-
-    WorldDatabase.PExecuteLog("INSERT INTO npc_vendor (entry,item,maxcount,incrtime,extendedcost,sortOrder) VALUES('%u','%u','%u','%u','%i','%u')",entry, item,maxcount,incrtime,extendedcost,sortOrder);
+    WorldDatabase.PExecuteLog("INSERT INTO npc_vendor (entry,item,maxcount,incrtime,extendedcost) VALUES('%u','%u','%u','%u','%u')",entry, item, maxcount,incrtime,extendedcost);
 }
 
 bool ObjectMgr::RemoveVendorItem( uint32 entry,uint32 item )
@@ -8451,8 +8449,6 @@ bool ObjectMgr::RemoveVendorItem( uint32 entry,uint32 item )
     if(!iter->second.RemoveItem(item))
         return false;
 
-    WorldDatabase.PExecuteLog("UPDATE npc_vendor list, npc_vendor currentitem SET list.sortOrder = list.sortOrder - 1 WHERE list.sortOrder > currentitem.sortOrder AND currentitem.entry='%u' AND currentitem.entry=list.entry AND currentitem.item = '%u';",entry,item);
-    
     WorldDatabase.PExecuteLog("DELETE FROM npc_vendor WHERE entry='%u' AND item='%u'",entry, item);
     return true;
 }

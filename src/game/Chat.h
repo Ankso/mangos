@@ -290,7 +290,6 @@ class ChatHandler
         bool HandleNpcFollowCommand(const char* args);
         bool HandleNpcInfoCommand(const char* args);
         bool HandleNpcMoveCommand(const char* args);
-        bool HandleNpcMoveVendorItemCommand(const char* args);
         bool HandleNpcPlayEmoteCommand(const char* args);
         bool HandleNpcSayCommand(const char* args);
         bool HandleNpcSetDeathStateCommand(const char* args);
