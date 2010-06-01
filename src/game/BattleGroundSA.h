@@ -86,7 +86,7 @@ enum BG_SA_GraveYard
 
 enum BG_SA_Timers
 {
-    BG_SA_FLAG_CAPTURING_TIME           = 1000,
+    BG_SA_FLAG_CAPTURING_TIME           = 60000,
 	BG_SA_ROUNDLENGTH					= 600000
 };
 
