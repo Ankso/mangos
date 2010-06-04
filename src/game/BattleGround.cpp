@@ -1115,6 +1115,9 @@ void BattleGround::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
 
             if(!team) team = plr->GetTeam();
 
+            // remove arena/battleground specific auras
+            plr->RemoveAurasDueToSpell(SPELL_AURA_PVP_HEALING);
+
             // if arena, remove the specific arena auras
             if (isArena())
             {
@@ -1263,6 +1266,9 @@ void BattleGround::AddPlayer(Player *plr)
     WorldPacket data;
     sBattleGroundMgr.BuildPlayerJoinedBattleGroundPacket(&data, plr);
     SendPacketToTeam(team, &data, plr, false);
+
+    // add arena/battleground specific auras
+    plr->CastSpell(plr, SPELL_AURA_PVP_HEALING,true);
 
     // add arena specific auras
     if (isArena())
