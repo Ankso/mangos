@@ -7234,7 +7234,16 @@ void Spell::EffectSummonObject(SpellEffectIndex eff_idx)
             z = m_caster->GetPositionZ();
         }
         else
-            m_caster->GetClosePoint(x, y, z, DEFAULT_WORLD_OBJECT_SIZE);
+        {
+            if(m_spellInfo->Id == 48018)
+            {
+                x = m_caster->GetPositionX();
+                y = m_caster->GetPositionY();
+                z = m_caster->GetPositionZ();
+            }
+            else
+                m_caster->GetClosePoint(x, y, z, DEFAULT_WORLD_OBJECT_SIZE);
+        }
     }
 
     Map *map = m_caster->GetMap();

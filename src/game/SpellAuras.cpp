@@ -1250,6 +1250,38 @@ bool Aura::_RemoveAura()
     return true;
 }
 
+void Aura::SendFakeAuraUpdate(uint32 auraId, bool remove)
+{
+    WorldPacket data(SMSG_AURA_UPDATE);
+    data << m_target->GetPackGUID();
+    data << uint8(64);
+    data << uint32(remove ? 0 : auraId);
+
+    if(remove)
+    {
+        m_target->SendMessageToSet(&data, true);
+        return;
+    }
+
+    uint8 auraFlags = GetAuraFlags();
+    data << uint8(auraFlags);
+    data << uint8(GetAuraLevel());
+    data << uint8(m_procCharges ? m_procCharges : m_stackAmount);
+
+    if(!(auraFlags & AFLAG_NOT_CASTER))
+    {
+        data << uint8(0);                                   // pguid
+    }
+
+    if(auraFlags & AFLAG_DURATION)
+    {
+        data << uint32(GetAuraMaxDuration());
+        data << uint32(GetAuraDuration());
+    }
+
+    m_target->SendMessageToSet(&data, true);
+}
+
 void Aura::SendAuraUpdate(bool remove)
 {
     WorldPacket data(SMSG_AURA_UPDATE);
@@ -5033,11 +5065,11 @@ void Aura::HandleAuraPeriodicDummy(bool apply, bool Real)
             {
                 case 48018:
                     if (apply)
-                        target->CastSpell(target, 62388, true);                
+                        SendFakeAuraUpdate(62388,false);           
                     else
                     {
                         target->RemoveGameObject(spell->Id,true);
-                        target->RemoveAurasDueToSpell(62388);
+                        SendFakeAuraUpdate(62388,true);
                     }
                 break;
             }
@@ -8392,18 +8424,13 @@ void Aura::PeriodicDummyTick()
             {
                 case 48018:
                     GameObject* obj = target->GetGameObject(spell->Id);
-                    if (!obj)
-                    {
-                         target->RemoveAurasDueToSpell(spell->Id);
-                         target->RemoveAurasDueToSpell(62388); 
-                         return;
-                    }
+                    if (!obj) return;
                     // We must take a range of teleport spell, not summon.
                     const SpellEntry* goToCircleSpell = sSpellStore.LookupEntry(48020);
                     if (target->IsWithinDist(obj,GetSpellMaxRange(sSpellRangeStore.LookupEntry(goToCircleSpell->rangeIndex))))
-                        target->CastSpell(target, 62388, true);
+                        SendFakeAuraUpdate(62388,false);
                     else
-                        target->RemoveAurasDueToSpell(62388);
+                        SendFakeAuraUpdate(62388,true);
             }
             break;
         case SPELLFAMILY_ROGUE:
