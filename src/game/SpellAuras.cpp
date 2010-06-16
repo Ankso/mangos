@@ -3206,9 +3206,7 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
         return;
     }
 
-    modelid = m_target->GetModelForForm(form);
-
-    if (!modelid && ssEntry->modelID_A)
+    if (ssEntry->modelID_A)
     {
         // i will asume that creatures will always take the defined model from the dbc
         // since no field in creature_templates describes wether an alliance or
