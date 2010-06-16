@@ -405,7 +405,7 @@ void TradeData::SetAccepted(bool state, bool crosssend /*= false*/)
 
 UpdateMask Player::updateVisualBits;
 
-Player::Player (WorldSession *session): Unit(), m_achievementMgr(this), m_reputationMgr(this)
+Player::Player (WorldSession *session): Unit(), m_achievementMgr(this), m_reputationMgr(this), m_mover(this), m_camera(this)
 {
     m_transport = 0;
 
@@ -2339,7 +2339,7 @@ Creature* Player::GetNPCIfCanInteractWith(ObjectGuid guid, uint32 npcflagmask)
         return NULL;
 
     // not in interactive state
-    if (hasUnitState(UNIT_STAT_CAN_NOT_REACT))
+    if (hasUnitState(UNIT_STAT_CAN_NOT_REACT_OR_LOST_CONTROL))
         return NULL;
 
     // needed by Aura 292
@@ -2397,7 +2397,7 @@ GameObject* Player::GetGameObjectIfCanInteractWith(ObjectGuid guid, uint32 gameo
         return NULL;
 
     // not in interactive state
-    if (hasUnitState(UNIT_STAT_CAN_NOT_REACT))
+    if (hasUnitState(UNIT_STAT_CAN_NOT_REACT_OR_LOST_CONTROL))
         return NULL;
 
     if (GameObject *go = GetMap()->GetGameObject(guid))
@@ -2516,7 +2516,8 @@ void Player::SetGameMaster(bool on)
         getHostileRefManager().setOnlineOfflineState(true);
     }
 
-    UpdateVisibilityForPlayer();
+    m_camera.UpdateVisibilityForOwner();
+    UpdateObjectVisibility();
 }
 
 void Player::SetGMVisible(bool on)
@@ -4601,8 +4602,10 @@ void Player::ResurrectPlayer(float restore_percent, bool applySickness)
     GetZoneAndAreaId(newzone,newarea);
     UpdateZone(newzone,newarea);
 
-    // update visibility
-    UpdateVisibilityForPlayer();
+    // update visibility of world around viewpoint
+    m_camera.UpdateVisibilityForOwner();
+    // update visibility of player for nearby cameras
+    UpdateObjectVisibility();
 
     if(!applySickness)
         return;
@@ -6185,42 +6188,30 @@ void Player::SaveRecallPosition()
 
 void Player::SendMessageToSet(WorldPacket *data, bool self)
 {
-    Map * _map = IsInWorld() ? GetMap() : sMapMgr.FindMap(GetMapId(), GetInstanceId());
-    if(_map)
-    {
-        _map->MessageBroadcast(this, data, self);
-        return;
-    }
+    if (Map * _map = IsInWorld() ? GetMap() : sMapMgr.FindMap(GetMapId(), GetInstanceId()))
+        _map->MessageBroadcast(this, data, false);
 
     //if player is not in world and map in not created/already destroyed
     //no need to create one, just send packet for itself!
-    if(self)
+    if (self)
         GetSession()->SendPacket(data);
 }
 
 void Player::SendMessageToSetInRange(WorldPacket *data, float dist, bool self)
 {
-    Map * _map = IsInWorld() ? GetMap() : sMapMgr.FindMap(GetMapId(), GetInstanceId());
-    if(_map)
-    {
-        _map->MessageDistBroadcast(this, data, dist, self);
-        return;
-    }
+    if (Map * _map = IsInWorld() ? GetMap() : sMapMgr.FindMap(GetMapId(), GetInstanceId()))
+        _map->MessageDistBroadcast(this, data, dist, false);
 
-    if(self)
+    if (self)
         GetSession()->SendPacket(data);
 }
 
 void Player::SendMessageToSetInRange(WorldPacket *data, float dist, bool self, bool own_team_only, bool enemy_team_only)
 {
-    Map * _map = IsInWorld() ? GetMap() : sMapMgr.FindMap(GetMapId(), GetInstanceId());
-    if(_map)
-    {
+    if (Map * _map = IsInWorld() ? GetMap() : sMapMgr.FindMap(GetMapId(), GetInstanceId()))
         _map->MessageDistBroadcast(this, data, dist, self, own_team_only, enemy_team_only);
-        return;
-    }
 
-    if(self)
+    if (self)
         GetSession()->SendPacket(data);
 }
 
@@ -15648,7 +15639,8 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
     SetCreatorGUID(0);
 
     // reset some aura modifiers before aura apply
-    SetFarSightGUID(0);
+
+    SetUInt64Value(PLAYER_FARSIGHT, 0);
     SetUInt32Value(PLAYER_TRACK_CREATURES, 0 );
     SetUInt32Value(PLAYER_TRACK_RESOURCES, 0 );
 
@@ -18396,7 +18388,7 @@ void Player::HandleStealthedUnitsDetection()
     MaNGOS::UnitListSearcher<MaNGOS::AnyStealthedCheck > searcher(this,stealthedUnits, u_check);
     Cell::VisitAllObjects(this, searcher, MAX_PLAYER_STEALTH_DETECT_RANGE);
 
-    WorldObject const* viewPoint = GetViewPoint();
+    WorldObject const* viewPoint = GetCamera().GetBody();
 
     for (std::list<Unit*>::const_iterator i = stealthedUnits.begin(); i != stealthedUnits.end(); ++i)
     {
@@ -19498,17 +19490,6 @@ void Player::ReportedAfkBy(Player* reporter)
     }
 }
 
-WorldObject const* Player::GetViewPoint() const
-{
-    if(uint64 far_sight = GetFarSight())
-    {
-        WorldObject const* viewPoint = GetMap()->GetWorldObject(far_sight);
-        return viewPoint ? viewPoint : this;                // always expected not NULL
-    }
-    else
-        return this;
-}
-
 bool Player::IsVisibleInGridForPlayer( Player* pl ) const
 {
     // gamemaster in GM mode see all, including ghosts
@@ -19819,7 +19800,7 @@ void Player::SendInitialPacketsBeforeAddToMap()
     if(HasAuraType(SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED) || HasAuraType(SPELL_AURA_FLY) || isInFlight())
         m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
 
-    m_mover = this;
+    SetMover(this);
     m_mover_in_queve = NULL;
 }
 
@@ -21094,7 +21075,7 @@ void Player::ApplyGlyphs(bool apply)
         ApplyGlyph(i,apply);
 }
 
-void Player::SendEnterVehicle(Vehicle *vehicle)
+void Player::SendEnterVehicle(Vehicle *vehicle, VehicleSeatEntry const *veSeat)
 {
     m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
     m_movementInfo.AddMovementFlag(MOVEFLAG_ROOT);
@@ -21108,15 +21089,82 @@ void Player::SendEnterVehicle(Vehicle *vehicle)
     // with vehicle, ONLY my vehicle will be passenger on that transport
     // player ----> vehicle ----> zeppelin
 
+    vehicle->SetCharmerGUID(GetGUID());
+    vehicle->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK);
+    vehicle->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
+    vehicle->setFaction(getFaction());
+
+    SetCharm(vehicle);                                      // charm
+    m_camera.SetView(vehicle);                              // set view
+
+    SetClientControl(vehicle, 1);                           // redirect controls to vehicle
+    SetMover(vehicle);
+
+    WorldPacket data(SMSG_ON_CANCEL_EXPECTED_RIDE_VEHICLE_AURA, 0);
+    GetSession()->SendPacket(&data);
+
+    data.Initialize(SMSG_BREAK_TARGET, 8);
+    data << vehicle->GetPackGUID();
+    SendMessageToSet(&data, true);
+
+    data.Initialize(MSG_MOVE_TELEPORT_ACK, 30);
+    data << GetPackGUID();
+    data << uint32(0);                                      // counter?
+    data << uint32(MOVEFLAG_ONTRANSPORT);                   // transport
+    data << uint16(0);                                      // special flags
+    data << uint32(getMSTime());                            // time
+    data << vehicle->GetPositionX();                        // x
+    data << vehicle->GetPositionY();                        // y
+    data << vehicle->GetPositionZ();                        // z
+    data << vehicle->GetOrientation();                      // o
+    // transport part, TODO: load/calculate seat offsets
+    data << uint64(vehicle->GetGUID());                     // transport guid
+    data << float(veSeat->m_attachmentOffsetX);             // transport offsetX
+    data << float(veSeat->m_attachmentOffsetY);             // transport offsetY
+    data << float(veSeat->m_attachmentOffsetZ);             // transport offsetZ
+    data << float(0);                                       // transport orientation
+    data << uint32(getMSTime());                            // transport time
+    data << uint8(0);                                       // seat
+    // end of transport part
+    data << uint32(0);                                      // fall time
+    GetSession()->SendPacket(&data);
+
+    data.Initialize(SMSG_PET_SPELLS, 8+2+4+4+4*MAX_UNIT_ACTION_BAR_INDEX+1+1);
+    data << uint64(vehicle->GetGUID());
+    data << uint16(0);
+    data << uint32(0);
+    data << uint32(0x00000101);
+
+    for(uint32 i = 0; i < 10; ++i)
+        data << uint16(0) << uint8(0) << uint8(i+8);
+
+    data << uint8(0);
+    data << uint8(0);
+    GetSession()->SendPacket(&data);
+}
+
+/*void Player::ExitVehicle(Vehicle *vehicle)
+{
+    vehicle->SetCharmerGUID(0);
+    vehicle->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK);
+    vehicle->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
+    vehicle->setFaction((GetTeam() == ALLIANCE) ? vehicle->GetCreatureInfo()->faction_A : vehicle->GetCreatureInfo()->faction_H);
+
+    SetCharm(NULL);
+    m_camera.ResetView();
+
+    SetClientControl(vehicle, 0);
+    SetMover(NULL);
+
     WorldPacket data(SMSG_BREAK_TARGET, 8);
     data << vehicle->GetPackGUID();
     GetSession()->SendPacket(&data);
 
-    /*data.Initialize(SMSG_UNKNOWN_1191, 12);
+    data.Initialize(SMSG_UNKNOWN_1191, 12);
     data << uint64(GetGUID());
     data << uint64(vehicle->GetVehicleId());                      // not sure
-    SendMessageToSet(&data, true);*/
-}
+    SendMessageToSet(&data, true);
+}*/
 
 bool Player::isTotalImmune()
 {
@@ -22245,11 +22293,20 @@ void Player::ActivateSpec(uint8 specNum)
 
     // recheck action buttons (not checked at loading/spec copy)
     ActionButtonList const& currentActionButtonList = m_actionButtons[m_activeSpec];
-    for(ActionButtonList::const_iterator itr = currentActionButtonList.begin(); itr != currentActionButtonList.end(); ++itr)
+    for(ActionButtonList::const_iterator itr = currentActionButtonList.begin(); itr != currentActionButtonList.end(); )
+    {
         if (itr->second.uState != ACTIONBUTTON_DELETED)
+        {
             // remove broken without any output (it can be not correct because talents not copied at spec creating)
             if (!IsActionButtonDataValid(itr->first,itr->second.GetAction(),itr->second.GetType(), this, false))
+            {
                 removeActionButton(m_activeSpec,itr->first);
+                itr = currentActionButtonList.begin();
+                continue;
+            }
+        }
+        ++itr;
+    }
 
     ResummonPetTemporaryUnSummonedIfAny();
 
@@ -22340,38 +22397,6 @@ void Player::BuildTeleportAckMsg( WorldPacket *data, float x, float y, float z, 
 bool Player::HasMovementFlag( MovementFlags f ) const
 {
     return m_movementInfo.HasMovementFlag(f);
-}
-
-void Player::SetFarSightGUID( uint64 guid )
-{
-    if(GetFarSight() == guid)
-        return;
-
-    SetUInt64Value(PLAYER_FARSIGHT, guid);
-
-    // need triggering load grids around new view point
-    UpdateVisibilityForPlayer();
-}
-
-void Player::UpdateVisibilityForPlayer()
-{
-    WorldObject const* viewPoint = GetViewPoint();
-    Map* m = GetMap();
-
-    CellPair p(MaNGOS::ComputeCellPair(GetPositionX(), GetPositionY()));
-    Cell cell(p);
-
-    m->UpdateObjectVisibility(this, cell, p);
-
-    if (this != viewPoint)
-    {
-        CellPair pView(MaNGOS::ComputeCellPair(viewPoint->GetPositionX(), viewPoint->GetPositionY()));
-        Cell cellView(pView);
-
-        m->UpdateObjectsVisibilityFor(this, cellView, pView);
-    }
-    else
-        m->UpdateObjectsVisibilityFor(this, cell, p);
 }
 
 void Player::ResetTimeSync()

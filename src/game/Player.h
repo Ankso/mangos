@@ -1142,8 +1142,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         Creature* GetNPCIfCanInteractWith(ObjectGuid guid, uint32 npcflagmask);
         GameObject* GetGameObjectIfCanInteractWith(ObjectGuid guid, uint32 gameobject_type = MAX_GAMEOBJECT_TYPE) const;
 
-        void UpdateVisibilityForPlayer();
-
         bool ToggleAFK();
         bool ToggleDND();
         bool isAFK() const { return HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_AFK); }
@@ -2213,7 +2211,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         Unit *m_mover_in_queve;
 
         void SetMoverInQueve(Unit* pet) {m_mover_in_queve = pet ? pet : this; }
-
         void SetFallInformation(uint32 time, float z)
         {
             m_lastFallTime = time;
@@ -2236,9 +2233,11 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         void SetClientControl(Unit* target, uint8 allowMove);
         void SetMover(Unit* target) { m_mover = target ? target : this; }
+        Unit* GetMover() const { return m_mover; }
+        bool IsSelfMover() const { return m_mover == this; }// normal case for player not controlling other unit
 
         // vehicle system
-        void SendEnterVehicle(Vehicle *vehicle);
+        void SendEnterVehicle(Vehicle *vehicle, VehicleSeatEntry const *veSeat);
 
         uint64 GetFarSight() const { return GetUInt64Value(PLAYER_FARSIGHT); }
         void SetFarSightGUID(uint64 guid);
@@ -2276,7 +2275,6 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         bool HaveAtClient(WorldObject const* u) { return u==this || m_clientGUIDs.find(u->GetGUID())!=m_clientGUIDs.end(); }
 
-        WorldObject const* GetViewPoint() const;
         bool IsVisibleInGridForPlayer(Player* pl) const;
         bool IsVisibleGloballyFor(Player* pl) const;
 
@@ -2287,6 +2285,8 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         // Stealth detection system
         void HandleStealthedUnitsDetection();
+
+        Camera& GetCamera() { return m_camera; }
 
         uint8 m_forced_speed_changes[MAX_MOVE_TYPE];
 
@@ -2660,6 +2660,8 @@ class MANGOS_DLL_SPEC Player : public Unit
             if(operation < DELAYED_END)
                 m_DelayedOperations |= operation;
         }
+
+        Camera m_camera;
 
         GridReference<Player> m_gridRef;
         MapReference m_mapRef;
