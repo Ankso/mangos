@@ -931,6 +931,26 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
                     apBonus = owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_SHADOW) * 0.565f;
                     break;
                 }
+                // Treants
+                case 1964:
+                {
+                    apBonus = owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC) * 3.25f;
+                    // 30% of owners stamina, 35% of owners armor
+                    statBonus[STAT_STAMINA] = owner->GetStat(STAT_STAMINA) * 0.3f;
+                    armorBonus = owner->GetArmor() * 0.35f;
+                    break;
+                }
+               // Ebon Gargoyle
+                case 27829: 
+                {
+                    // 30% of owners stamina, 35% of owners armor
+                    statBonus[STAT_STAMINA] = owner->GetStat(STAT_STAMINA) * 0.3f;
+                    armorBonus = owner->GetArmor() * 0.35f;
+                    // 40% of masters attack power,
+                    apBonus = 40;
+                    apBonus = apBonus * owner->GetTotalAttackPowerValue(BASE_ATTACK) / 100;
+                    break;
+                }
                 // Feral Spirit Wolves
                 case 29264:
                 {
