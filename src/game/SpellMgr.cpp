@@ -1378,7 +1378,7 @@ void SpellMgr::LoadSpellBonuses()
             need_direct = true;
 
         // Check if direct_bonus is needed in `spell_bonus_data`
-        float direct_calc;
+        float direct_calc = 0;
         float direct_diff = 1000.0f;                        // for have big diff if no DB field value
         if (sbe.direct_damage)
         {
@@ -1398,7 +1398,7 @@ void SpellMgr::LoadSpellBonuses()
         }
 
         // Check if dot_bonus is needed in `spell_bonus_data`
-        float dot_calc;
+        float dot_calc = 0;
         float dot_diff = 1000.0f;                           // for have big diff if no DB field value
         if (sbe.dot_damage)
         {
@@ -1754,6 +1754,11 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
 
                 // Kindred Spirits
                 if( spellInfo_1->SpellIconID == 3559 && spellInfo_2->SpellIconID == 3559 )
+                    return false;
+
+                // Fury of Frostmourne
+                if( spellInfo_1->SpellIconID == 2702 && spellInfo_2->SpellIconID == 2702 ||
+                    spellInfo_2->SpellIconID == 2702 && spellInfo_1->SpellIconID == 2702 )
                     return false;
             }
             // Dragonmaw Illusion, Blood Elf Illusion, Human Illusion, Illidari Agent Illusion, Scarlet Crusade Disguise
@@ -3373,6 +3378,8 @@ SpellCastResult SpellMgr::GetSpellAllowedInLocationError(SpellEntry const *spell
             BattleGround* bg = player->GetBattleGround();
             return bg && bg->GetStatus()==STATUS_WAIT_JOIN ? SPELL_CAST_OK : SPELL_FAILED_ONLY_IN_ARENA;
         }
+        case 72293:                                         // Mark of the Fallen Champion
+            return map_id == 631 ? SPELL_CAST_OK : SPELL_FAILED_INCORRECT_AREA;
     }
 
     return SPELL_CAST_OK;
