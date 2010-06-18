@@ -4136,7 +4136,7 @@ bool Unit::RemoveNoStackAurasDueToAura(Aura *Aur)
     SpellEffectIndex effIndex = Aur->GetEffIndex();
 
     // passive spell special case (only non stackable with ranks)
-    if(IsPassiveSpell(spellId))
+    if(IsPassiveSpell(spellProto))
     {
         if(IsPassiveSpellStackableWithRanks(spellProto))
             return true;
@@ -4159,7 +4159,7 @@ bool Unit::RemoveNoStackAurasDueToAura(Aura *Aur)
         uint32 i_spellId = i_spellProto->Id;
 
         // early checks that spellId is passive non stackable spell
-        if(IsPassiveSpell(i_spellId))
+        if(IsPassiveSpell(i_spellProto))
         {
             // passive non-stackable spells not stackable only for same caster
             if(Aur->GetCasterGUID()!=i->second->GetCasterGUID())
@@ -9010,7 +9010,7 @@ void Unit::ModifyAuraState(AuraState flag, bool apply)
                 {
                     if(itr->second.state == PLAYERSPELL_REMOVED) continue;
                     SpellEntry const *spellInfo = sSpellStore.LookupEntry(itr->first);
-                    if (!spellInfo || !IsPassiveSpell(itr->first)) continue;
+                    if (!spellInfo || !IsPassiveSpell(spellInfo)) continue;
                     if (spellInfo->CasterAuraState == flag)
                         CastSpell(this, itr->first, true, NULL);
                 }

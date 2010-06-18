@@ -492,6 +492,8 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         GameObject* SummonGameobject(uint32 id, float x, float y, float z, float angle, uint32 despwtime);
         Vehicle* SummonVehicle(uint32 id, float x, float y, float z, float ang, uint32 vehicleId = NULL);
         ViewPoint& GetViewPoint() { return m_viewPoint; };
+
+        bool isActiveObject() const { return m_isActiveObject || m_viewPoint.hasViewers(); }
     protected:
         explicit WorldObject();
 
@@ -503,6 +505,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
 
         std::string m_name;
 
+        bool m_isActiveObject;
     private:
         Map * m_currMap;                                    //current object's Map location
 

@@ -804,6 +804,11 @@ void WorldSession::HandleSetActiveMoverOpcode(WorldPacket &recv_data)
         sLog.outError("HandleSetActiveMoverOpcode: incorrect mover guid: mover is " I64FMT " and should be " I64FMT, _player->m_mover->GetGUID(), guid);
         return;
     }
+
+    if (Unit *pMover = ObjectAccessor::GetUnit(*GetPlayer(), guid))
+        GetPlayer()->SetMover(pMover);
+    else
+        GetPlayer()->SetMover(NULL);
 }
 
 void WorldSession::HandleMoveNotActiveMover(WorldPacket &recv_data)
