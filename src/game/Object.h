@@ -72,6 +72,7 @@ class Unit;
 class Map;
 class UpdateMask;
 class InstanceData;
+class ZoneScript;
 class Vehicle;
 
 typedef UNORDERED_MAP<Player*, UpdateData> UpdateDataMapType;
@@ -473,11 +474,15 @@ class MANGOS_DLL_SPEC WorldObject : public Object
 
         void SetMap(Map * map);
         Map * GetMap() const { ASSERT(m_currMap); return m_currMap; }
+        Map * FindMap() const { return m_currMap; }
         //used to check all object's GetMap() calls when object is not in world!
         void ResetMap() { m_currMap = NULL; }
 
         //this function should be removed in nearest time...
         Map const* GetBaseMap() const;
+
+        void SetZoneScript();
+        ZoneScript *GetZoneScript() const { return m_zoneScript; }
 
         void AddToClientUpdateList();
         void RemoveFromClientUpdateList();
@@ -503,6 +508,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         void SetLocationMapId(uint32 _mapId) { m_mapId = _mapId; }
         void SetLocationInstanceId(uint32 _instanceId) { m_InstanceId = _instanceId; }
 
+        ZoneScript *m_zoneScript;
         std::string m_name;
 
         bool m_isActiveObject;
