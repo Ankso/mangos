@@ -23,6 +23,9 @@
 #include "ObjectMgr.h"
 #include "WorldPacket.h"
 #include "Language.h"
+#include "Object.h"
+#include "ObjectMgr.h"
+#include "WorldPacket.h"
 
 BattleGroundDS::BattleGroundDS()
 {

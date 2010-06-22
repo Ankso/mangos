@@ -116,10 +116,11 @@ namespace MaNGOS
         WorldPacket *i_message;
         bool i_toSelf;
         bool i_ownTeamOnly;
+		bool i_enemyTeamOnly;
         float i_dist;
 
-        MessageDistDeliverer(Player &pl, WorldPacket *msg, float dist, bool to_self, bool ownTeamOnly)
-            : i_player(pl), i_message(msg), i_toSelf(to_self), i_ownTeamOnly(ownTeamOnly), i_dist(dist) {}
+        MessageDistDeliverer(Player &pl, WorldPacket *msg, float dist, bool to_self, bool ownTeamOnly, bool enemyTeamOnly = false)
+            : i_player(pl), i_message(msg), i_toSelf(to_self), i_ownTeamOnly(ownTeamOnly), i_enemyTeamOnly(enemyTeamOnly), i_dist(dist) {}
         void Visit(CameraMapType &m);
         template<class SKIP> void Visit(GridRefManager<SKIP> &) {}
     };
@@ -502,20 +503,20 @@ namespace MaNGOS
     class RaiseDeadObjectCheck
     {
         public:
-            RaiseDeadObjectCheck(Player const* fobj, float range) : i_fobj(fobj), i_range(range) {}
+            RaiseDeadObjectCheck(Unit* funit, float range) : i_funit(funit), i_range(range) {}
             bool operator()(Creature* u)
             {
-                if (i_fobj->isHonorOrXPTarget(u) ||
+                if (i_funit->GetTypeId()!=TYPEID_PLAYER || !((Player*)i_funit)->isHonorOrXPTarget(u) ||
                     u->getDeathState() != CORPSE || u->isDeadByDefault() || u->isInFlight() ||
                     ( u->GetCreatureTypeMask() & (1 << (CREATURE_TYPE_HUMANOID-1)) )==0 ||
                     (u->GetDisplayId() != u->GetNativeDisplayId()))
                     return false;
 
-                return i_fobj->IsWithinDistInMap(u, i_range);
+                return i_funit->IsWithinDistInMap(u, i_range);
             }
             template<class NOT_INTERESTED> bool operator()(NOT_INTERESTED*) { return false; }
         private:
-            Player const* i_fobj;
+            Unit* const i_funit;
             float i_range;
     };
 
@@ -533,8 +534,8 @@ namespace MaNGOS
             }
             bool operator()(Creature* u)
             {
-                if (u->getDeathState()!=CORPSE || u->isInFlight() || u->isDeadByDefault() ||
-                    (u->GetDisplayId() != u->GetNativeDisplayId()) ||
+                if ((u->getDeathState()!=CORPSE && u->getDeathState()!=GHOULED) || u->isInFlight() ||
+					u->isDeadByDefault() || (u->GetDisplayId() != u->GetNativeDisplayId()) ||
                     (u->GetCreatureTypeMask() & CREATURE_TYPEMASK_MECHANICAL_OR_ELEMENTAL)!=0)
                     return false;
 
@@ -628,6 +629,24 @@ namespace MaNGOS
 
             // prevent clone
             NearestGameObjectFishingHole(NearestGameObjectFishingHole const&);
+    };
+
+    class NearestGameObjectCheck
+    {
+        public:
+            NearestGameObjectCheck(WorldObject const& obj) : i_obj(obj), i_range(999) {}
+            bool operator()(GameObject* go)
+            {
+                i_range = i_obj.GetDistance(go);        // use found GO range as new range limit for next check
+                return true;
+            }
+            float GetLastRange() const { return i_range; }
+        private:
+            WorldObject const& i_obj;
+            float i_range;
+
+            // prevent clone this object
+            NearestGameObjectCheck(NearestGameObjectCheck const&);
     };
 
     // Success at unit in range, range update for next check (this can be use with GameobjectLastSearcher to find nearest GO)
@@ -1032,6 +1051,18 @@ namespace MaNGOS
 
             // prevent clone this object
             NearestCreatureEntryWithLiveStateInObjectRangeCheck(NearestCreatureEntryWithLiveStateInObjectRangeCheck const&);
+    };
+
+    class GameObjectInRangeCheck
+    {
+    public:
+        GameObjectInRangeCheck(float _x, float _y, float _z, float _range) : x(_x), y(_y), z(_z), range(_range) {}
+        bool operator() (GameObject* go)
+        {
+            return go->IsInRange(x, y, z, range);
+        }
+    private:
+        float x, y, z, range;
     };
 
     class AnyPlayerInObjectRangeCheck

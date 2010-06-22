@@ -697,6 +697,7 @@ bool IsPositiveEffect(uint32 spellId, SpellEffectIndex effIndex)
                         return true;                        // some expected positive spells have SPELL_ATTR_EX_NEGATIVE or unclear target modes
                     break;
                 case SPELL_AURA_ADD_TARGET_TRIGGER:
+                case SPELL_AURA_INITIALIZE_IMAGES:
                     return true;
                 case SPELL_AURA_PERIODIC_TRIGGER_SPELL:
                     if (spellId != spellproto->EffectTriggerSpell[effIndex])
@@ -1382,7 +1383,7 @@ void SpellMgr::LoadSpellBonuses()
             need_direct = true;
 
         // Check if direct_bonus is needed in `spell_bonus_data`
-        float direct_calc;
+        float direct_calc = 0;
         float direct_diff = 1000.0f;                        // for have big diff if no DB field value
         if (sbe.direct_damage)
         {
@@ -1402,7 +1403,7 @@ void SpellMgr::LoadSpellBonuses()
         }
 
         // Check if dot_bonus is needed in `spell_bonus_data`
-        float dot_calc;
+        float dot_calc = 0;
         float dot_diff = 1000.0f;                           // for have big diff if no DB field value
         if (sbe.dot_damage)
         {
@@ -1691,6 +1692,11 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
     if ((spellInfo_1->Attributes & SPELL_ATTR_PASSIVE)!=(spellInfo_2->Attributes & SPELL_ATTR_PASSIVE))
         return false;
 
+	//Renewed hope and gift of the naaru(have diff spell families)
+    if (spellInfo_2->SpellIconID == 329 && spellInfo_2->SpellFamilyName == SPELLFAMILY_PRIEST &&
+        spellInfo_1->SpellIconID == 329 && spellInfo_1->SpellVisual[0] == 7625)
+        return false;
+
     // Specific spell family spells
     switch(spellInfo_1->SpellFamilyName)
     {
@@ -1754,6 +1760,11 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 // Kindred Spirits
                 if( spellInfo_1->SpellIconID == 3559 && spellInfo_2->SpellIconID == 3559 )
                     return false;
+
+                // Fury of Frostmourne
+                if( spellInfo_1->SpellIconID == 2702 && spellInfo_2->SpellIconID == 2702 ||
+                    spellInfo_2->SpellIconID == 2702 && spellInfo_1->SpellIconID == 2702 )
+                    return false;
             }
             // Dragonmaw Illusion, Blood Elf Illusion, Human Illusion, Illidari Agent Illusion, Scarlet Crusade Disguise
             if(spellInfo_1->SpellIconID == 1691 && spellInfo_2->SpellIconID == 1691)
@@ -1784,6 +1795,22 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 // Fireball & Pyroblast (Dots)
                 if( (spellInfo_1->SpellFamilyFlags & UI64LIT(0x1)) && (spellInfo_2->SpellFamilyFlags & UI64LIT(0x400000)) ||
                     (spellInfo_2->SpellFamilyFlags & UI64LIT(0x1)) && (spellInfo_1->SpellFamilyFlags & UI64LIT(0x400000)) )
+                    return false;
+
+                // Detect Invisibility and Mana Shield (multi-family check)
+                if( spellInfo_2->Id == 132 && spellInfo_1->SpellIconID == 209 && spellInfo_1->SpellVisual[0] == 968 )
+                    return false;
+
+                // Combustion and Fire Protection Aura (multi-family check)
+                if( spellInfo_1->Id == 11129 && spellInfo_2->SpellIconID == 33 && spellInfo_2->SpellVisual[0] == 321 )
+                    return false;
+
+                // Arcane Intellect and Insight
+                if( spellInfo_1->SpellIconID == 125 && spellInfo_2->Id == 18820 )
+                    return false;
+			
+			    //Mirror image frostbolt and mage frostbolt
+                if( spellInfo_2->SpellIconID == 188 && spellInfo_1->Id == 59638 )
                     return false;
             }
             break;
@@ -1860,6 +1887,9 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     (spellInfo_2->SpellIconID == 566 && spellInfo_1->SpellIconID == 2820))
                     return false;
             }
+            //Renewed hope and gift of the naaru(have diff spell families)
+            else if (spellInfo_1->SpellIconID == 329 && spellInfo_2->SpellIconID == 329 && spellInfo_2->SpellVisual[0] == 7625)
+                return false;
             break;
         case SPELLFAMILY_DRUID:
             if( spellInfo_2->SpellFamilyName == SPELLFAMILY_DRUID )
@@ -3365,6 +3395,8 @@ SpellCastResult SpellMgr::GetSpellAllowedInLocationError(SpellEntry const *spell
             BattleGround* bg = player->GetBattleGround();
             return bg && bg->GetStatus()==STATUS_WAIT_JOIN ? SPELL_CAST_OK : SPELL_FAILED_ONLY_IN_ARENA;
         }
+        case 72293:                                         // Mark of the Fallen Champion
+            return map_id == 631 ? SPELL_CAST_OK : SPELL_FAILED_INCORRECT_AREA;
     }
 
     return SPELL_CAST_OK;

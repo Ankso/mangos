@@ -265,7 +265,8 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
                 /*if (((Creature*)unit)->hasUnitState(UNIT_STAT_MOVING))
                     unit->m_movementInfo.SetMovementFlags(MOVEFLAG_FORWARD);*/
 
-                if (((Creature*)unit)->canFly())
+                if (((Creature*)unit)->canFly() && !(((Creature*)unit)->canWalk()
+                    && unit->IsAtGroundLevel(unit->GetPositionX(), unit->GetPositionY(), unit->GetPositionZ())))
                 {
                     // (ok) most seem to have this
                     unit->m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
@@ -284,6 +285,9 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
                         }
                     }
                 }
+                if(unit->GetVehicleGUID())
+                   unit->m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
+
             }
             break;
             case TYPEID_PLAYER:
@@ -298,6 +302,8 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
                 // remove unknown, unused etc flags for now
                 player->m_movementInfo.RemoveMovementFlag(MOVEFLAG_SPLINE_ENABLED);
 
+                if(((Unit*)this)->GetVehicleGUID())
+                    player->m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
                 if(player->isInFlight())
                 {
                     ASSERT(player->GetMotionMaster()->GetCurrentMovementGeneratorType() == FLIGHT_MOTION_TYPE);
@@ -672,7 +678,7 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer * data, UpdateMask *
             if( updateMask->GetBit( index ) )
             {
                 // send in current format (float as float, uint32 as uint32)
-                if ( index == GAMEOBJECT_DYNAMIC )
+                if (/*false && */index == GAMEOBJECT_DYNAMIC )
                 {
                     if(IsActivateToQuest )
                     {
@@ -1084,7 +1090,7 @@ void Object::BuildUpdateData( UpdateDataMapType& /*update_players */)
 }
 
 WorldObject::WorldObject()
-    : m_isActiveObject(false), m_currMap(NULL), m_mapId(0), m_InstanceId(0), m_phaseMask(PHASEMASK_NORMAL),
+    : m_isActiveObject(false), m_currMap(NULL), m_mapId(0), m_InstanceId(0), m_phaseMask(PHASEMASK_NORMAL), m_groupLootTimer(0), m_groupLootId(0),
     m_positionX(0.0f), m_positionY(0.0f), m_positionZ(0.0f), m_orientation(0.0f)
 {
 }
@@ -1108,7 +1114,11 @@ void WorldObject::Relocate(float x, float y, float z, float orientation)
     m_orientation = orientation;
 
     if(isType(TYPEMASK_UNIT))
+    {
         ((Unit*)this)->m_movementInfo.ChangePosition(x, y, z, orientation);
+        if(((Creature*)this)->isVehicle())
+            ((Vehicle*)this)->RellocatePassengers(GetMap());
+    }
 }
 
 void WorldObject::Relocate(float x, float y, float z)
@@ -1118,7 +1128,11 @@ void WorldObject::Relocate(float x, float y, float z)
     m_positionZ = z;
 
     if(isType(TYPEMASK_UNIT))
+    {
         ((Unit*)this)->m_movementInfo.ChangePosition(x, y, z, GetOrientation());
+        if(((Creature*)this)->isVehicle())
+            ((Vehicle*)this)->RellocatePassengers(GetMap());
+    }
 }
 
 uint32 WorldObject::GetZoneId() const
@@ -1246,7 +1260,7 @@ bool WorldObject::IsWithinLOS(float ox, float oy, float oz) const
     oz += 2.0f;
 
     // check for line of sight because of terrain height differences
-    Map const *map = GetBaseMap();
+    /*Map const *map = GetBaseMap();
     float dx = ox - x, dy = oy - y, dz = oz - z;
     float dist = sqrt(dx*dx + dy*dy + dz*dz);
     if (dist > ATTACK_DISTANCE && dist < MAX_VISIBILITY_DISTANCE)
@@ -1264,9 +1278,10 @@ bool WorldObject::IsWithinLOS(float ox, float oy, float oz) const
             py += incy;
             pz += incz;
         }
-    }
+    }*/
 
     VMAP::IVMapManager *vMapManager = VMAP::VMapFactory::createOrGetVMapManager();
+    /*return vMapManager->isInLineOfSight(GetMapId(), x, y, z, ox, oy, oz);*/
     return vMapManager->isInLineOfSight(GetMapId(), x, y, z, ox, oy, oz);
 }
 
@@ -1469,6 +1484,14 @@ void WorldObject::UpdateGroundPositionZ(float x, float y, float &z, float maxDif
 bool WorldObject::IsPositionValid() const
 {
     return MaNGOS::IsValidMapCoord(m_positionX,m_positionY,m_positionZ,m_orientation);
+}
+
+bool WorldObject::IsAtGroundLevel(float x, float y, float z) const
+{
+    float groundZ = GetBaseMap()->GetHeight(x, y, z, true);
+    if(groundZ <= INVALID_HEIGHT || fabs(groundZ-z) > 0.5f)
+        return false;
+    return true;
 }
 
 void WorldObject::MonsterSay(const char* text, uint32 language, uint64 TargetGuid)
@@ -1718,6 +1741,42 @@ GameObject* WorldObject::SummonGameobject(uint32 id, float x, float y, float z, 
     map->Add(pGameObj);
 
     return pGameObj;
+}
+
+Vehicle* WorldObject::SummonVehicle(uint32 id, float x, float y, float z, float ang, uint32 vehicleId)
+{
+    Vehicle *v = new Vehicle;
+
+    Map *map = GetMap();
+    uint32 team = 0;
+    if (GetTypeId()==TYPEID_PLAYER)
+        team = ((Player*)this)->GetTeam();
+
+    if(!v->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_VEHICLE), map, GetPhaseMask(), id, vehicleId, team))
+    {
+        delete v;
+        return NULL;
+    }
+
+    if (x == 0.0f && y == 0.0f && z == 0.0f)
+        GetClosePoint(x, y, z, v->GetObjectSize());
+
+    v->Relocate(x, y, z, ang);
+
+    if(!v->IsPositionValid())
+    {
+        sLog.outError("ERROR: Vehicle (guidlow %d, entry %d) not created. Suggested coordinates isn't valid (X: %f Y: %f)",
+            v->GetGUIDLow(), v->GetEntry(), v->GetPositionX(), v->GetPositionY());
+        delete v;
+        return NULL;
+    }
+    map->Add((Creature*)v);
+    v->AIM_Initialize();
+
+    if(GetTypeId()==TYPEID_UNIT && ((Creature*)this)->AI())
+        ((Creature*)this)->AI()->JustSummoned((Creature*)v);
+
+    return v;
 }
 
 namespace MaNGOS
@@ -1996,6 +2055,24 @@ void WorldObject::BuildUpdateData( UpdateDataMapType & update_players)
     Cell::VisitWorldObjects(this, notifier, GetMap()->GetVisibilityDistance());
 
     ClearUpdateMask(false);
+}
+
+void WorldObject::StartGroupLoot( Group* group, uint32 timer )
+{
+    m_groupLootId = group->GetId();
+    m_groupLootTimer = timer;
+}
+
+void WorldObject::StopGroupLoot()
+{
+    if (!m_groupLootId)
+        return;
+
+    if (Group* group = sObjectMgr.GetGroupById(m_groupLootId))
+        group->EndRoll();
+
+    m_groupLootTimer = 0;
+    m_groupLootId = 0;
 }
 
 bool WorldObject::IsControlledByPlayer() const

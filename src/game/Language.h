@@ -86,7 +86,11 @@ enum MangosStrings
     //LANG_RA_BUSY                      = 60, not used
     LANG_RA_USER                        = 61,
     LANG_RA_PASS                        = 62,
-    // Room for more level 0              63-99 not used
+	// Name Announce
+	LANG_SYSTEMMESSAGE_MODERATOR        = 63,
+    LANG_SYSTEMMESSAGE_GAMEMASTER       = 64,
+    LANG_SYSTEMMESSAGE_ADMINISTRATOR    = 65,
+    // Room for more level 0              66-99 not used
 
     // level 1 chat
     LANG_GLOBAL_NOTIFY                  = 100,
@@ -857,6 +861,39 @@ enum MangosStrings
 
     // Use for custom patches             11000-11999
     LANG_ANNOUNCE_CHEAT                 = 11000,
+
+///////////////////////////// Battle Ground Strand of the Ancients /////////////////////////////
+    LANG_BG_SA_START_TWO_MINUTE				= 20000,
+    LANG_BG_SA_START_ONE_MINUTE				= 20001,
+    LANG_BG_SA_START_HALF_MINUTE			= 20002,
+    LANG_BG_SA_HAS_BEGUN					= 20003,
+
+	LANG_BG_SA_GATE_ATTACK					= 20004,
+	LANG_BG_SA_GATE_DAMAGE					= 20005,
+	LANG_BG_SA_GATE_DETROYED				= 20006,
+
+	LANG_BG_SA_GATE_GREEN_EMERALD			= 20007,
+	LANG_BG_SA_GATE_BLUE_SAPHIRE			= 20008,
+	LANG_BG_SA_GATE_MAUVE_AMETHYST			= 20009,
+	LANG_BG_SA_GATE_RED_SUN_				= 20010,
+	LANG_BG_SA_GATE_YELLOW_MOON				= 20011,
+	LANG_BG_SA_GATE_ROOM_ANCIENT_SHRINE		= 20012,
+
+	LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD	= 20013,
+	LANG_BG_SA_AH_SEIZES_GRAVEYARD			= 20014,
+
+	LANG_BG_SA_EAST_GRAVEYARD				= 20015,
+	LANG_BG_SA_WEST_GRAVEYARD				= 20016,
+	LANG_BG_SA_SOUTH_GRAVEYARD				= 20017,
+
+	LANG_BG_SA_INSTALL_BOMB					= 20018,
+
+	LANG_BG_SA_ALLIANCE_END_1ROUND			= 20019,
+	LANG_BG_SA_HORDE_END_2ROUND				= 20020,
+	LANG_BG_SA_NETRALL_END_1ROUND			= 20021,
+	LANG_BG_SA_NETRALL_END_2ROUND			= 20022,
+
+///////////////////////////// Battle Ground Strand of the Ancients /////////////////////////////
 
     // NOT RESERVED IDS                   12000-1999999999
     // `db_script_string` table index     2000000000-2000009999 (MIN_DB_SCRIPT_STRING_ID-MAX_DB_SCRIPT_STRING_ID)

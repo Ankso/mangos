@@ -146,6 +146,9 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map *map, uint32 phaseMa
     SetGoArtKit(0);                                         // unknown what this is
     SetGoAnimProgress(animprogress);
 
+    if(goinfo->type == GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING)
+        m_health = goinfo->destructibleBuilding.damagedHealth;
+
     //Notify the map's instance data.
     //Only works if you create the object in it, not if it is moves to that map.
     //Normally non-players do not teleport to other maps.
@@ -164,7 +167,7 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map *map, uint32 phaseMa
     return true;
 }
 
-void GameObject::Update(uint32 /*p_time*/)
+void GameObject::Update(uint32 diff)
 {
     if (GetObjectGuid().IsMOTransport())
     {
@@ -370,6 +373,15 @@ void GameObject::Update(uint32 /*p_time*/)
                         m_cooldownTime = 0;
                     }
                     break;
+                case GAMEOBJECT_TYPE_CHEST:
+                    if (m_groupLootId)
+                    {
+                        if(diff < m_groupLootTimer)
+                            m_groupLootTimer -= diff;
+                        else
+                            StopGroupLoot();
+                    }
+                    break;
                 default:
                     break;
             }
@@ -426,13 +438,13 @@ void GameObject::Update(uint32 /*p_time*/)
                 return;
 
             if(!m_spawnedByDefault)
-            {
+           {
                 m_respawnTime = 0;
 
                 if (IsInWorld())
                     UpdateObjectVisibility();
 
-                break;
+               break;
             }
 
             // since pool system can fail to roll unspawned object, this one can remain spawned, so must set respawn nevertheless
@@ -1050,6 +1062,11 @@ void GameObject::Use(Unit* user)
                 {
                     DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "Goober ScriptStart id %u for GO entry %u (GUID %u).", info->goober.eventId, GetEntry(), GetDBTableGUIDLow());
                     GetMap()->ScriptsStart(sEventScripts, info->goober.eventId, player, this);
+					////////////////// Strand of the Ancients ///////////////////
+					if (player->CanUseBattleGroundObject())
+    					if (BattleGround *bg = player->GetBattleGround())
+        					if (bg->GetTypeID() == BATTLEGROUND_SA)
+           	 				bg->EventPlayerDamegeGO(player, this, info->goober.eventId);
                 }
 
                 // possible quest objective for active quests
@@ -1408,6 +1425,96 @@ void GameObject::Use(Unit* user)
     targets.setUnitTarget( user );
 
     spell->prepare(&targets);
+}
+
+bool GameObject::IsInRange(float x, float y, float z, float radius) const
+{
+    GameObjectDisplayInfoEntry const * info = sGameObjectDisplayInfoStore.LookupEntry(GetUInt32Value(GAMEOBJECT_DISPLAYID));
+    if(!info)
+        return IsWithinDist3d(x, y, z, radius);
+
+    float sinA = sin(GetOrientation());
+    float cosA = cos(GetOrientation());
+    float dx = x - GetPositionX();
+    float dy = y - GetPositionY();
+    float dz = z - GetPositionZ();
+    float dist = sqrt(dx*dx + dy*dy);
+    float sinB = dx / dist;
+    float cosB = dy / dist;
+    dx = dist * (cosA * cosB + sinA * sinB);
+    dy = dist * (cosA * sinB - sinA * cosB);
+    return dx < info->maxX + radius && dx > info->minX - radius
+        && dy < info->maxY + radius && dy > info->minY - radius
+        && dz < info->maxZ + radius && dz > info->minZ - radius;
+}
+
+void GameObject::TakenDamage(uint32 damage, Unit* pKiller)
+{
+    if(!m_health)
+        return;
+        
+    Player* pwho = NULL;
+    if(pKiller && pKiller->GetTypeId() == TYPEID_PLAYER)
+      pwho = (Player*)pKiller;
+
+    if(pKiller && ((Creature*)pKiller)->isVehicle())
+      pwho = (Player*)pKiller->GetCharmerOrOwner();
+			
+    if(m_health > damage)
+    {
+        m_health -= damage;
+
+        DETAIL_LOG("siege damage:%d to health:%d ",damage,m_health);
+        EventInform(m_goInfo->destructibleBuilding.damageEvent);
+        if(pwho)
+            if(BattleGround* bg = pwho->GetBattleGround())
+                bg->EventPlayerDamegeGO(pwho, this, m_goInfo->destructibleBuilding.damageEvent);
+        return;
+    }
+
+    m_health = 0;
+
+	if (HasFlag(GAMEOBJECT_FLAGS,GO_FLAG_DAMAGED) && !HasFlag(GAMEOBJECT_FLAGS,GO_FLAG_DESTROYED)) // from damaged to destroyed
+	{
+		RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED);
+		SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_DESTROYED);
+		SetUInt32Value(GAMEOBJECT_DISPLAYID, m_goInfo->destructibleBuilding.destroyedDisplayId);
+		m_health = 0;
+		EventInform(m_goInfo->destructibleBuilding.destroyedEvent);
+		if(pwho)
+			if(BattleGround* bg = pwho->GetBattleGround())
+			  bg->EventPlayerDamegeGO(pwho, this, m_goInfo->destructibleBuilding.destroyedEvent);
+	}
+    else if(!HasFlag(GAMEOBJECT_FLAGS,GO_FLAG_DAMAGED) && !HasFlag(GAMEOBJECT_FLAGS,GO_FLAG_DESTROYED))
+    {
+        SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED);
+        SetUInt32Value(GAMEOBJECT_DISPLAYID, m_goInfo->destructibleBuilding.damagedDisplayId);
+        if(m_goInfo->destructibleBuilding.destroyedDisplayId)
+        {
+            m_health = m_goInfo->destructibleBuilding.destroyedHealth;
+            if(!m_health)
+                m_health = 1;
+        }
+        else
+            m_health = 0;
+
+ 		EventInform(m_goInfo->destructibleBuilding.damagedEvent);
+ 		if(pwho)
+ 			if(BattleGround* bg = pwho->GetBattleGround())
+ 			  bg->EventPlayerDamegeGO(pwho, this, m_goInfo->destructibleBuilding.damagedEvent);
+    }
+}
+
+void GameObject::Rebuild(Unit* pKiller)
+{
+	RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED + GO_FLAG_DESTROYED);
+	SetUInt32Value(GAMEOBJECT_DISPLAYID, m_goInfo->displayId);
+	m_health = m_goInfo->destructibleBuilding.damagedHealth;
+	EventInform(m_goInfo->destructibleBuilding.rebuildingEvent);
+}
+
+void GameObject::EventInform(uint32 eventId)
+{
 }
 
 // overwrite WorldObject function for proper name localization

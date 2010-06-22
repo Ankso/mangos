@@ -180,15 +180,19 @@ class Pet : public Creature
 
         int32 GetBonusDamage() { return m_bonusdamage; }
         void SetBonusDamage(int32 damage) { m_bonusdamage = damage; }
+        float GetHappinessDamageMod();
 
         bool UpdateStats(Stats stat);
         bool UpdateAllStats();
-        void UpdateResistances(uint32 school);
+        // void UpdateResistances(uint32 school);
         void UpdateArmor();
         void UpdateMaxHealth();
         void UpdateMaxPower(Powers power);
         void UpdateAttackPowerAndDamage(bool ranged = false);
         void UpdateDamagePhysical(WeaponAttackType attType);
+        void UpdateScalingAuras();
+
+        uint32 CalcScalingAuraBonus(SpellEntry const* spellInfo, uint8 effect_index);
 
         bool CanTakeMoreActiveSpells(uint32 SpellIconID);
         void ToggleAutocast(uint32 spellid, bool apply);
@@ -219,6 +223,7 @@ class Pet : public Creature
 
         PetSpellMap     m_spells;
         AutoSpellList   m_autospells;
+        AuraList        m_scalingauras;
 
         void InitPetCreateSpells();
 
@@ -236,10 +241,6 @@ class Pet : public Creature
         time_t  m_resetTalentsTime;
         uint32  m_usedTalentCount;
 
-        const uint64& GetAuraUpdateMask() const { return m_auraUpdateMask; }
-        void SetAuraUpdateMask(uint8 slot) { m_auraUpdateMask |= (uint64(1) << slot); }
-        void ResetAuraUpdateMask() { m_auraUpdateMask = 0; }
-
         // overwrite Creature function for name localization back to WorldObject version without localization
         const char* GetNameForLocaleIdx(int32 locale_idx) const { return WorldObject::GetNameForLocaleIdx(locale_idx); }
 
@@ -251,7 +252,6 @@ class Pet : public Creature
         PetType m_petType;
         int32   m_duration;                                 // time until unsummon (used mostly for summoned guardians and not used for controlled pets)
         int32   m_bonusdamage;
-        uint64  m_auraUpdateMask;
         bool    m_loading;
 
         DeclinedName *m_declinedname;

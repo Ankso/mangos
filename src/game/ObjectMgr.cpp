@@ -833,6 +833,93 @@ void ObjectMgr::ConvertCreatureAddonAuras(CreatureDataAddon* addon, char const* 
     endAura.effect_idx = EFFECT_INDEX_0;
 }
 
+void ObjectMgr::ConvertCreatureAddonPassengers(CreatureDataAddon* addon, char const* table, char const* guidEntryStr)
+{
+    // Now add the passengers, format "creature_entry/guid seatindex creature_entry/guid seatindex..."
+    char *p,*s;
+    std::vector<int> val;
+    s=p=(char*)reinterpret_cast<char const*>(addon->passengers);
+    if(p)
+    {
+        while (p[0]!=0)
+        {
+            ++p;
+            if (p[0]==' ')
+            {
+                val.push_back(atoi(s));
+                s=++p;
+            }
+        }
+        if (p!=s)
+            val.push_back(atoi(s));
+
+        // free char* loaded memory
+        delete[] (char*)reinterpret_cast<char const*>(addon->passengers);
+
+        // wrong list
+        if (val.size()%2)
+        {
+            addon->auras = NULL;
+            sLog.outErrorDb("Creature (%s: %u) has wrong `passengers` data in `%s`.",guidEntryStr,addon->guidOrEntry,table);
+            return;
+        }
+    }
+
+    // empty list
+    if(val.empty())
+    {
+        addon->passengers = NULL;
+        return;
+    }
+
+    // replace by new structures array
+    const_cast<CreatureDataAddonPassengers*&>(addon->passengers) = new CreatureDataAddonPassengers[val.size()/2+1];
+
+    int i=0;
+    for(int j=0;j<val.size()/2;++j)
+    {
+        CreatureDataAddonPassengers& cPas = const_cast<CreatureDataAddonPassengers&>(addon->passengers[i]);
+        if(guidEntryStr == "Entry")
+            cPas.entry = (uint32)val[2*j+0];
+        else
+            cPas.guid = (uint32)val[2*j+0];
+        cPas.seat_idx = (int8)val[2*j+1];
+        if ( cPas.seat_idx > 7 )
+        {
+            sLog.outErrorDb("Creature (%s: %u) has wrong seat %u for creature %u in `passengers` field in `%s`.",guidEntryStr,addon->guidOrEntry,cPas.seat_idx,cPas.entry,table);
+            continue;
+        }
+        if(cPas.entry == 0 && cPas.guid == 0)
+        {
+            sLog.outErrorDb("Creature (%s: %u) has NULL creature entry/guid in `passengers` field in `%s`.",guidEntryStr,addon->guidOrEntry,table);
+            continue;
+        }
+        if(cPas.entry > 0)
+        {
+            if(!sCreatureStorage.LookupEntry<CreatureInfo>(cPas.entry))
+            {
+                sLog.outErrorDb("Creature (%s: %u) has wrong creature entry/guid %u `passengers` field in `%s`.",guidEntryStr,addon->guidOrEntry,cPas.entry,table);
+                continue;
+            }
+        }
+        else
+        {
+            if(mCreatureDataMap.find(cPas.guid)==mCreatureDataMap.end())
+            {
+                sLog.outErrorDb("Creature (%s: %u) has wrong creature entry/guid %u `passengers` field in `%s`.",guidEntryStr,addon->guidOrEntry,cPas.guid,table);
+                continue;
+            }
+        }
+        ++i;
+    }
+
+    // fill terminator element (after last added)
+    CreatureDataAddonPassengers& endPassenger = const_cast<CreatureDataAddonPassengers&>(addon->passengers[i]);
+    endPassenger.entry = 0;
+    endPassenger.guid = 0;
+    endPassenger.seat_idx = -1;
+}
+
 void ObjectMgr::LoadCreatureAddons(SQLStorage& creatureaddons, char const* entryName, char const* comment)
 {
     creatureaddons.Load();
@@ -869,6 +956,7 @@ void ObjectMgr::LoadCreatureAddons(SQLStorage& creatureaddons, char const* entry
         }
 
         ConvertCreatureAddonAuras(const_cast<CreatureDataAddon*>(addon), creatureaddons.GetTableName(), entryName);
+        ConvertCreatureAddonPassengers(const_cast<CreatureDataAddon*>(addon), creatureaddons.GetTableName(), entryName);
     }
 }
 
@@ -2291,8 +2379,8 @@ void ObjectMgr::LoadPetLevelInfo()
 {
     // Loading levels data
     {
-        //                                                 0               1      2   3     4    5    6    7     8    9
-        QueryResult *result  = WorldDatabase.Query("SELECT creature_entry, level, hp, mana, str, agi, sta, inte, spi, armor FROM pet_levelstats");
+        //                                                 0               1      2   3     4    5    6    7     8    9      10      11
+        QueryResult *result  = WorldDatabase.Query("SELECT creature_entry, level, hp, mana, str, agi, sta, inte, spi, armor, mindmg, maxdmg FROM pet_levelstats");
 
         uint32 count = 0;
 
@@ -2349,6 +2437,8 @@ void ObjectMgr::LoadPetLevelInfo()
             pLevelInfo->health = fields[2].GetUInt16();
             pLevelInfo->mana   = fields[3].GetUInt16();
             pLevelInfo->armor  = fields[9].GetUInt16();
+            pLevelInfo->mindmg = fields[10].GetUInt16();
+            pLevelInfo->maxdmg = fields[11].GetUInt16();
 
             for (int i = 0; i < MAX_STATS; i++)
             {
@@ -5378,12 +5468,12 @@ WorldSafeLocsEntry const *ObjectMgr::GetClosestGraveYard(float x, float y, float
 
     // at corpse map
     bool foundNear = false;
-    float distNear;
+    float distNear = 0;
     WorldSafeLocsEntry const* entryNear = NULL;
 
     // at entrance map for corpse map
     bool foundEntr = false;
-    float distEntr;
+    float distEntr = 0;
     WorldSafeLocsEntry const* entryEntr = NULL;
 
     // some where other
@@ -5829,6 +5919,8 @@ uint32 ObjectMgr::GenerateLowGuid(HighGuid guidhigh)
             return m_ItemGuids.Generate();
         case HIGHGUID_UNIT:
             return m_CreatureGuids.Generate();
+        case HIGHGUID_VEHICLE:
+            return m_VehicleGuids.Generate();
         case HIGHGUID_PLAYER:
             return m_CharGuids.Generate();
         case HIGHGUID_GAMEOBJECT:
@@ -8394,12 +8486,12 @@ void ObjectMgr::LoadGossipMenuItems()
     sLog.outString(">> Loaded %u gossip_menu_option entries", count);
 }
 
-void ObjectMgr::AddVendorItem( uint32 entry,uint32 item, uint32 maxcount, uint32 incrtime, int32 extendedcost )
+void ObjectMgr::AddVendorItem( uint32 entry,uint32 item, uint32 maxcount, uint32 incrtime, uint32 extendedcost )
 {
     VendorItemData& vList = m_mCacheVendorItemMap[entry];
     vList.AddItem(item,maxcount,incrtime,extendedcost);
 
-    WorldDatabase.PExecuteLog("INSERT INTO npc_vendor (entry,item,maxcount,incrtime,extendedcost) VALUES('%u','%u','%u','%u','%i')",entry, item, maxcount,incrtime,extendedcost);
+    WorldDatabase.PExecuteLog("INSERT INTO npc_vendor (entry,item,maxcount,incrtime,extendedcost) VALUES('%u','%u','%u','%u','%u')",entry, item, maxcount,incrtime,extendedcost);
 }
 
 bool ObjectMgr::RemoveVendorItem( uint32 entry,uint32 item )
@@ -8661,6 +8753,126 @@ ObjectMgr::ScriptNameMap & GetScriptNames()
 CreatureInfo const* GetCreatureTemplateStore(uint32 entry)
 {
     return sCreatureStorage.LookupEntry<CreatureInfo>(entry);
+}
+
+void ObjectMgr::LoadVehicleData()
+{
+    mVehicleData.clear();
+
+    QueryResult *result = WorldDatabase.Query("SELECT entry, flags, Spell1, Spell2, Spell3, Spell4, Spell5, Spell6, Spell7, Spell8, Spell9, Spell10, req_aura FROM vehicle_data");
+    if(!result)
+    {
+        barGoLink bar( 1 );
+        bar.step();
+
+        sLog.outString();
+        sLog.outString( ">> Loaded 0 vehicle data" );
+        sLog.outErrorDb("`vehicle_data` table is empty!");
+        return;
+    }
+
+    uint32 count = 0;
+
+    barGoLink bar( result->GetRowCount() );
+    do
+    {
+        bar.step();
+
+        Field* fields = result->Fetch();
+
+        VehicleDataStructure VDS;
+        // NOTE : we can use spellid or creature id
+        uint32 v_entry      = fields[0].GetUInt32();
+        VDS.v_flags         = fields[1].GetUInt32();
+        for(uint8 j = 0; j < MAX_VEHICLE_SPELLS; j++)
+        {
+            VDS.v_spells[j] = fields[j+2].GetUInt32();
+        }
+        VDS.req_aura        = fields[12].GetUInt32();
+
+        VehicleEntry const *vehicleInfo = sVehicleStore.LookupEntry(v_entry);
+        if(!vehicleInfo)
+        {
+            sLog.outErrorDb("Vehicle id %u listed in `vehicle_data` does not exist",v_entry);
+            continue;
+        }
+        for(uint8 j = 0; j < MAX_VEHICLE_SPELLS; j++)
+        {
+            if(VDS.v_spells[j])
+            {
+                SpellEntry const* j_spell = sSpellStore.LookupEntry(VDS.v_spells[j]);
+                if(!j_spell)
+                {
+                    sLog.outErrorDb("Spell %u listed in `vehicle_data` does not exist, skipped",VDS.v_spells[j]);
+                    VDS.v_spells[j] = 0;
+                }
+            }
+        }
+        if(VDS.req_aura)
+        {
+            SpellEntry const* i_spell = sSpellStore.LookupEntry(VDS.req_aura);
+            if(!i_spell)
+            {
+                sLog.outErrorDb("Spell %u listed in `vehicle_data` does not exist, skipped",VDS.req_aura);
+                VDS.req_aura = 0;
+            }
+        }
+
+        mVehicleData[v_entry] = VDS;
+        ++count;
+    }
+    while (result->NextRow());
+
+    delete result;
+
+    sLog.outString();
+    sLog.outString( ">> Loaded %u vehicle data", count );
+}
+
+void ObjectMgr::LoadVehicleSeatData()
+{
+    mVehicleSeatData.clear();
+
+    QueryResult *result = WorldDatabase.Query("SELECT seat,flags FROM vehicle_seat_data");
+
+    if( !result )
+    {
+        barGoLink bar( 1 );
+
+        bar.step();
+
+        sLog.outString();
+        sLog.outString( ">> Loaded 0 vehicle seat data" );
+        sLog.outErrorDb("`vehicle_seat_data` table is empty!");
+        return;
+    }
+    uint32 count = 0;
+
+    barGoLink bar( result->GetRowCount() );
+    do
+    {
+        bar.step();
+
+        Field *fields = result->Fetch();
+        uint32 entry  = fields[0].GetUInt32();
+        uint32 flag   = fields[1].GetUInt32();
+
+        VehicleSeatEntry const *vsInfo = sVehicleSeatStore.LookupEntry(entry);
+        if(!vsInfo)
+        {
+            sLog.outErrorDb("Vehicle seat %u listed in `vehicle_seat_data` does not exist",entry);
+            continue;
+        }
+
+        mVehicleSeatData[entry] = flag;
+        ++count;
+    }
+    while (result->NextRow());
+
+    delete result;
+
+    sLog.outString();
+    sLog.outString( ">> Loaded %u vehicle seat data", count );
 }
 
 Quest const* GetQuestTemplateStore(uint32 entry)

@@ -32,6 +32,7 @@
 // cause this buff apears 90sec after start in every bg i implement it here
 #define ARENA_BUFF_EVENT 252
 
+#define BG_SA_NUM_CREATURES 16
 
 class Creature;
 class GameObject;
@@ -67,6 +68,14 @@ enum BattleGroundQuests
     SPELL_AB_QUEST_REWARD_5_BASES   = 24064
 };
 
+enum BattleGroundQuestsId
+{
+	QUEST_SA_REWARD_ALLIANCE		= 13405,
+	QUEST_SA_REWARD_HORDE			= 13407,
+	QUEST_IC_REWARD_ALLIANCE		= 14163,
+	QUEST_IC_REWARD_HORDE			= 14164
+};
+
 enum BattleGroundMarks
 {
     SPELL_WS_MARK_LOSER             = 24950,                // not create marks now
@@ -75,6 +84,8 @@ enum BattleGroundMarks
     SPELL_AB_MARK_WINNER            = 24953,                // not create marks now
     SPELL_AV_MARK_LOSER             = 24954,                // not create marks now
     SPELL_AV_MARK_WINNER            = 24955,                // not create marks now
+    SPELL_SA_MARK_LOSER             = 61159,
+    SPELL_SA_MARK_WINNER            = 61160,
 
     SPELL_WG_MARK_VICTORY           = 24955,                // honor + mark
     SPELL_WG_MARK_DEFEAT            = 58494,                // honor + mark
@@ -95,7 +106,8 @@ enum BattleGroundSpells
     SPELL_HORDE_GREEN_FLAG          = 35775,
     SPELL_PREPARATION               = 44521,                // Preparation
     SPELL_RECENTLY_DROPPED_FLAG     = 42792,                // Recently Dropped Flag
-    SPELL_AURA_PLAYER_INACTIVE      = 43681                 // Inactive
+    SPELL_AURA_PLAYER_INACTIVE      = 43681,                // Inactive
+    SPELL_AURA_PVP_HEALING          = 74410                 // PvP 10% healing reduction
 };
 
 enum BattleGroundTimeIntervals
@@ -201,7 +213,10 @@ enum ScoreType
     SCORE_GRAVEYARDS_DEFENDED   = 12,
     SCORE_TOWERS_ASSAULTED      = 13,
     SCORE_TOWERS_DEFENDED       = 14,
-    SCORE_SECONDARY_OBJECTIVES  = 15
+    SCORE_SECONDARY_OBJECTIVES  = 15,
+	//SA
+	SCORE_GATES_DESTROYED		= 16,
+	SCORE_DEMOLISHERS_DESTROYED	= 17
 };
 
 enum ArenaType
@@ -341,6 +356,11 @@ class BattleGround
         uint8 GetWinner() const             { return m_Winner; }
         uint32 GetBattlemasterEntry() const;
         uint32 GetBonusHonorFromKill(uint32 kills) const;
+        //START//////////SA and IC /////////START//
+        virtual uint32 GetController()				  const	{ return false; }
+        virtual uint8  GetGydController(uint8 /*gyd*/) const { return false; }
+        virtual uint8  GetNodeControll(uint8 /*node*/) const { return false; }
+        //END////////////SA and IC ///////////END//
         bool IsRandom() { return m_IsRandom; }
 
         // Set methods:
@@ -436,9 +456,11 @@ class BattleGround
         void RewardHonorToTeam(uint32 Honor, uint32 TeamID);
         void RewardReputationToTeam(uint32 faction_id, uint32 Reputation, uint32 TeamID);
         void RewardMark(Player *plr,uint32 count);
+        void RewardXpToTeam(uint32 Xp, float percentOfLevel, uint32 TeamID);
         void SendRewardMarkByMail(Player *plr,uint32 mark, uint32 count);
         void RewardItem(Player *plr, uint32 item_id, uint32 count);
         void RewardQuestComplete(Player *plr);
+		void QuestComplete(Player *plr);
         void RewardSpellCast(Player *plr, uint32 spell_id);
         void UpdateWorldState(uint32 Field, uint32 Value);
         void UpdateWorldStateForPlayer(uint32 Field, uint32 Value, Player *Source);
@@ -488,6 +510,9 @@ class BattleGround
         virtual void EventPlayerDroppedFlag(Player* /*player*/) {}
         virtual void EventPlayerClickedOnFlag(Player* /*player*/, GameObject* /*target_obj*/) {}
         virtual void EventPlayerCapturedFlag(Player* /*player*/) {}
+		virtual void EventPlayerDamegeGO(Player* /*player*/, GameObject* /*target_obj*/, uint32 /*eventId*/) {}
+		virtual void EventSpawnGOSA(Player* /*owner*/, Creature* /*obj*/, float /*x*/, float /*y*/, float /*z*/) {}
+		virtual void VirtualUpdatePlayerScore(Player* /*Source*/, uint32 /*type*/, uint32 /*value*/) {}
         void EventPlayerLoggedIn(Player* player, uint64 plr_guid);
         void EventPlayerLoggedOut(Player* player);
 
@@ -526,6 +551,7 @@ class BattleGround
         typedef std::vector<uint64> BGCreatures;
         // TODO drop m_BGObjects
         BGObjects m_BgObjects;
+		BGCreatures m_BgCreatures;
         void SpawnBGObject(uint64 const& guid, uint32 respawntime);
         bool AddObject(uint32 type, uint32 entry, float x, float y, float z, float o, float rotation0, float rotation1, float rotation2, float rotation3, uint32 respawnTime = 0);
         void SpawnBGCreature(uint64 const& guid, uint32 respawntime);
@@ -593,6 +619,7 @@ class BattleGround
         uint32 m_ClientInstanceID;                          //the instance-id which is sent to the client and without any other internal use
         uint32 m_StartTime;
         bool m_ArenaBuffSpawned;                            // to cache if arenabuff event is started (cause bool is faster than checking IsActiveEvent)
+        uint32 m_ArenaBuffTimer;
         int32 m_EndTime;                                    // it is set to 120000 when bg is ending and it decreases itself
         BattleGroundBracketId m_BracketId;
         uint8  m_ArenaType;                                 // 2=2v2, 3=3v3, 5=5v5

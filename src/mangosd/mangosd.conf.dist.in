@@ -144,6 +144,11 @@ BindIP = "0.0.0.0"
 #        These spells are ignored for LoS calculation
 #        List of ids with delimiter ','
 #
+#    vmap.enableIndoorCheck
+#        Enable/Disable VMap based indoor check to remove outdoor-only auras (mounts etc.)
+#        Default: 0 (disabled)
+#
+#
 #    DetectPosCollision
 #        Check final move position, summon position, etc for visible collision with other objects or
 #        wall (wall only if vmaps are enabled)
@@ -196,6 +201,7 @@ vmap.enableLOS = 0
 vmap.enableHeight = 0
 vmap.ignoreMapIds = "369"
 vmap.ignoreSpellIds = "7720"
+vmap.enableIndoorCheck = 0
 DetectPosCollision = 1
 TargetPosRecalculateRange = 1.5
 UpdateUptimeInterval = 10
@@ -609,6 +615,12 @@ LexicsCutterNoActionOnGM = 1
 #        Default: 0 (false)
 #                 1 (true)
 #
+#    DalaranRestrictedFlightArea
+#        Players that try to fly over Dalaran for more than 10 sec will be dismounted.
+#        Default 0 (Disabled)
+#                1 (Enable.DalaranRestrictedFlightArea)
+#                2 (Enable.SafeZones+1)
+#
 #    AlwaysMaxSkillForLevel
 #        Players will automatically gain max level dependent (weapon/defense) skill when logging in, leveling up etc.
 #        Default: 0 (false)
@@ -796,6 +808,7 @@ StartArenaPoints = 0
 InstantLogout = 1
 DisableWaterBreath = 4
 AllFlightPaths = 0
+DalaranRestrictedFlightArea = 0
 AlwaysMaxSkillForLevel = 0
 ActivateWeather = 1
 CastUnstuck = 1

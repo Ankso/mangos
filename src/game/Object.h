@@ -38,7 +38,7 @@
 #define DEFAULT_VISIBILITY_BGARENAS 180.0f      // default visible distance in BG/Arenas, 180 yards
 
 #define DEFAULT_WORLD_OBJECT_SIZE   0.388999998569489f      // player size, also currently used (correctly?) for any non Unit world objects
-#define MAX_STEALTH_DETECT_RANGE    45.0f
+//#define MAX_STEALTH_DETECT_RANGE    45.0f
 #define TERRAIN_LOS_STEP_DISTANCE   3.0f
 
 uint32 GuidHigh2TypeId(uint32 guid_hi);
@@ -67,10 +67,12 @@ class WorldSession;
 class Creature;
 class GameObject;
 class Player;
+class Group;
 class Unit;
 class Map;
 class UpdateMask;
 class InstanceData;
+class Vehicle;
 
 typedef UNORDERED_MAP<Player*, UpdateData> UpdateDataMapType;
 
@@ -370,6 +372,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         }
         bool IsPositionValid() const;
         void UpdateGroundPositionZ(float x, float y, float &z, float maxDiff = 30.0f) const;
+        bool IsAtGroundLevel(float x, float y, float z) const;
 
         void GetRandomPoint( float x, float y, float z, float distance, float &rand_x, float &rand_y, float &rand_z ) const;
 
@@ -480,12 +483,17 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         void RemoveFromClientUpdateList();
         void BuildUpdateData(UpdateDataMapType &);
 
+        uint32 m_groupLootTimer;                            // (msecs)timer used for group loot
+        uint32 m_groupLootId;                               // used to find group which is looting corpse
+        void StopGroupLoot();
+        void StartGroupLoot(Group* group, uint32 timer);
+
         Creature* SummonCreature(uint32 id, float x, float y, float z, float ang,TempSummonType spwtype,uint32 despwtime);
         GameObject* SummonGameobject(uint32 id, float x, float y, float z, float angle, uint32 despwtime);
+        Vehicle* SummonVehicle(uint32 id, float x, float y, float z, float ang, uint32 vehicleId = NULL);
+        ViewPoint& GetViewPoint() { return m_viewPoint; };
 
         bool isActiveObject() const { return m_isActiveObject || m_viewPoint.hasViewers(); }
-
-        ViewPoint& GetViewPoint() { return m_viewPoint; }
     protected:
         explicit WorldObject();
 

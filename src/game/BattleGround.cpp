@@ -229,6 +229,8 @@ BattleGround::BattleGround()
     m_LevelMax          = 0;
     m_InBGFreeSlotQueue = false;
 
+    m_ArenaBuffTimer    = 0;
+
     m_MaxPlayersPerTeam = 0;
     m_MaxPlayers        = 0;
     m_MinPlayersPerTeam = 0;
@@ -396,14 +398,14 @@ void BattleGround::Update(uint32 diff)
     /*********************************************************/
     /***           ARENA BUFF OBJECT SPAWNING              ***/
     /*********************************************************/
-    if (isArena() && !m_ArenaBuffSpawned)
+    if (isArena() && !m_ArenaBuffSpawned && GetStatus() == STATUS_IN_PROGRESS)
     {
         // 60 seconds after start the buffobjects in arena should get spawned
-        if (m_StartTime > uint32(m_StartDelayTimes[BG_STARTING_EVENT_FIRST] + ARENA_SPAWN_BUFF_OBJECTS))
+        if (m_ArenaBuffTimer > uint32(m_StartDelayTimes[BG_STARTING_EVENT_FIRST] + ARENA_SPAWN_BUFF_OBJECTS))
         {
             SpawnEvent(ARENA_BUFF_EVENT, 0, true);
             m_ArenaBuffSpawned = true;
-        }
+        } else m_ArenaBuffTimer += diff;
     }
 
     /*********************************************************/
@@ -476,7 +478,10 @@ void BattleGround::Update(uint32 diff)
                 //Announce BG starting
                 if (sWorld.getConfig(CONFIG_BOOL_BATTLEGROUND_QUEUE_ANNOUNCER_START))
                 {
-                    sWorld.SendWorldText(LANG_BG_STARTED_ANNOUNCE_WORLD, GetName(), GetMinLevel(), GetMaxLevel());
+                    if (GetMinLevel() == 80)
+                        sWorld.SendWorldText(LANG_BG_STARTED_ANNOUNCE_WORLD, GetName(), GetMinLevel(), 80);
+                    else
+                        sWorld.SendWorldText(LANG_BG_STARTED_ANNOUNCE_WORLD, GetName(), GetMinLevel(), GetMaxLevel());
                 }
             }
         }
@@ -660,6 +665,35 @@ void BattleGround::RewardReputationToTeam(uint32 faction_id, uint32 Reputation, 
             plr->GetReputationMgr().ModifyReputation(factionEntry, Reputation);
     }
 }
+void BattleGround::RewardXpToTeam(uint32 Xp, float percentOfLevel, uint32 TeamID)
+{
+    for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
+    {
+        if (itr->second.OfflineRemoveTime)
+            continue;
+        Player *plr = sObjectMgr.GetPlayer(itr->first);
+
+        if (!plr)
+        {
+            sLog.outError("BattleGround:RewardXpToTeam: Player (GUID: %u) not found!", GUID_LOPART(itr->first));
+            continue;
+        }
+
+        uint32 team = itr->second.Team;
+        if(!team) team = plr->GetTeam();
+
+        if (team == TeamID)
+        {
+            uint32 gain = Xp;
+            if(gain == 0 && percentOfLevel != 0)
+            {
+                percentOfLevel = percentOfLevel / 100;
+                gain = uint32(float(plr->GetUInt32Value(PLAYER_NEXT_LEVEL_XP))*percentOfLevel);
+            }
+            plr->GiveXP(gain, NULL);
+        }
+    }
+}
 
 void BattleGround::UpdateWorldState(uint32 Field, uint32 Value)
 {
@@ -804,6 +838,7 @@ void BattleGround::EndBattleGround(uint32 winner)
         {
             RewardMark(plr,ITEM_WINNER_COUNT);
             RewardQuestComplete(plr);
+            QuestComplete(plr);
 
             if (IsRandom() || BattleGroundMgr::IsBGWeekend(GetTypeID()))
             {
@@ -1001,6 +1036,38 @@ void BattleGround::RewardQuestComplete(Player *plr)
     RewardSpellCast(plr, quest);
 }
 
+void BattleGround::QuestComplete(Player *plr)
+{
+    switch(GetTypeID())
+    {
+        case BATTLEGROUND_SA:
+		{
+			uint32 questId = 0;
+			if (plr->GetTeam() == ALLIANCE)
+				questId = QUEST_SA_REWARD_ALLIANCE;
+			else if (plr->GetTeam() == HORDE)
+				questId = QUEST_SA_REWARD_HORDE;
+			if (plr->GetQuestStatus(questId) == QUEST_STATUS_INCOMPLETE) 
+				plr->CompleteQuest(questId);
+			break;
+		}
+        case BATTLEGROUND_IC:
+		{
+			uint32 questId = 0;
+			if (plr->GetTeam() == ALLIANCE)
+				questId = QUEST_IC_REWARD_ALLIANCE;
+			else if (plr->GetTeam() == HORDE)
+				questId = QUEST_IC_REWARD_HORDE;
+
+			if (questId != 0 && plr->hasQuest(questId) && (plr->GetQuestStatus(questId) == QUEST_STATUS_INCOMPLETE))
+				plr->CompleteQuest(questId);
+            break;
+		}
+        default:
+            return;
+    }
+}
+
 void BattleGround::BlockMovement(Player *plr)
 {
     plr->SetClientControl(plr, 0);                          // movement disabled NOTE: the effect will be automatically removed by client when the player is teleported from the battleground, so no need to send with uint8(1) in RemovePlayerAtLeave()
@@ -1050,6 +1117,9 @@ void BattleGround::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
             plr->ClearAfkReports();
 
             if(!team) team = plr->GetTeam();
+
+            // remove arena/battleground specific auras
+            plr->RemoveAurasDueToSpell(SPELL_AURA_PVP_HEALING);
 
             // if arena, remove the specific arena auras
             if (isArena())
@@ -1199,6 +1269,9 @@ void BattleGround::AddPlayer(Player *plr)
     WorldPacket data;
     sBattleGroundMgr.BuildPlayerJoinedBattleGroundPacket(&data, plr);
     SendPacketToTeam(team, &data, plr, false);
+
+    // add arena/battleground specific auras
+    plr->CastSpell(plr, SPELL_AURA_PVP_HEALING,true);
 
     // add arena specific auras
     if (isArena())
@@ -1579,12 +1652,16 @@ void BattleGround::SpawnBGObject(uint64 const& guid, uint32 respawntime)
             obj->SetLootState(GO_READY);
         obj->SetRespawnTime(0);
         map->Add(obj);
+		if (obj->GetGoType() == GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING)
+			obj->Rebuild(NULL);
     }
     else
     {
         map->Add(obj);
         obj->SetRespawnTime(respawntime);
         obj->SetLootState(GO_JUST_DEACTIVATED);
+		if (obj->GetGoType() == GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING)
+			obj->Rebuild(NULL);
     }
 }
 
