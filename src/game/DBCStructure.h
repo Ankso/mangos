@@ -870,6 +870,14 @@ struct GameObjectDisplayInfoEntry
     float  unknown12;                                       // 12-17    unknown size data, use first value as interact dist, mostly in hacks way
     // float  unknown13[5];                                 // 12-17    unknown size data
     // uint32 unknown18;                                    // 18       unknown data
+    //uint32  unk1[10];   //2-11
+    float   minX;
+    float   minY;
+    float   minZ;
+    float   maxX;
+    float   maxY;
+    float   maxZ;
+    //uint32  transport;  //18
 };
 
 struct GemPropertiesEntry
