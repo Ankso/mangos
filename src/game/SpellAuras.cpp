@@ -376,7 +376,7 @@ Aura::Aura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBas
 m_spellmod(NULL),
 m_timeCla(1000), m_periodicTimer(0), m_periodicTick(0), m_removeMode(AURA_REMOVE_BY_DEFAULT),
 m_effIndex(eff), m_spellAuraHolder(holder), m_isPersistent(false),
-m_positive(false), m_isPeriodic(false), m_isAreaAura(false), m_in_use(0), m_deleted(false)
+m_positive(false), m_isPeriodic(false), m_isAreaAura(false), m_in_use(0)
 {
     ASSERT(target);
 
@@ -5017,6 +5017,14 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
         // Parasitic Shadowfiend - handle summoning of two Shadowfiends on DoT expire
         if(spellProto->Id == 41917)
             target->CastSpell(target, 41915, true);
+        else if (spellProto->Id == 74562) // SPELL_FIERY_COMBUSTION - Ruby sanctum boss Halion
+            {
+                target->CastSpell(target, 74607, true, NULL, NULL, GetCasterGUID());
+            }
+        else if (spellProto->Id == 74792) // SPELL_SOUL_CONSUMPTION - Ruby sanctum boss Halion
+            {
+                target->CastSpell(target, 74799, true, NULL, NULL, GetCasterGUID());
+            };
     }
 }
 
@@ -6623,6 +6631,16 @@ void Aura::PeriodicTick()
                         }
                         break;
                     }
+                    case 74562: // SPELL_FIERY_COMBUSTION - Ruby sanctum boss Halion, added mark (74567, dummy) every tick
+                    {
+                        target->CastSpell(target, 74567, true, NULL, NULL, GetCasterGUID());
+                        break;
+                    }
+                    case 74792: // SPELL_SOUL_CONSUMPTION - Ruby sanctum boss Halion, added mark (74795, dummy) every tick
+                    {
+                        target->CastSpell(target, 74795, true, NULL, NULL, GetCasterGUID());
+                        break;
+                    };
                     default:
                         break;
                 }
