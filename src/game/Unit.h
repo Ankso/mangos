@@ -1750,6 +1750,12 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         Aura* GetDummyAura(uint32 spell_id) const;
 
+        // those dummy aura links are used to provide unit target for spells with TARGET_PERIODIC_TRIGGER_AURA
+        Aura* GetLinkedDummyAura(uint32 spell_id) const;
+        void AddDummyAuraLink(Aura* m_Aura) { m_dummyAuraLink.push_back(m_Aura); }
+        void RemoveDummyAuraLink(Aura* m_Aura);
+
+
         uint32 m_AuraFlags;
 
         uint32 GetDisplayId() { return GetUInt32Value(UNIT_FIELD_DISPLAYID); }
@@ -1954,6 +1960,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         SpellAuraHolderMap::iterator m_spellAuraHoldersUpdateIterator; // != end() in Unit::m_spellAuraHolders update and point to next element
         AuraList m_deletedAuras;                                       // auras removed while in ApplyModifier and waiting deleted
         SpellAuraHolderList m_deletedHolders;
+        AuraList m_dummyAuraLink;                                      // custom linked dummy auras
 
         SpellAuraHolderList m_scSpellAuraHolders;                      // casted by unit single per-caster auras
 
