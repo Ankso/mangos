@@ -798,6 +798,7 @@ void BattleGround::EndBattleGround(uint32 winner)
         {
             RewardMark(plr,ITEM_WINNER_COUNT);
             RewardQuestComplete(plr);
+            QuestComplete(plr);
             plr->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_WIN_BG, 1);
         }
         else
@@ -980,6 +981,38 @@ void BattleGround::RewardQuestComplete(Player *plr)
     }
 
     RewardSpellCast(plr, quest);
+}
+
+void BattleGround::QuestComplete(Player *plr)
+{
+    switch(GetTypeID())
+    {
+        case BATTLEGROUND_SA:
+		{
+			uint32 questId = 0;
+			if (plr->GetTeam() == ALLIANCE)
+				questId = QUEST_SA_REWARD_ALLIANCE;
+			else if (plr->GetTeam() == HORDE)
+				questId = QUEST_SA_REWARD_HORDE;
+			if (plr->GetQuestStatus(questId) == QUEST_STATUS_INCOMPLETE) 
+				plr->CompleteQuest(questId);
+			break;
+		}
+        case BATTLEGROUND_IC:
+		{
+			uint32 questId = 0;
+			if (plr->GetTeam() == ALLIANCE)
+				questId = QUEST_IC_REWARD_ALLIANCE;
+			else if (plr->GetTeam() == HORDE)
+				questId = QUEST_IC_REWARD_HORDE;
+
+			if (questId != 0 && plr->hasQuest(questId) && (plr->GetQuestStatus(questId) == QUEST_STATUS_INCOMPLETE))
+				plr->CompleteQuest(questId);
+            break;
+		}
+        default:
+            return;
+    }
 }
 
 void BattleGround::BlockMovement(Player *plr)
@@ -1564,12 +1597,16 @@ void BattleGround::SpawnBGObject(uint64 const& guid, uint32 respawntime)
             obj->SetLootState(GO_READY);
         obj->SetRespawnTime(0);
         map->Add(obj);
+		if (obj->GetGoType() == GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING)
+			obj->Rebuild(NULL);
     }
     else
     {
         map->Add(obj);
         obj->SetRespawnTime(respawntime);
         obj->SetLootState(GO_JUST_DEACTIVATED);
+		if (obj->GetGoType() == GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING)
+			obj->Rebuild(NULL);
     }
 }
 

@@ -8841,10 +8841,10 @@ void Player::SendInitWorldStates(uint32 zoneid, uint32 areaid)
         case 3703:                                          // Shattrath City
             break;
         case 4384:                                          // SA
-            /*if (bg && bg->GetTypeID() == BATTLEGROUND_SA)
-                bg->FillInitialWorldStates(data);
+            if (bg && bg->GetTypeID() == BATTLEGROUND_SA)
+                bg->FillInitialWorldStates(data, count);
             else
-            {*/
+            {
                 // 1-3 A defend, 4-6 H defend, 7-9 unk defend, 1 - ok, 2 - half destroyed, 3 - destroyed
                 data << uint32(0xf09) << uint32(0x4);       // 7  3849 Gate of Temple
                 data << uint32(0xe36) << uint32(0x4);       // 8  3638 Gate of Yellow Moon
@@ -8873,7 +8873,7 @@ void Player::SendInitWorldStates(uint32 zoneid, uint32 areaid)
                 data << uint32(0xe2b) << uint32(0x1);       // 29 3627 Beach1 - Alliance control
                 data << uint32(0xe2a) << uint32(0x1);       // 30 3626 Beach2 - Alliance control
                 // and many unks...
-            //}
+            }
             break;
         default:
             FillInitialWorldState(data,count, 0x914, 0x0);  // 7
