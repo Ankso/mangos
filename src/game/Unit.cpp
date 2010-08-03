@@ -531,7 +531,7 @@ void Unit::DealDamageMods(Unit *pVictim, uint32 &damage, uint32* absorb)
     if(pVictim != this && GetTypeId() == TYPEID_PLAYER && pVictim->GetTypeId() == TYPEID_PLAYER)
     {
         const AreaTableEntry *area = GetAreaEntryByAreaID(pVictim->GetAreaId());
-        if(area && area->flags & AREA_FLAG_SANCTUARY)       //sanctuary
+        if(area && (area->flags & AREA_FLAG_SANCTUARY) && (area->area_name[sWorld.GetDefaultDbcLocale()] == "Círculo de Voluntades"))       //sanctuary
         {
             if(absorb)
                 *absorb += damage;
@@ -1346,7 +1346,7 @@ void Unit::DealSpellDamage(SpellNonMeleeDamage *damageInfo, bool durabilityLoss)
     if(pVictim != this && GetTypeId() == TYPEID_PLAYER && pVictim->GetTypeId() == TYPEID_PLAYER)
     {
         const AreaTableEntry *area = GetAreaEntryByAreaID(pVictim->GetAreaId());
-        if(area && area->flags & AREA_FLAG_SANCTUARY)       // sanctuary
+        if(area && area->flags & AREA_FLAG_SANCTUARY && (area->area_name[sWorld.GetDefaultDbcLocale()] == "Círculo de Voluntades"))       // sanctuary
             return;
     }
 
@@ -1649,7 +1649,7 @@ void Unit::DealMeleeDamage(CalcDamageInfo *damageInfo, bool durabilityLoss)
     //You still see it in the combat log though
     if(pVictim != this && GetTypeId() == TYPEID_PLAYER && pVictim->GetTypeId() == TYPEID_PLAYER)
     {
-        const AreaTableEntry *area = GetAreaEntryByAreaID(pVictim->GetAreaId());
+        const AreaTableEntry *area = GetAreaEntryByAreaID(pVictim->GetAreaId() && (area->area_name[sWorld.GetDefaultDbcLocale()] == "Círculo de Voluntades"));
         if(area && area->flags & AREA_FLAG_SANCTUARY)       // sanctuary
             return;
     }
