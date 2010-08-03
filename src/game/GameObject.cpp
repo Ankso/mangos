@@ -159,9 +159,6 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map *map, uint32 phaseMa
 
     SetByteValue(GAMEOBJECT_BYTES_1, 2, artKit);
 
-    if (goinfo->type == GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING)
-        m_goValue->destructibleBuilding.health = goinfo->destructibleBuilding.intactNumHits + goinfo->destructibleBuilding.damagedNumHits;
-
     if(goinfo->type == GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING)
         m_health = goinfo->destructibleBuilding.damagedHealth;
 
@@ -1688,16 +1685,4 @@ float GameObject::GetObjectBoundingRadius() const
         return fabs(dispEntry->unknown12) * GetObjectScale();
 
     return DEFAULT_WORLD_OBJECT_SIZE;
-}
-
-void GameObject::DealSiegeDamage(uint32 damage)
-{
-    m_actualHealth -= damage;
-
-    // TODO : there are a lot of thinghts to do here
-    if(m_actualHealth < 0)
-    {
-        m_actualHealth = GetGOInfo()->destructibleBuilding.intactNumHits;
-        SetLootState(GO_JUST_DEACTIVATED);
-    }
 }

@@ -8341,7 +8341,7 @@ void Spell::EffectDamageBuilding(SpellEffectIndex eff_idx)
         return;
 
     // NOTE : this can be increased by scaling stat system in vehicles
-    gameObjTarget->DealSiegeDamage(damage);
+    gameObjTarget->TakenDamage(damage, m_caster);
 }
 
 void Spell::EffectPlayMusic(SpellEffectIndex eff_idx)
