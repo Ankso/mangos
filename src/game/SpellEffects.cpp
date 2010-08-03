@@ -2620,6 +2620,23 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 m_caster->CastCustomSpell(m_caster, 45470, &bp, NULL, NULL, true);
                 return;
             }
+            //Death Grip - Lacking propper Jump/Leap (EffectJump -  implementation) :)
+            else if (m_spellInfo->Id == 49576)
+            {
+                if (!unitTarget)
+                    return;
+
+                m_caster->CastSpell(unitTarget, 49560, true);
+                return;
+            }
+            else if (m_spellInfo->Id == 49560)
+            {
+                if (!unitTarget)
+                    return;
+
+                unitTarget->CastSpell(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ(), m_spellInfo->CalculateSimpleValue(EFFECT_INDEX_0), true);
+                return;
+            }
             // Raise dead effect
             else if(m_spellInfo->Id == 46584) 
             {
