@@ -13999,6 +13999,17 @@ void Player::RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver
             DestroyItemCount( pQuest->ReqItemId[i], pQuest->ReqItemCount[i], true);
     }
 
+    //Destroy quest item
+    uint32 srcitem = pQuest->GetSrcItemId();
+    if( srcitem > 0 )
+    {
+        uint32 count = pQuest->GetSrcItemCount();
+        if( count <= 0 )
+            count = 1;
+
+        DestroyItemCount(srcitem, count, true, true);
+    }	
+
     RemoveTimedQuest(quest_id);
 
     if (BattleGround* bg = GetBattleGround())
@@ -20036,8 +20047,6 @@ void Player::SendInitialPacketsBeforeAddToMap()
 
 void Player::SendInitialPacketsAfterAddToMap()
 {
-    if(getClass() == CLASS_DEATH_KNIGHT)
-        ResyncRunes(MAX_RUNES);
 
     WorldPacket data0(SMSG_SET_PHASE_SHIFT, 4);
     data0 << uint32(GetPhaseMask());
@@ -21437,8 +21446,7 @@ void Player::ConvertRune(uint8 index, RuneType newType, uint32 spellid)
 
 void Player::ResyncRunes(uint8 count)
 {
-    WorldPacket data(SMSG_RESYNC_RUNES, 4 + count * 2);
-    data << uint32(count + 1);
+    WorldPacket data(SMSG_RESYNC_RUNES, count * 2);
     for(uint32 i = 0; i < count; ++i)
     {
         data << uint8(GetCurrentRune(i));                   // rune type
