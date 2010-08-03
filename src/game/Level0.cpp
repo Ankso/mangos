@@ -88,6 +88,7 @@ bool ChatHandler::HandleStartCommand(const char* /*args*/)
 
 bool ChatHandler::HandleServerInfoCommand(const char* /*args*/)
 {
+    Player *chr = m_session->GetPlayer();
     uint32 activeClientsNum = sWorld.GetActiveSessionCount();
     uint32 queuedClientsNum = sWorld.GetQueuedSessionCount();
     uint32 maxActiveClientsNum = sWorld.GetMaxActiveSessionCount();
@@ -100,10 +101,19 @@ bool ChatHandler::HandleServerInfoCommand(const char* /*args*/)
     else
         full = _FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,REVISION_ID);
 
-    SendSysMessage(full);
-    PSendSysMessage(LANG_USING_SCRIPT_LIB,sWorld.GetScriptsVersion());
-    PSendSysMessage(LANG_USING_WORLD_DB,sWorld.GetDBVersion());
-    PSendSysMessage(LANG_USING_EVENT_AI,sWorld.GetCreatureEventAIVersion());
+    if(chr->isGameMaster())
+        SendSysMessage(full);
+    SendSysMessage("Revision ReinoDeLaOscuridad: [R96i] || Conoce los ultimos cambios entrando en www.reinodelaoscuridad.com/foro");
+    //Don't send revision info to normal players, for some hacks, you need the server rev. =/
+    if(chr->isGameMaster())
+    {
+        SendSysMessage("--------------------- INFORMACION ADICIONAL PARA EL STAFF ---------------------");
+        SendSysMessage(full);
+        PSendSysMessage(LANG_USING_SCRIPT_LIB,sWorld.GetScriptsVersion());
+        PSendSysMessage(LANG_USING_WORLD_DB,sWorld.GetDBVersion());
+        PSendSysMessage(LANG_USING_EVENT_AI,sWorld.GetCreatureEventAIVersion());
+        SendSysMessage("-----------------------------------------------------------------------------------------------------");
+    }
     PSendSysMessage(LANG_CONNECTED_USERS, activeClientsNum, maxActiveClientsNum, queuedClientsNum, maxQueuedClientsNum);
     PSendSysMessage(LANG_UPTIME, str.c_str());
 
