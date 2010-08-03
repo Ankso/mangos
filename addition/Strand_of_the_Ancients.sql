@@ -1,32 +1,38 @@
-REPLACE INTO `gameobject_template` (`entry`, `type`, `displayId`, `name`, `IconName`, `castBarCaption`, `unk1`, `faction`, `flags`, `size`, `questItem1`, `questItem2`, `questItem3`, `questItem4`, `questItem5`, `questItem6`, `data0`, `data1`, `data2`, `data3`, `data4`, `data5`, `data6`, `data7`, `data8`, `data9`, `data10`, `data11`, `data12`, `data13`, `data14`, `data15`, `data16`, `data17`, `data18`, `data19`, `data20`, `data21`, `data22`, `data23`, `ScriptName`) VALUES
+﻿REPLACE INTO `gameobject_template` (`entry`, `type`, `displayId`, `name`, `IconName`, `castBarCaption`, `unk1`, `faction`, `flags`, `size`, `questItem1`, `questItem2`, `questItem3`, `questItem4`, `questItem5`, `questItem6`, `data0`, `data1`, `data2`, `data3`, `data4`, `data5`, `data6`, `data7`, `data8`, `data9`, `data10`, `data11`, `data12`, `data13`, `data14`, `data15`, `data16`, `data17`, `data18`, `data19`, `data20`, `data21`, `data22`, `data23`, `ScriptName`) VALUES
 (300000, 0, 7203, 'Forcefield 000', '', '', '', 1375, 32, 0.05, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '');
 UPDATE `creature_template` SET npcflag=1, `ScriptName` = 'npc_sa_vendor' WHERE entry in (29260,29262);
 DELETE FROM `creature_template` WHERE `entry` in (50000);
-INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid_A`, `modelid_A2`, `modelid_H`, `modelid_H2`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `minhealth`, `maxhealth`, `minmana`, `maxmana`, `armor`, `faction_A`, `faction_H`, `npcflag`, `speed_run`, `scale`, `rank`, `mindmg`, `maxdmg`, `dmgschool`, `attackpower`, `dmg_multiplier`, `baseattacktime`, `rangeattacktime`, `unit_class`, `unit_flags`, `dynamicflags`, `family`, `trainer_type`, `trainer_spell`, `trainer_class`, `trainer_race`, `minrangedmg`, `maxrangedmg`, `rangedattackpower`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `resistance1`, `resistance2`, `resistance3`, `resistance4`, `resistance5`, `resistance6`, `spell1`, `spell2`, `spell3`, `spell4`, `PetSpellDataId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `InhabitType`, `unk16`, `unk17`, `RacialLeader`, `questItem1`, `questItem2`, `questItem3`, `questItem4`, `questItem5`, `questItem6`, `movementId`, `RegenHealth`, `equipment_id`, `mechanic_immune_mask`, `flags_extra`, `ScriptName`) VALUES
-(50000, 0, 0, 0, 0, 0, 27462, 0, 27462, 0, 'Сефориевый заряд', NULL, NULL, 0, 80, 80, 5000, 5000, 0, 0, 9730, 7, 7, 0, 1, 0.5, 0, 420, 630, 0, 157, 1, 2000, 2000, 1, 0, 0, 0, 0, 0, 0, 0, 336, 504, 126, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 94, 1, 0, 0, 0, 'npc_sa_bomb');
+INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid_1`, `modelid_2`, `modelid_3`, `modelid_4`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `minhealth`, `maxhealth`, `minmana`, `maxmana`, `armor`, `faction_A`, `faction_H`, `npcflag`, `speed_run`, `scale`, `rank`, `mindmg`, `maxdmg`, `dmgschool`, `attackpower`, `dmg_multiplier`, `baseattacktime`, `rangeattacktime`, `unit_class`, `unit_flags`, `dynamicflags`, `family`, `trainer_type`, `trainer_spell`, `trainer_class`, `trainer_race`, `minrangedmg`, `maxrangedmg`, `rangedattackpower`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `resistance1`, `resistance2`, `resistance3`, `resistance4`, `resistance5`, `resistance6`, `spell1`, `spell2`, `spell3`, `spell4`, `PetSpellDataId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `InhabitType`, `unk16`, `unk17`, `RacialLeader`, `questItem1`, `questItem2`, `questItem3`, `questItem4`, `questItem5`, `questItem6`, `movementId`, `RegenHealth`, `equipment_id`, `mechanic_immune_mask`, `flags_extra`, `ScriptName`) VALUES
+(50000, 0, 0, 0, 0, 0, 27462, 0, 27462, 0, 'Carga de Seforio', NULL, NULL, 0, 80, 80, 5000, 5000, 0, 0, 9730, 7, 7, 0, 1, 0.5, 0, 420, 630, 0, 157, 1, 2000, 2000, 1, 0, 0, 0, 0, 0, 0, 0, 336, 504, 126, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 94, 1, 0, 0, 0, 'npc_sa_bomb');
 DELETE FROM `gameobject_template` WHERE `entry` in (190753,194086);
 -- UPDATE `gameobject_template` SET `faction` = 14 WHERE `entry` in (192549,190727,190726,190723,190724,190722);
 INSERT INTO `gameobject_template` (`entry`, `type`, `displayId`, `name`, `IconName`, `castBarCaption`, `unk1`, `faction`, `flags`, `size`, `questItem1`, `questItem2`, `questItem3`, `questItem4`, `questItem5`, `questItem6`, `data0`, `data1`, `data2`, `data3`, `data4`, `data5`, `data6`, `data7`, `data8`, `data9`, `data10`, `data11`, `data12`, `data13`, `data14`, `data15`, `data16`, `data17`, `data18`, `data19`, `data20`, `data21`, `data22`, `data23`, `ScriptName`) VALUES
 (190753, 22, 8582, 'Seaforium Barrel', '', '', '', 12, 0, 2, 0, 0, 0, 0, 0, 0, 52415, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''),
 (194086, 22, 8582, 'Seaforium Barrel', '', '', '', 29, 0, 2, 0, 0, 0, 0, 0, 0, 52415, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '');
--- Разрушитель
-UPDATE `creature_template` SET npcflag = 1, unit_flags = 0, `faction_A` = '35', `faction_H` = '35', `ScriptName` = 'npc_sa_demolisher' WHERE entry IN (28781); 
+--  
+UPDATE `creature_template` SET `npcflag` = '1', `ScriptName` = 'npc_sa_demolisher' WHERE `entry` = '28781';
 DELETE FROM `vehicle_seat_data` WHERE seat in (2021,2023,2024);
 INSERT INTO `vehicle_seat_data` VALUES ('2021', '7');
 INSERT INTO `vehicle_seat_data` VALUES ('2023', '6');
 INSERT INTO `vehicle_seat_data` VALUES ('2024', '6');
 DeleTe From `npc_spellclick_spells` WHERE npc_entry in (28781);
 INSERT INTO `npc_spellclick_spells` VALUES ('28781', '60968', '0', '0', '0', '0');
-UPDATE `creature_template` SET `spell1` = '52338', `spell2` = '60206', `spell3` = '0', `spell4` = '0', `VehicleId` = '158', `v_flags` = '4', `v_aura` = '0' WHERE `entry` = 28781;
 
--- Противопехотная пушка
+--
 UPDATE `creature_template` SET unit_flags = 8, `faction_A` = '35', `faction_H` = '35', `ScriptName` = 'npc_sa_cannon' WHERE entry IN (27894);
 DELETE FROM `vehicle_seat_data` WHERE seat in (2029);
 INSERT INTO `vehicle_seat_data` VALUES ('2029', '5');
 DeleTe From `npc_spellclick_spells` WHERE npc_entry in (27894);
 INSERT INTO `npc_spellclick_spells` VALUES ('27894', '60968', '0', '0', '0', '0');
-UPDATE `creature_template` SET `spell1` = '49872', `spell2` = '0', `spell3` = '0', `spell4` = '0', `VehicleId` = '160', `v_flags` = '5', `v_aura` = '0' WHERE `entry` = 27894;
 
+/* Battleground Demolisher */
+DELETE FROM creature_template_addon where entry = 28781;
+INSERT INTO creature_template_addon VALUES (28781, 0, 0, 0, 0, 0, 158, NULL, NULL);
+REPLACE INTO vehicle_data VALUES (158, 4, 52338, 60206, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+/* Antipersonnel Cannon */
+DELETE FROM creature_template_addon where entry = 27894;
+INSERT INTO creature_template_addon VALUES (27894, 0, 0, 0, 0, 0, 160, NULL, NULL);
+REPLACE INTO vehicle_data VALUES (160, 5, 49872, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 DELETE FROM `gameobject` WHERE `guid` in (200001,200002,200003,200004,200005,200006,200007);
 INSERT INTO `gameobject` (`guid` ,`id` ,`map` ,`spawnMask` ,`phaseMask` ,`position_x` ,`position_y` ,`position_z` ,`orientation` ,`rotation0` ,`rotation1` ,`rotation2` ,`rotation3` ,`spawntimesecs` ,`animprogress` ,`state` ) VALUES
@@ -50,10 +56,10 @@ INSERT INTO `gameobject_battleground` (`guid` ,`event1` ,`event2`) VALUES
 
 DELETE FROM `creature` WHERE `guid` in (200001,200002,200003,200004,200005,200006,200007,200008,200009,200010,200011,200012,200013,200014,200015,200016,200027,200028,200029,200030);
 INSERT INTO `creature` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `DeathState`, `MovementType`) VALUES
--- Продавец б/у разрушителей
+-- 
 (200001, 29260, 607, 1, 1, 0, 0, 1360.81, -322.18, 36.83, 0.32, 800, 0, 0, 6986, 0, 0, 0),
 (200002, 29262, 607, 1, 1, 0, 0, 1363.87, 220.95, 37.06, 2.67, 800, 0, 0, 6986, 0, 0, 0),
--- Противопехотная пушка
+--
 (200003, 27894, 607, 1, 1, 0, 0, 1421.94, -196.53, 42.18, 0.90, 800, 0, 0, 25000, 0, 0, 0),
 (200004, 27894, 607, 1, 1, 0, 0, 1455.09, -219.92, 41.95, 1.03, 800, 0, 0, 25000, 0, 0, 0),
 (200005, 27894, 607, 1, 1, 0, 0, 1405.33, 84.25, 41.18, 5.40, 800, 0, 0, 25000, 0, 0, 0),
@@ -64,16 +70,16 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `modelid`
 (200010, 27894, 607, 1, 1, 0, 0, 1249.95, -223.74, 66.72, 0.43, 800, 0, 0, 25000, 0, 0, 0),
 (200011, 27894, 607, 1, 1, 0, 0, 1068.82, -127.38, 96.44, 0.06, 800, 0, 0, 25000, 0, 0, 0),
 (200012, 27894, 607, 1, 1, 0, 0, 1068.35, -87.04, 93.80, 6.24, 800, 0, 0, 25000, 0, 0, 0),
--- Разрушитель
+--  
 (200013, 28781, 607, 1, 1, 0, 0, 1582.57, -96.37, 8.47, 5.57, 450, 0, 0, 50000, 0, 0, 0),
 (200014, 28781, 607, 1, 1, 0, 0, 1610.55, -117.52, 8.77, 2.44, 450, 0, 0, 50000, 0, 0, 0),
 (200015, 28781, 607, 1, 1, 0, 0, 1594.24, 39.16, 7.49, 0.62, 450, 0, 0, 50000, 0, 0, 0),
 (200016, 28781, 607, 1, 1, 0, 0, 1618.60, 62.26, 7.17, 3.61, 450, 0, 0, 50000, 0, 0, 0),
--- Разрушители в мастерских
-(200027, 28781, 607, 1, 1, 0, 0, 1353.28, 224.092, 35.2432, 4.35363, 600, 5, 0, 50000, 0, 0, 0), -- запад
-(200028, 28781, 607, 1, 1, 0, 0, 1347.65, 208.805, 34.2892, 4.39378, 600, 5, 0, 50000, 0, 0, 0), -- запад
-(200029, 28781, 607, 1, 1, 0, 0, 1371.2, -317.169, 34.9982, 1.93504, 600, 5, 0, 50000, 0, 0, 0), -- восток
-(200030, 28781, 607, 1, 1, 0, 0, 1365.52, -301.854, 34.0439, 1.91998, 600, 5, 0, 50000, 0, 0, 0);-- восток
+--  
+(200027, 28781, 607, 1, 1, 0, 0, 1353.28, 224.092, 35.2432, 4.35363, 600, 5, 0, 50000, 0, 0, 0), 
+(200028, 28781, 607, 1, 1, 0, 0, 1347.65, 208.805, 34.2892, 4.39378, 600, 5, 0, 50000, 0, 0, 0), 
+(200029, 28781, 607, 1, 1, 0, 0, 1371.2, -317.169, 34.9982, 1.93504, 600, 5, 0, 50000, 0, 0, 0), 
+(200030, 28781, 607, 1, 1, 0, 0, 1365.52, -301.854, 34.0439, 1.91998, 600, 5, 0, 50000, 0, 0, 0);
 
 
 
@@ -126,16 +132,16 @@ INSERT INTO `battleground_events` (`map`, `event1`, `event2`, `description`) VAL
 
 DELETE FROM `creature` WHERE `guid` in (200017,200018,200019,200020,200021,200022,200023,200024,200025,200026);
 INSERT INTO `creature` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `DeathState`, `MovementType`) VALUES
-(200017, 13117, 607, 1, 1, 0, 0, 1448.78, -52.9605, 5.74272, 0.0530517, 25, 0, 0, 37420, 6310, 0, 0),-- водопад
-(200018, 13116, 607, 1, 1, 0, 0, 1448.78, -52.9605, 5.74272, 0.0530517, 25, 0, 0, 37890, 6310, 0, 0),-- водопадА
-(200019, 13117, 607, 1, 1, 0, 0, 1389.22, 205.673, 32.0597, 4.445, 25, 0, 0, 37420, 6310, 0, 0),-- 1
-(200020, 13116, 607, 1, 1, 0, 0, 1389.22, 205.673, 32.0597, 4.445, 25, 0, 0, 37890, 6310, 0, 0),-- 1А
-(200021, 13117, 607, 1, 1, 0, 0, 1400.49, -293.963, 32.0608, 2.08096, 25, 0, 0, 37420, 6310, 0, 0),-- 0
-(200022, 13116, 607, 1, 1, 0, 0, 1400.49, -293.963, 32.0608, 2.08096, 25, 0, 0, 37890, 6310, 0, 0),-- 0А
-(200023, 13117, 607, 1, 1, 0, 0, 1111.58, 6.40605, 69.2963, 6.20037, 25, 0, 0, 37420, 6310, 0, 0),-- 2
-(200024, 13116, 607, 1, 1, 0, 0, 1111.58, 6.40605, 69.2963, 6.20037, 25, 0, 0, 37890, 6310, 0, 0),-- 2А
-(200025, 13117, 607, 1, 1, 0, 0, 952.963, -192.742, 92.3584, 0.35779, 25, 0, 0, 37420, 6310, 0, 0),-- у реликвии
-(200026, 13116, 607, 1, 1, 0, 0, 952.963, -192.742, 92.3584, 0.35779, 25, 0, 0, 37890, 6310, 0, 0);-- у реликвииА
+(200017, 13117, 607, 1, 1, 0, 0, 1448.78, -52.9605, 5.74272, 0.0530517, 25, 0, 0, 37420, 6310, 0, 0),
+(200018, 13116, 607, 1, 1, 0, 0, 1448.78, -52.9605, 5.74272, 0.0530517, 25, 0, 0, 37890, 6310, 0, 0),
+(200019, 13117, 607, 1, 1, 0, 0, 1389.22, 205.673, 32.0597, 4.445, 25, 0, 0, 37420, 6310, 0, 0),
+(200020, 13116, 607, 1, 1, 0, 0, 1389.22, 205.673, 32.0597, 4.445, 25, 0, 0, 37890, 6310, 0, 0),
+(200021, 13117, 607, 1, 1, 0, 0, 1400.49, -293.963, 32.0608, 2.08096, 25, 0, 0, 37420, 6310, 0, 0),
+(200022, 13116, 607, 1, 1, 0, 0, 1400.49, -293.963, 32.0608, 2.08096, 25, 0, 0, 37890, 6310, 0, 0),
+(200023, 13117, 607, 1, 1, 0, 0, 1111.58, 6.40605, 69.2963, 6.20037, 25, 0, 0, 37420, 6310, 0, 0),
+(200024, 13116, 607, 1, 1, 0, 0, 1111.58, 6.40605, 69.2963, 6.20037, 25, 0, 0, 37890, 6310, 0, 0),
+(200025, 13117, 607, 1, 1, 0, 0, 952.963, -192.742, 92.3584, 0.35779, 25, 0, 0, 37420, 6310, 0, 0),
+(200026, 13116, 607, 1, 1, 0, 0, 952.963, -192.742, 92.3584, 0.35779, 25, 0, 0, 37890, 6310, 0, 0);
 DELETE FROM `creature_battleground` WHERE `guid` in (200017,200018,200019,200020,200021,200022,200023,200024,200025,200026);
 INSERT INTO `creature_battleground` (`guid` ,`event1` ,`event2`) VALUES 
 ('200017', '5', '3'),
@@ -151,35 +157,35 @@ INSERT INTO `creature_battleground` (`guid` ,`event1` ,`event2`) VALUES
 
 DELETE FROM `mangos_string` WHERE `entry` in (650,651,20000,20001,20002,20003,20004,20005,20006,20007,20008,20009,20010,20011,20012,20013,20014,20015,20016,20017,20018,20019,20020,20021,20022);
 INSERT INTO `mangos_string` (`entry`, `content_default`, `content_loc1`, `content_loc2`, `content_loc3`, `content_loc4`, `content_loc5`, `content_loc6`, `content_loc7`, `content_loc8`) VALUES
-(650, 'Alliance', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Альянс'),
-(651, 'Horde', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Орда'),
-(20000, 'The battle for Strand of the Ancients begins in 2 minute.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Битва за Берег Древних начнется через 2 минуты.'),
-(20001, 'The battle for Strand of the Ancients begins in 1 minute.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Битва за Берег Древних начнется через 1 минуту.'),
-(20002, 'The battle for Strand of the Ancients begins in 30 seconds.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Битва за Берег Древних начнется через 30 секунд. Приготовтесь!'),
-(20003, 'The battle for Strand of the Ancients has begun!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Битва за Берег Древних началась! '),
+(650, 'Alianza', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(651, 'Horda', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20000, 'La batalla por Playa de los Ancestros comenzará en 2 minutos.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20001, 'La batalla por Playa de los Ancestros comenzará en 1 minuto.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20002, 'La batalla por Playa de los Ancestros comenzará en 30 segundos.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20003, '¡La batalla por Playa de los Ancestros ha comenzado!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 
-(20004, 'Gates %s are subjected to the hold up!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Врата %s подвергаются нападению!'),
-(20005, 'Gates %s are damaged!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Врата %s повреждены!'),
-(20006, 'Gates %s are destroyed!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Врата %s уничтожены!'),
+(20004, '¡Las puertas %s están bajo asedio!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20005, '¡Las puertas %s están dañadas!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20006, '¡Las puertas %s han sido destruídas!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 
-(20007, 'Green emerald', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Зеленого изумруда'),
-(20008, 'Blue saphire', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Синего сапфира'),
-(20009, 'Mauve amethyst', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Лилового аметиста'),
-(20010, 'Red sun', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Красного солнца'),
-(20011, 'Yellow moon', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Желтой луны'),
-(20012, 'Room ancient shrine', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Комнаты древних святынь'),
+(20007, 'Esmeralda Verde', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20008, 'Zafiro Azul', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20009, 'Amatista Púrpura', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20010, 'Sol Rojo', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20011, 'Luna Amarilla', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20012, 'Cámara de Reliquias Antiguas', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 
-(20013, 'The %s precipitates the %s!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '%s осаждает %s!'),
-(20014, 'The %s seizes the %s!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '%s захватывает %s!'),
-(20015, 'East graveyard!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Восточное кладбище!'),
-(20016, 'West graveyard!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Западное кладбище!'),
-(20017, 'South graveyard!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Южное кладбище!'),
-(20018, '$n has зlace ыeaforium сharge!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$n заложил сифориевый заряд!'),
+(20013, '¡%s precipita el %s!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20014, '¡%s se apodera de %s!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20015, 'Cementerio Este', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20016, 'Cementerio Oeste', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20017, 'Cementerio del Sur', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20018, '$n ha colocado una Carga de Seforio!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 
-(20019, '%s has seized the Relic of Titanium for %s minutes!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Первый раунд за Альянсом! Реликвия Титана захвачена!'),
-(20020, '%s has seized the Relic of Titanium for %s minutes!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Второй раунд за Ордой! Реликвия Титана захвачена!'),
-(20021, '%s has seized the Relic of Titanium for %s minutes!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Первый раунд Ничья! Реликвия Титана не захвачена!'),
-(20022, '%s has seized the Relic of Titanium for %s minutes!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Второй раунд Ничья! Реликвия Титана не захвачена!');
+(20019, '¡La Alianza gana la primera ronda, la Reliquia de Titán ha sido capturada!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20020, '¡La Horda gana la primera ronda, la Reliquia de Titán no ha sido capturada!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20021, '¡La Horda gana la segunda ronda, la Reliquia de Titán ha sido capturada!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20022, '¡La Alianza gana la segunda ronda, la Reliquia de Titán no ha sido capturada!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 DELETE FROM `gameobject` WHERE `guid` in (200008,200009,200010,200011,200012,200013,200014,200015,200016,200017,200018,200019,200020,200021,200022,200023,200024,200025,200026,200027,200028);
 INSERT INTO `gameobject` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `position_x`, `position_y`, `position_z`, `orientation`, `rotation0`, `rotation1`, `rotation2`, `rotation3`, `spawntimesecs`, `animprogress`, `state`) VALUES
@@ -228,13 +234,13 @@ INSERT INTO `gameobject_battleground` (`guid` ,`event1` ,`event2`) VALUES
 UPDATE `gameobject_template` Set `ScriptName` = 'go_sa_def_portal' WHERE entry = 191575;
 DELETE FROM `gameobject` WHERE `guid` in (200029,200030,200031,200032,200033,200034,200035);
 INSERT INTO `gameobject` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `position_x`, `position_y`, `position_z`, `orientation`, `rotation0`, `rotation1`, `rotation2`, `rotation3`, `spawntimesecs`, `animprogress`, `state`) VALUES
-(200029, 191575, 607, 1, 1, 1468.12, -225.7, 30.8969, 5.68042, 0, 0, 0.296839, -0.954928, 25, 0, 1), -- синии
-(200030, 191575, 607, 1, 1, 1394.07, 72.3632, 31.0541, 0.818809, 0, 0, 0.398063, 0.917358, 25, 0, 1), -- зеленые
-(200031, 191575, 607, 1, 1, 1216.12, 47.7665, 54.2785, 4.05465, 0, 0, 0.897588, -0.440835, 25, 0, 1), -- фиолетовые
-(200032, 191575, 607, 1, 1, 1255.73, -233.153, 56.4357, 5.01833, 0, 0, 0.591105, -0.806595, 25, 0, 1), -- красный
-(200033, 191575, 607, 1, 1, 1065.02, -89.9522, 81.0758, 1.58771, 0, 0, 0.71306, 0.701103, 25, 0, 1), -- желтый
-(200034, 191575, 607, 1, 1, 880.162, -95.979, 109.835, 3.14672, 0, 0, 0.999997, -0.00256531, 25, 0, 1), -- комната святынь
-(200035, 191575, 607, 1, 1, 880.68, -120.799, 109.835, 3.16636, 0, 0, 0.999923, -0.0123816, 25, 0, 1); -- комната святынь
+(200029, 191575, 607, 1, 1, 1468.12, -225.7, 30.8969, 5.68042, 0, 0, 0.296839, -0.954928, 25, 0, 1),
+(200030, 191575, 607, 1, 1, 1394.07, 72.3632, 31.0541, 0.818809, 0, 0, 0.398063, 0.917358, 25, 0, 1),
+(200031, 191575, 607, 1, 1, 1216.12, 47.7665, 54.2785, 4.05465, 0, 0, 0.897588, -0.440835, 25, 0, 1),
+(200032, 191575, 607, 1, 1, 1255.73, -233.153, 56.4357, 5.01833, 0, 0, 0.591105, -0.806595, 25, 0, 1),
+(200033, 191575, 607, 1, 1, 1065.02, -89.9522, 81.0758, 1.58771, 0, 0, 0.71306, 0.701103, 25, 0, 1),
+(200034, 191575, 607, 1, 1, 880.162, -95.979, 109.835, 3.14672, 0, 0, 0.999997, -0.00256531, 25, 0, 1),
+(200035, 191575, 607, 1, 1, 880.68, -120.799, 109.835, 3.16636, 0, 0, 0.999923, -0.0123816, 25, 0, 1);
 
 
 DELETE FROM `gameobject` WHERE `guid` in (200052,200053,200054,200055,200056,200057,200058,200059,200060,200061,200062,200063,200064,200065,200066,200067,200068,200069,200070,200071,200072,200073,200074,200075,200076,200077,200078,200079,200080,200081,200082,200083,200084,200085,200086);

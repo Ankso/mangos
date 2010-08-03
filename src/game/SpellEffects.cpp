@@ -1997,6 +1997,10 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
             // Slam
             if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000200000))
             {
+                uint32 rage = m_caster->GetPower(POWER_RAGE);
+                rage = rage + 150;
+                m_caster->SetPower(POWER_RAGE, rage);
+
                 if(!unitTarget)
                     return;
 
