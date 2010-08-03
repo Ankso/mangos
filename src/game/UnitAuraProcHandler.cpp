@@ -1544,6 +1544,32 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                     triggered_spell_id = 32747;
                     break;
                 }
+                // King of the Jungle (Bear and Cat)
+                case 48492: // Rank  1
+                case 48494: // Rank  2
+                case 48495: // Rank  3
+                {
+                    if (!procSpell)
+                        return SPELL_AURA_PROC_FAILED;
+                    // Enrage (bear) - single rank - bear miscvalue == 126
+                    if (procSpell->Id == 5229 && triggeredByAura->GetMiscValue() == 126)
+                    {
+                        // note : the remove part is done in spellAuras/HandlePeriodicEnergize as RemoveAurasDueToSpell
+                        basepoints[0] = triggerAmount;
+                        triggered_spell_id = 51185;
+                        target = this;
+                        break;
+                    }
+                    // Tiger Fury (cat) - all ranks - cat miscvalue != 126
+                    if (procSpell->SpellFamilyFlags2 & 0x00000800  && triggeredByAura->GetMiscValue() != 126)
+                    {
+                        basepoints[0] = triggerAmount;
+                        triggered_spell_id = 51178;
+                        target = this;
+                        break;
+                    }
+                    break;
+                }
                 // Glyph of Rejuvenation
                 case 54754:
                 {
@@ -3845,5 +3871,5 @@ SpellAuraProcResult Unit::HandlePeriodicDummyAuraProc(Unit* /*pVictim*/, uint32 
         default:
             break;
     }
-    return SPELL_AURA_PROC_OK
+    return SPELL_AURA_PROC_OK;
  }
