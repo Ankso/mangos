@@ -4484,7 +4484,8 @@ void Aura::HandleModMechanicImmunity(bool apply, bool /*Real*/)
         {
             GameObject* obj = target->GetGameObject(48018);
             if (obj)
-                ((Player*)target)->TeleportTo(obj->GetMapId(),obj->GetPositionX(),obj->GetPositionY(),obj->GetPositionZ(),obj->GetOrientation());
+                if (target->IsWithinDist(obj,GetSpellMaxRange(sSpellRangeStore.LookupEntry(GetSpellProto()->rangeIndex))))
+                    ((Player*)target)->TeleportTo(obj->GetMapId(),obj->GetPositionX(),obj->GetPositionY(),obj->GetPositionZ(),obj->GetOrientation());
         }
     }
 
@@ -4786,11 +4787,11 @@ void Aura::HandleAuraPeriodicDummy(bool apply, bool Real)
             {
                 case 48018:
                     if (apply)
-                        target->CastSpell(target, 62388, true);                
+                        GetHolder()->SendFakeAuraUpdate(62388,false);               
                     else
                     {
                         target->RemoveGameObject(spell->Id,true);
-                        target->RemoveAurasDueToSpell(62388);
+                        GetHolder()->SendFakeAuraUpdate(62388,true);
                     }
                 break;
             }
@@ -7503,9 +7504,9 @@ void Aura::PeriodicDummyTick()
                     // We must take a range of teleport spell, not summon.
                     const SpellEntry* goToCircleSpell = sSpellStore.LookupEntry(48020);
                     if (target->IsWithinDist(obj,GetSpellMaxRange(sSpellRangeStore.LookupEntry(goToCircleSpell->rangeIndex))))
-                        target->CastSpell(target, 62388, true);
+                        GetHolder()->SendFakeAuraUpdate(62388,false);
                     else
-                        target->RemoveAurasDueToSpell(62388);
+                        GetHolder()->SendFakeAuraUpdate(62388,true);
             }
             break;
         case SPELLFAMILY_ROGUE:
@@ -8485,6 +8486,52 @@ bool SpellAuraHolder::IsNeedVisibleSlot(Unit const* caster) const
 
     // passive auras (except totem auras) do not get placed in the slots
     return !m_isPassive || totemAura || HasAreaAuraEffect(m_spellProto);
+}
+
+void SpellAuraHolder::SendFakeAuraUpdate(uint32 auraId, bool remove)
+{
+    WorldPacket data(SMSG_AURA_UPDATE);
+    data << m_target->GetPackGUID();
+    data << uint8(64);
+    data << uint32(remove ? 0 : auraId);
+
+    if(remove)
+    {
+        m_target->SendMessageToSet(&data, true);
+        return;
+    }
+
+    uint8 auraFlags = GetAuraFlags();
+    data << uint8(auraFlags);
+    data << uint8(GetAuraLevel());
+    data << uint8(m_procCharges ? m_procCharges : m_stackAmount);
+
+    if(!(auraFlags & AFLAG_NOT_CASTER))
+    {
+        data << uint8(0);                                   // pguid
+    }
+
+    if(auraFlags & AFLAG_DURATION)
+    {
+        uint32 max_duration = 0;
+        uint32 duration = 0;
+        for (int32 i = 0; i < MAX_EFFECT_INDEX; ++i)
+        {
+            if (Aura *aura = m_auras[i])
+            {
+                if (uint32(aura->GetAuraMaxDuration()) > max_duration)
+                {
+                    max_duration = aura->GetAuraMaxDuration();
+                    duration = aura->GetAuraDuration();
+                }
+            }
+        }
+
+        data << uint32(max_duration);
+        data << uint32(duration);
+    }
+
+    m_target->SendMessageToSet(&data, true);
 }
 
 void SpellAuraHolder::SendAuraUpdate(bool remove)

@@ -4554,7 +4554,16 @@ void Spell::DoSummonWild(SpellEffectIndex eff_idx, uint32 forceFaction)
             }
             // Summon in random point all other units if location present
             else
-                m_caster->GetRandomPoint(center_x, center_y, center_z, radius, px, py, pz);
+            {
+                if(m_spellInfo->Id == 48018)
+                {
+                    center_x = m_caster->GetPositionX();
+                    center_y = m_caster->GetPositionY();
+                    center_z = m_caster->GetPositionZ();
+                }
+                else
+                    m_caster->GetClosePoint(center_x, center_y, center_z, DEFAULT_WORLD_OBJECT_SIZE);
+            }
         }
         // Summon if dest location not present near caster
         else
