@@ -7038,7 +7038,7 @@ void Spell::EffectDuel(SpellEffectIndex eff_idx)
         return;
     }
     AreaTableEntry const* casterAreaEntry = GetAreaEntryByAreaID(caster->GetZoneId());
-    if(casterAreaEntry && (casterAreaEntry->flags & AREA_FLAG_CAPITAL) && (casterAreaEntry->area_name[sWorld.GetDefaultDbcLocale()] == "Círculo de Voluntades") )
+    if(casterAreaEntry && (casterAreaEntry->flags & AREA_FLAG_CAPITAL) && (casterAreaEntry->area_name[sWorld.GetDefaultDbcLocale()] != "Círculo de Voluntades") )
     {
         SendCastResult(SPELL_FAILED_NO_DUELING);            // Dueling isn't allowed here
         DEBUG_LOG("Player %u has dueled in zone: %u (name %u)", caster->GetName(), caster->GetZoneId(), casterAreaEntry->area_name[sWorld.GetDefaultDbcLocale()]);
@@ -7046,7 +7046,7 @@ void Spell::EffectDuel(SpellEffectIndex eff_idx)
     }
 
     AreaTableEntry const* targetAreaEntry = GetAreaEntryByAreaID(target->GetZoneId());
-    if(targetAreaEntry && (targetAreaEntry->flags & AREA_FLAG_CAPITAL) && (targetAreaEntry->area_name[sWorld.GetDefaultDbcLocale()] == "Círculo de Voluntades") )
+    if(targetAreaEntry && (targetAreaEntry->flags & AREA_FLAG_CAPITAL) && (targetAreaEntry->area_name[sWorld.GetDefaultDbcLocale()] != "Círculo de Voluntades") )
     {
         SendCastResult(SPELL_FAILED_NO_DUELING);            // Dueling isn't allowed here
         DEBUG_LOG("Player %u has been dueled in zone: %u (name %u)", target->GetName(), target->GetZoneId(), targetAreaEntry->area_name[sWorld.GetDefaultDbcLocale()]);
