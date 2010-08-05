@@ -2620,22 +2620,22 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 m_caster->CastCustomSpell(m_caster, 45470, &bp, NULL, NULL, true);
                 return;
             }
-            //Death Grip - Lacking propper Jump/Leap (EffectJump -  implementation) :)
-            else if (m_spellInfo->Id == 49576)
+            if( m_spellInfo->SpellFamilyFlags & 0x02000000LL )
             {
-                if (!unitTarget)
+                if(!unitTarget || !m_caster)
                     return;
 
-                m_caster->CastSpell(unitTarget, 49560, true);
-                return;
-            }
-            else if (m_spellInfo->Id == 49560)
-            {
-                if (!unitTarget)
-                    return;
-
-                unitTarget->CastSpell(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ(), m_spellInfo->CalculateSimpleValue(EFFECT_INDEX_0), true);
-                return;
+                if(unitTarget->GetTypeId() != TYPEID_PLAYER)     // unitTarget is Creature
+                {
+                    float x = m_caster->GetPositionX();
+                    float y = m_caster->GetPositionY(); 
+                    float z = m_caster->GetPositionZ()+1;
+                    unitTarget->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 1);
+                }
+                else                                             // unitTarget is Player
+                {
+                    unitTarget->SendMonsterMove(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ() + 6.5f, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, unitTarget->GetDistance2d(m_caster->GetPositionX(), m_caster->GetPositionY())/10.0f);
+                }
             }
             // Raise dead effect
             else if(m_spellInfo->Id == 46584) 
@@ -2976,9 +2976,7 @@ void Spell::EffectJump(SpellEffectIndex eff_idx)
         return;
     }
 
-    float time = 1.0f;
-    // m_caster->NearTeleportTo(x, y, z, o, true);
-    m_caster->SendMonsterMoveJump(x, y, z, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, time);
+    m_caster->NearTeleportTo(x, y, z, o, true);
 }
 
 void Spell::EffectTeleportUnits(SpellEffectIndex eff_idx)
@@ -7047,18 +7045,18 @@ void Spell::EffectDuel(SpellEffectIndex eff_idx)
         return;
     }
     AreaTableEntry const* casterAreaEntry = GetAreaEntryByAreaID(caster->GetZoneId());
-    if(casterAreaEntry && (casterAreaEntry->flags & AREA_FLAG_CAPITAL) && (casterAreaEntry->area_name[sWorld.GetDefaultDbcLocale()] != "Círculo de Voluntades") )
+    if(casterAreaEntry && (casterAreaEntry->flags & AREA_FLAG_CAPITAL) && !(caster->GetPositionZ() < 615.0 && caster->GetPositionZ() > 580.0 && caster->GetZoneId() == 4395))
     {
         SendCastResult(SPELL_FAILED_NO_DUELING);            // Dueling isn't allowed here
-        DEBUG_LOG("Player %u has dueled in zone: %u (name %u)", caster->GetName(), caster->GetZoneId(), casterAreaEntry->area_name[sWorld.GetDefaultDbcLocale()]);
+        DEBUG_LOG("Player %u has dueled in zone: %u, positionZ: %u", caster->GetGUID(), caster->GetZoneId(), caster->GetPositionZ());
         return;
     }
 
     AreaTableEntry const* targetAreaEntry = GetAreaEntryByAreaID(target->GetZoneId());
-    if(targetAreaEntry && (targetAreaEntry->flags & AREA_FLAG_CAPITAL) && (targetAreaEntry->area_name[sWorld.GetDefaultDbcLocale()] != "Círculo de Voluntades") )
+    if(casterAreaEntry && (casterAreaEntry->flags & AREA_FLAG_CAPITAL) && !(target->GetPositionZ() < 615.0 && target->GetPositionZ() > 580.0 && target->GetZoneId() == 4395))
     {
         SendCastResult(SPELL_FAILED_NO_DUELING);            // Dueling isn't allowed here
-        DEBUG_LOG("Player %u has been dueled in zone: %u (name %u)", target->GetName(), target->GetZoneId(), targetAreaEntry->area_name[sWorld.GetDefaultDbcLocale()]);
+        DEBUG_LOG("Player %u has been dueled in zone: %u, positionZ: %u", target->GetGUID(), target->GetZoneId(), target->GetPositionZ());
         return;
     }
 

@@ -596,7 +596,8 @@ void Unit::DealDamageMods(Unit *pVictim, uint32 &damage, uint32* absorb)
     if(pVictim != this && GetTypeId() == TYPEID_PLAYER && pVictim->GetTypeId() == TYPEID_PLAYER)
     {
         const AreaTableEntry *area = GetAreaEntryByAreaID(pVictim->GetAreaId());
-        if(area && (area->flags & AREA_FLAG_SANCTUARY) && (area->area_name[sWorld.GetDefaultDbcLocale()] != "Círculo de Voluntades"))       //sanctuary
+        float height = pVictim->GetPositionZ();
+        if(area && (area->flags & AREA_FLAG_SANCTUARY) && !(pVictim->GetZoneId() == 4395))       //sanctuary, but allow duels in Dalaran.
         {
             if(absorb)
                 *absorb += damage;
@@ -1411,7 +1412,8 @@ void Unit::DealSpellDamage(SpellNonMeleeDamage *damageInfo, bool durabilityLoss)
     if(pVictim != this && GetTypeId() == TYPEID_PLAYER && pVictim->GetTypeId() == TYPEID_PLAYER)
     {
         const AreaTableEntry *area = GetAreaEntryByAreaID(pVictim->GetAreaId());
-        if(area && area->flags & AREA_FLAG_SANCTUARY && (area->area_name[sWorld.GetDefaultDbcLocale()] != "Círculo de Voluntades"))       // sanctuary
+        float height = pVictim->GetPositionZ();
+        if(area && area->flags & AREA_FLAG_SANCTUARY && !(area->zone & 4395) && !(pVictim->GetZoneId() == 4395))       //sanctuary, but allow duels in Dalaran.
             return;
     }
 
@@ -1715,7 +1717,8 @@ void Unit::DealMeleeDamage(CalcDamageInfo *damageInfo, bool durabilityLoss)
     if(pVictim != this && GetTypeId() == TYPEID_PLAYER && pVictim->GetTypeId() == TYPEID_PLAYER)
     {
         const AreaTableEntry *area = GetAreaEntryByAreaID(pVictim->GetAreaId());
-        if(area && area->flags & AREA_FLAG_SANCTUARY  && (area->area_name[sWorld.GetDefaultDbcLocale()] != "Círculo de Voluntades"))       // sanctuary
+        float height = pVictim->GetPositionZ();
+        if(area && area->flags & AREA_FLAG_SANCTUARY && !(area->zone & 4395) && !(pVictim->GetZoneId() == 4395))       //sanctuary, but allow duels in Dalaran.
             return;
     }
 
