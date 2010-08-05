@@ -1708,8 +1708,6 @@ GameObject* WorldObject::SummonGameobject(uint32 id, float x, float y, float z, 
 
     pGameObj->SetRespawnTime(despwtime/IN_MILLISECONDS);
 
-    pGameObj->SetOwnerGUID(GetGUID());
-
     map->Add(pGameObj);
 
     return pGameObj;
