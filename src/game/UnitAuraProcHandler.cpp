@@ -2484,6 +2484,16 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                     return SPELL_AURA_PROC_FAILED;
                 // TODO: wite script for this "fights on its own, doing the same attacks"
                 // NOTE: Trigger here on every attack and spell cast
+                Pet* runeBlade = FindGuardianWithEntry(27893);
+                if (!runeBlade)
+                   return SPELL_AURA_PROC_FAILED;
+                else
+                {
+                    // only melee based spells?
+                    if(procSpell)
+                        runeBlade->CastSpell(pVictim,procSpell,true,castItem,triggeredByAura);
+                    return SPELL_AURA_PROC_OK;
+                }
                 return SPELL_AURA_PROC_FAILED;
             }
             // Mark of Blood
