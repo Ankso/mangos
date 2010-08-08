@@ -146,6 +146,8 @@ class ChatHandler
         bool HandleCastSelfCommand(char *args);
         bool HandleCastTargetCommand(char *args);
 
+        bool HandleChangeWeatherCommand(char* args);
+
         bool HandleCharacterAchievementsCommand(char* args);
         bool HandleCharacterCustomizeCommand(char* args);
         bool HandleCharacterDeletedDeleteCommand(char* args);
@@ -190,6 +192,7 @@ class ChatHandler
         bool HandleDebugSendSellErrorCommand(char* args);
         bool HandleDebugSendSetPhaseShiftCommand(char* args);
         bool HandleDebugSendSpellFailCommand(char* args);
+        bool HandleDebugSpawnVehicleCommand(char* args);
 
         bool HandleEventListCommand(char* args);
         bool HandleEventStartCommand(char* args);
@@ -298,6 +301,7 @@ class ChatHandler
         bool HandleModifyArenaCommand(char* args);
         bool HandleModifyPhaseCommand(char* args);
         bool HandleModifyGenderCommand(char* args);
+        bool HandleModifyPowerTypeCommand(char* args);
 
         //-----------------------Npc Commands-----------------------
         bool HandleNpcAddCommand(char* args);
@@ -336,9 +340,9 @@ class ChatHandler
         bool HandlePDumpLoadCommand(char *args);
         bool HandlePDumpWriteCommand(char *args);
 
-        bool HandleQuestAdd(char* args);
-        bool HandleQuestRemove(char* args);
-        bool HandleQuestComplete(char* args);
+        bool HandleQuestAddCommand(char* args);
+        bool HandleQuestRemoveCommand(char* args);
+        bool HandleQuestCompleteCommand(char* args);
 
         bool HandleReloadAllCommand(char* args);
         bool HandleReloadAllAchievementCommand(char* args);
@@ -412,7 +416,7 @@ class ChatHandler
         bool HandleReloadQuestPOICommand(char* args);
         bool HandleReloadQuestStartScriptsCommand(char* args);
         bool HandleReloadQuestTemplateCommand(char* args);
-        bool HandleReloadReservedNameCommand(const char*);
+        bool HandleReloadReservedNameCommand(char*);
         bool HandleReloadReputationRewardRateCommand(char* args);
         bool HandleReloadReputationSpilloverTemplateCommand(char* args);
         bool HandleReloadSkillDiscoveryTemplateCommand(char* args);
