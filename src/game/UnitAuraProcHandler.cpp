@@ -979,6 +979,20 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
 
                     break;
                 }
+                // Item - Priest T10 Healer 4P Bonus
+                case 70799:
+                {
+                    if (GetTypeId() != TYPEID_PLAYER)
+                        return SPELL_AURA_PROC_FAILED;
+ 
+                    // Circle of Healing
+                    ((Player*)this)->RemoveSpellCategoryCooldown(1204, true);
+
+                    // Penance
+                    ((Player*)this)->RemoveSpellCategoryCooldown(1230, true);
+
+                    return SPELL_AURA_PROC_OK;
+                }
             }
             break;
         }
