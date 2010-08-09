@@ -1601,6 +1601,9 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 case 71340:                                 // Pact of darkfallen (hack for script work)
                     unMaxTargets = 1;
                     break;
+                case 69507:
+                    unMaxTargets = 2;                       // Hack for Slime Spray (10 normal)
+                    break;
             }
             break;
         }
