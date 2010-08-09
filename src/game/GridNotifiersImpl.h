@@ -182,6 +182,10 @@ inline void MaNGOS::DynamicObjectUpdater::VisitHelper(Unit* target)
         addedToExisting = false;
     
     }
+
+    if (holder->GetAuraByEffectIndex(eff_index))
+            target->RemoveAura(holder->GetAuraByEffectIndex(eff_index), AURA_REMOVE_BY_STACK);
+
     PersistentAreaAura* Aur = new PersistentAreaAura(spellInfo, eff_index, NULL, holder, target, i_dynobject.GetCaster());
     holder->AddAura(Aur, eff_index);
 

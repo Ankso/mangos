@@ -118,7 +118,10 @@ void WorldSession::SendDoFlight( uint32 mountDisplayId, uint32 path, uint32 path
         GetPlayer()->RemoveSpellsCausingAura(SPELL_AURA_FEIGN_DEATH);
 
     while(GetPlayer()->GetMotionMaster()->GetCurrentMovementGeneratorType()==FLIGHT_MOTION_TYPE)
+    {
+        DEBUG_LOG("I'M NOW IN THE WHILE, IT'S INFINITE??");
         GetPlayer()->GetMotionMaster()->MovementExpired(false);
+    }
 
     if (mountDisplayId)
         GetPlayer()->Mount( mountDisplayId );
