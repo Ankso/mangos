@@ -4114,7 +4114,18 @@ bool Unit::AddSpellAuraHolder(SpellAuraHolder *holder)
 void Unit::AddAuraToModList(Aura *aura)
 {
     if (aura->GetModifier()->m_auraname < TOTAL_AURAS)
+    {
+        AuraList::const_iterator iter;
+        for (iter = m_modAuras[aura->GetModifier()->m_auraname].begin(); iter != m_modAuras[aura->GetModifier()->m_auraname].end(); ++iter)
+        {
+            if (aura->GetId() == (*iter)->GetId())
+            {
+                m_modAuras[aura->GetModifier()->m_auraname].remove((*iter));
+                break;
+            }
+        }
         m_modAuras[aura->GetModifier()->m_auraname].push_back(aura);
+    }
 }
 
 void Unit::RemoveRankAurasDueToSpell(uint32 spellId)
