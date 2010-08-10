@@ -1785,7 +1785,15 @@ bool InstanceMap::Add(Player *player)
                         ASSERT(playerBind->save == GetInstanceSave());
                 }
             }
+            // OK, and now the hack: this will avoid the "walking without moving" visual bug in instances:
+            if (player->IsMounted())
+                player->Unmount();
         }
+        // And this for Battlegrounds:
+        else
+            if (IsBattleGround())
+                if (player->IsMounted())
+                    player->Unmount();
 
         // for normal instances cancel the reset schedule when the
         // first player enters (no players yet)
