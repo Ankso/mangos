@@ -2800,11 +2800,11 @@ void Unit::SendMeleeAttackStop(Unit* victim)
     ((Creature*)victim)->AI().EnterEvadeMode(this);*/
 }
 
-bool Unit::IsSpellBlocked(Unit *pCaster, SpellEntry const * /*spellProto*/, WeaponAttackType attackType)
+bool Unit::IsSpellBlocked(Unit *pCaster, SpellEntry const * spellEntry, WeaponAttackType attackType)
 {
     if (HasInArc(M_PI_F,pCaster))
     {
-        /* Currently not exist spells with ignore block
+        /* NOTE: Overpower can't be blocked.
         // Ignore combat result aura (parry/dodge check on prepare)
         AuraList const& ignore = GetAurasByType(SPELL_AURA_IGNORE_COMBAT_RESULT);
         for(AuraList::const_iterator i = ignore.begin(); i != ignore.end(); ++i)
@@ -2815,6 +2815,13 @@ bool Unit::IsSpellBlocked(Unit *pCaster, SpellEntry const * /*spellProto*/, Weap
                 return false;
         }
         */
+
+        if (spellEntry)
+        {
+            // Some spells cannot be blocked
+            if (spellEntry->Attributes & SPELL_ATTR_IMPOSSIBLE_DODGE_PARRY_BLOCK)
+                return false;
+        }
 
         // Check creatures flags_extra for disable block
         if(GetTypeId()==TYPEID_UNIT &&
@@ -3067,7 +3074,7 @@ SpellMissInfo Unit::MagicSpellHitResult(Unit *pVictim, SpellEntry const *spell)
         return SPELL_MISS_MISS;
 
     // cast by caster in front of victim
-    int32 deflect_chance = pVictim->GetTotalAuraModifier(SPELL_AURA_DEFLECT_SPELLS)*1 00;
+    int32 deflect_chance = pVictim->GetTotalAuraModifier(SPELL_AURA_DEFLECT_SPELLS)*100;
     tmp+=deflect_chance;
     if (rand < tmp)
         return SPELL_MISS_DEFLECT;
