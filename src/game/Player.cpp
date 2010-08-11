@@ -2316,7 +2316,7 @@ Creature* Player::GetNPCIfCanInteractWith(ObjectGuid guid, uint32 npcflagmask)
         return NULL;
 
     // exist (we need look pets also for some interaction (quest/etc)
-    Creature *unit = ObjectAccessor::GetCreatureOrPetOrVehicle(*this,guid);
+    Creature *unit = ObjectAccessor::GetAnyTypeCreature(*this,guid);
     if (!unit)
         return NULL;
 
@@ -3441,7 +3441,8 @@ bool Player::IsNeedCastPassiveSpellAtLearn(SpellEntry const* spellInfo) const
 {
     // note: form passives activated with shapeshift spells be implemented by HandleShapeshiftBoosts instead of spell_learn_spell
     // talent dependent passives activated at form apply have proper stance data
-    bool need_cast = (!spellInfo->Stances || (m_form != 0 && (spellInfo->Stances & (1<<(m_form-1)))));
+    bool need_cast = (!spellInfo->Stances || (m_form != 0 && (spellInfo->Stances & (1<<(m_form-1)))) ||
+                      (m_form == 0 && (spellInfo->AttributesEx2 & SPELL_ATTR_EX2_NOT_NEED_SHAPESHIFT)));
 
     //Check CasterAuraStates
     return need_cast && (!spellInfo->CasterAuraState || HasAuraState(AuraState(spellInfo->CasterAuraState)));
@@ -13622,8 +13623,12 @@ void Player::PrepareQuestMenu( uint64 guid )
     QuestRelations* pObjectQIR;
 
     // pets also can have quests
+<<<<<<< HEAD
     Creature *pCreature = ObjectAccessor::GetCreatureOrPetOrVehicle(*this, guid);
     if( pCreature )
+=======
+    if (Creature *pCreature = GetMap()->GetAnyTypeCreature(guid))
+>>>>>>> 89bf70db6034d16a932e0415ef5ba0a1e5b35bbf
     {
         pObject = (Object*)pCreature;
         pObjectQR  = &sObjectMgr.mCreatureQuestRelations;
@@ -13717,8 +13722,12 @@ void Player::SendPreparedQuest(uint64 guid)
         std::string title = "";
 
         // need pet case for some quests
+<<<<<<< HEAD
         Creature *pCreature = ObjectAccessor::GetCreatureOrPetOrVehicle(*this,guid);
         if (pCreature)
+=======
+        if (Creature *pCreature = GetMap()->GetAnyTypeCreature(guid))
+>>>>>>> 89bf70db6034d16a932e0415ef5ba0a1e5b35bbf
         {
             uint32 textid = GetGossipTextId(pCreature);
 
@@ -13791,7 +13800,7 @@ Quest const * Player::GetNextQuest( uint64 guid, Quest const *pQuest )
     QuestRelations* pObjectQR;
     QuestRelations* pObjectQIR;
 
-    Creature *pCreature = ObjectAccessor::GetCreatureOrPetOrVehicle(*this,guid);
+    Creature *pCreature = ObjectAccessor::GetAnyTypeCreature(*this,guid);
     if( pCreature )
     {
         pObject = (Object*)pCreature;
@@ -20733,7 +20742,7 @@ void Player::UpdateForQuestWorldObjects()
         }
         else if (itr->IsCreatureOrVehicle())
         {
-            Creature *obj = ObjectAccessor::GetCreatureOrPetOrVehicle(*this, *itr);
+            Creature *obj = ObjectAccessor::GetAnyTypeCreature(*this, *itr);
             if(!obj)
                 continue;
 

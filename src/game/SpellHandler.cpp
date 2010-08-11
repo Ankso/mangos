@@ -492,7 +492,7 @@ void WorldSession::HandlePetCancelAuraOpcode( WorldPacket& recvPacket)
         return;
     }
 
-    Creature* pet=ObjectAccessor::GetCreatureOrPetOrVehicle(*_player,guid);
+    Creature* pet=ObjectAccessor::GetAnyTypeCreature(*_player,guid);
 
     if(!pet)
     {
@@ -580,7 +580,11 @@ void WorldSession::HandleSpellClick( WorldPacket & recv_data )
     if (_player->isInCombat())                              // client prevent click and set different icon at combat state
         return;
 
+<<<<<<< HEAD
     Creature *unit = ObjectAccessor::GetCreatureOrPetOrVehicle(*_player, guid);
+=======
+    Creature *unit = _player->GetMap()->GetAnyTypeCreature(guid);
+>>>>>>> 89bf70db6034d16a932e0415ef5ba0a1e5b35bbf
     if (!unit || unit->isInCombat())                        // client prevent click and set different icon at combat state
         return;
 
