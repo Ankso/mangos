@@ -2862,14 +2862,6 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
                 m_caster->CastSpell(m_caster, 65047, true); // Mirror Image
             break;
         }
-        // Empower Rune Weapon
-        case 53258:
-        {
-            if (m_caster->getClass() == CLASS_DEATH_KNIGHT && m_caster->GetTypeId() == TYPEID_PLAYER)
-                for(uint32 i; i <= MAX_RUNES; ++i)
-                    ((Player*)m_caster)->SetRuneCooldown(i, 0);
-            return;
-        }
     }
 
     // normal case
@@ -8332,6 +8324,20 @@ void Spell::EffectActivateRune(SpellEffectIndex eff_idx)
         if(plr->GetRuneCooldown(j) && plr->GetCurrentRune(j) == RuneType(m_spellInfo->EffectMiscValue[eff_idx]))
         {
             plr->SetRuneCooldown(j, 0);
+        }
+    }
+
+    // Empower rune weapon
+    if (m_spellInfo->Id == 47568)
+    {
+        // Need to do this just once
+        if (eff_idx != 0)
+            return;
+
+        for (uint32 i = 0; i < MAX_RUNES; ++i)
+        {
+            if (plr->GetRuneCooldown(i) && (plr->GetCurrentRune(i) == RUNE_FROST ||  plr->GetCurrentRune(i) == RUNE_DEATH))
+                plr->SetRuneCooldown(i, 0);
         }
     }
 }
