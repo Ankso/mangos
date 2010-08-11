@@ -121,6 +121,11 @@ void WorldSession::SendDoFlight( uint32 mountDisplayId, uint32 path, uint32 path
     {
         DEBUG_LOG("I'M NOW IN THE WHILE, IT'S INFINITE??");
         GetPlayer()->GetMotionMaster()->MovementExpired(false);
+        if (GetPlayer()->GetMotionMaster()->empty())
+        {
+            sLog.outError("ERROR: The stack is empty, breaking while");
+            break;
+        }
     }
 
     if (mountDisplayId)
