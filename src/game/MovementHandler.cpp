@@ -896,7 +896,7 @@ void WorldSession::HandleRequestVehicleNextSeat(WorldPacket &recv_data)
 
 void WorldSession::HandleRequestVehicleSwitchSeat(WorldPacket &recv_data)
 {
-    DEBUG_LOG("WORLD: Recvd CMSG_CHANGE_SEATS_ON_CONTROLLED_VEHICLE");
+    DEBUG_LOG("WORLD: Recvd CMSG_REQUEST_VEHICLE_SWITCH_SEAT");
     recv_data.hexlike();
 
     uint64 vehicleGUID = _player->GetVehicleGUID();
@@ -904,43 +904,40 @@ void WorldSession::HandleRequestVehicleSwitchSeat(WorldPacket &recv_data)
     if(!vehicleGUID)                                        // something wrong here...
         return;
 
-    if(recv_data.GetOpcode() == CMSG_REQUEST_VEHICLE_PREV_SEAT)
+    if(Vehicle *vehicle = ObjectAccessor::GetVehicle(vehicleGUID))
     {
-        _player->ChangeSeat(-1, false);
-        return;
-    }
-    else if(recv_data.GetOpcode() == CMSG_REQUEST_VEHICLE_NEXT_SEAT)
-    {
-        _player->ChangeSeat(-1, true);
-        return;
-    }
+        ObjectGuid guid;
+        recv_data >> guid.ReadAsPacked();
 
-    ObjectGuid guid, guid2;
-    recv_data >> guid.ReadAsPacked();
+        int8 seatId = 0;
+        recv_data >> seatId;
 
-    MovementInfo mi;
-    recv_data >> mi;
-    _player->m_movementInfo = mi;
-
-    recv_data >> guid2.ReadAsPacked();
-
-    int8 seatId;
-    recv_data >> seatId;
-
-    if(guid.GetRawValue() == guid2.GetRawValue())
-        _player->ChangeSeat(seatId, false);
-    else if(Vehicle *vehicle = ObjectAccessor::GetVehicle(guid2.GetRawValue()))
-    {
-        if(vehicle->HasEmptySeat(seatId))
+        if(!guid.IsEmpty())
         {
-            _player->ExitVehicle();
-            _player->EnterVehicle(vehicle, seatId);
+            if(vehicleGUID != guid.GetRawValue())
+            {
+                if(Vehicle *veh = ObjectAccessor::GetVehicle(guid.GetRawValue()))
+                {
+                    if(!_player->IsWithinDistInMap(veh, 10))
+                        return;
+
+                    if(Vehicle *v = veh->FindFreeSeat(&seatId, false))
+                    {
+                        vehicle->RemovePassenger(_player);
+                        _player->EnterVehicle(v, seatId, false);
+                    }
+                }
+                return;
+            }
+        }
+        if(Vehicle *v = vehicle->FindFreeSeat(&seatId, false))
+        {
+            vehicle->RemovePassenger(_player);
+            _player->EnterVehicle(v, seatId, false);
         }
     }
-
-	if (Unit *pVehicleBase = GetPlayer()->GetVehicleBase())
-            GetPlayer()->ChangeSeat(seatId);
 }
+
 
 void WorldSession::HandleChangeSeatsOnControlledVehicle(WorldPacket &recv_data)
 {
