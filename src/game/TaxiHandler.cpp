@@ -116,17 +116,19 @@ void WorldSession::SendDoFlight( uint32 mountDisplayId, uint32 path, uint32 path
     // remove fake death
     if (GetPlayer()->hasUnitState(UNIT_STAT_DIED))
         GetPlayer()->RemoveSpellsCausingAura(SPELL_AURA_FEIGN_DEATH);
-
+    
+    uint32 emergency = 0;
     while(GetPlayer()->GetMotionMaster()->GetCurrentMovementGeneratorType()==FLIGHT_MOTION_TYPE)
     {
-        DEBUG_LOG("I'M NOW IN THE WHILE, IT'S INFINITE??");
         GetPlayer()->GetMotionMaster()->MovementExpired(false);
-        if (GetPlayer()->GetMotionMaster()->empty())
+        ++emergency;
+        if (GetPlayer()->GetMotionMaster()->empty() || emergency == 1000) // 1000 iterations, 
         {
-            sLog.outError("ERROR: The stack is empty, breaking while");
+            sLog.outError("ERROR: The stack is empty or has more than 1000 iterations, breaking while");
             break;
         }
     }
+    emergency = 0;
 
     if (mountDisplayId)
         GetPlayer()->Mount( mountDisplayId );
