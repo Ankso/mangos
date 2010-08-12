@@ -2631,7 +2631,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 return;
             }
             // Obliterate
-            else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0002000000000000))
+            /*else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0002000000000000))
             {
                 // search for Annihilation
                 Unit::AuraList const& dummyList = m_caster->GetAurasByType(SPELL_AURA_DUMMY);
@@ -2665,7 +2665,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     }
                 }
                 return;
-            }
+            }*/
             if( m_spellInfo->SpellFamilyFlags & 0x02000000LL )
             {
                 if(!unitTarget || !m_caster)
