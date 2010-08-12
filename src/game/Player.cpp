@@ -13623,12 +13623,8 @@ void Player::PrepareQuestMenu( uint64 guid )
     QuestRelations* pObjectQIR;
 
     // pets also can have quests
-<<<<<<< HEAD
-    Creature *pCreature = ObjectAccessor::GetCreatureOrPetOrVehicle(*this, guid);
+    Creature *pCreature = ObjectAccessor::GetAnyTypeCreature(*this, guid);
     if( pCreature )
-=======
-    if (Creature *pCreature = GetMap()->GetAnyTypeCreature(guid))
->>>>>>> 89bf70db6034d16a932e0415ef5ba0a1e5b35bbf
     {
         pObject = (Object*)pCreature;
         pObjectQR  = &sObjectMgr.mCreatureQuestRelations;
@@ -13722,12 +13718,8 @@ void Player::SendPreparedQuest(uint64 guid)
         std::string title = "";
 
         // need pet case for some quests
-<<<<<<< HEAD
-        Creature *pCreature = ObjectAccessor::GetCreatureOrPetOrVehicle(*this,guid);
+        Creature *pCreature = ObjectAccessor::GetAnyTypeCreature(*this,guid);
         if (pCreature)
-=======
-        if (Creature *pCreature = GetMap()->GetAnyTypeCreature(guid))
->>>>>>> 89bf70db6034d16a932e0415ef5ba0a1e5b35bbf
         {
             uint32 textid = GetGossipTextId(pCreature);
 
