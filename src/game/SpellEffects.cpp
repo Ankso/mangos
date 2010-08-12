@@ -2630,6 +2630,42 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 m_caster->CastCustomSpell(m_caster, 45470, &bp, NULL, NULL, true);
                 return;
             }
+            // Obliterate
+            else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0002000000000000))
+            {
+                // search for Annihilation
+                Unit::AuraList const& dummyList = m_caster->GetAurasByType(SPELL_AURA_DUMMY);
+                for (Unit::AuraList::const_iterator itr = dummyList.begin(); itr != dummyList.end(); ++itr)
+                {
+                    if ((*itr)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT && (*itr)->GetSpellProto()->SpellIconID == 2710)
+                        if (roll_chance_i((*itr)->GetModifier()->m_amount)) // don't consume if found
+                            return;
+                }
+ 
+                // consume diseases
+                Unit::SpellAuraHolderMap& Auras = unitTarget->GetSpellAuraHolderMap();
+                for(Unit::SpellAuraHolderMap::iterator i = Auras.begin(); i != Auras.end(); ++i)
+                {
+                    if (i->second->GetSpellProto()->Dispel == DISPEL_DISEASE &&
+                       i->second->GetCasterGUID() == m_caster->GetGUID())
+                    {
+                        unitTarget->RemoveAurasDueToSpell(i->second->GetSpellProto()->Id);
+                        i = Auras.begin();
+                    }
+                }
+                // Do twice the check, don't know why but if target has more than one disease, with only one check,
+                // the last disease doesn't is removed :/
+                for(Unit::SpellAuraHolderMap::iterator i = Auras.begin(); i != Auras.end(); ++i)
+                {
+                    if (i->second->GetSpellProto()->Dispel == DISPEL_DISEASE &&
+                       i->second->GetCasterGUID() == m_caster->GetGUID())
+                    {
+                        unitTarget->RemoveAurasDueToSpell(i->second->GetSpellProto()->Id);
+                        i = Auras.begin();
+                    }
+                }
+                return;
+            }
             if( m_spellInfo->SpellFamilyFlags & 0x02000000LL )
             {
                 if(!unitTarget || !m_caster)
@@ -8324,20 +8360,6 @@ void Spell::EffectActivateRune(SpellEffectIndex eff_idx)
         if(plr->GetRuneCooldown(j) && plr->GetCurrentRune(j) == RuneType(m_spellInfo->EffectMiscValue[eff_idx]))
         {
             plr->SetRuneCooldown(j, 0);
-        }
-    }
-
-    // Empower rune weapon
-    if (m_spellInfo->Id == 47568)
-    {
-        // Need to do this just once
-        if (eff_idx != 0)
-            return;
-
-        for (uint32 i = 0; i < MAX_RUNES; ++i)
-        {
-            if (plr->GetRuneCooldown(i) && (plr->GetCurrentRune(i) == RUNE_FROST ||  plr->GetCurrentRune(i) == RUNE_DEATH))
-                plr->SetRuneCooldown(i, 0);
         }
     }
 }
