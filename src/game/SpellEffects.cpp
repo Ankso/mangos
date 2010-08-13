@@ -1714,6 +1714,11 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     m_caster->CastCustomSpell(unitTarget, 52752, &damage, NULL, NULL, true);
                     return;
                 }
+                case 54171:                                 //Divine Storm
+                {
+                    m_caster->CastCustomSpell(unitTarget, 54172, &damage, NULL, NULL, true);
+                    return;
+                }
                 case 52845:                                 // Brewfest Mount Transformation (Faction Swap)
                 {
                     if (m_caster->GetTypeId() != TYPEID_PLAYER)
@@ -4832,11 +4837,6 @@ void Spell::EffectEnchantItemPerm(SpellEffectIndex eff_idx)
     if (!itemTarget)
         return;
 
-    Player* p_caster = (Player*)m_caster;
-
-    // not grow at item use at item case
-    p_caster->UpdateCraftSkill(m_spellInfo->Id);
-
     uint32 enchant_id = m_spellInfo->EffectMiscValue[eff_idx];
     if (!enchant_id)
         return;
@@ -4849,6 +4849,25 @@ void Spell::EffectEnchantItemPerm(SpellEffectIndex eff_idx)
     Player* item_owner = itemTarget->GetOwner();
     if (!item_owner)
         return;
+
+    Player* p_caster = (Player*)m_caster;
+
+    // Enchanting a vellum requires special handling, as it creates a new item
+    // instead of modifying an existing one.
+    ItemPrototype const* targetProto = itemTarget->GetProto();
+    if(targetProto->IsVellum() && m_spellInfo->EffectItemType[eff_idx])
+    {
+        unitTarget = m_caster;
+        DoCreateItem(eff_idx,m_spellInfo->EffectItemType[eff_idx]);
+        // Vellum target case: Target becomes additional reagent, new scroll item created instead in Spell::EffectEnchantItemPerm()
+        // cannot already delete in TakeReagents() unfortunately
+        p_caster->DestroyItemCount(targetProto->ItemId, 1, true);
+        return;
+    }
+
+    // not grow at item use at item case, using scrolls does not increase enchanting skill!
+    if (!(m_CastItem && m_CastItem->GetProto()->Flags & ITEM_FLAGS_ENCHANT_SCROLL))
+        p_caster->UpdateCraftSkill(m_spellInfo->Id);
 
     if (item_owner!=p_caster && p_caster->GetSession()->GetSecurity() > SEC_PLAYER && sWorld.getConfig(CONFIG_BOOL_GM_LOG_TRADE) )
     {
@@ -6478,6 +6497,49 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                     unitTarget->CastSpell(unitTarget, 69201, true);
                     return;
+                }
+                case 60123: // Lightwell
+                {
+                   if (m_caster->GetTypeId() != TYPEID_UNIT)
+                       return;
+
+                    uint32 spellID;
+                    uint32 entry  = m_caster->GetEntry();
+ 
+                    switch(entry)
+                    {
+                        case 31897: spellID = 7001; break;   // Lightwell Renew	Rank 1
+                        case 31896: spellID = 27873; break;  // Lightwell Renew	Rank 2
+                        case 31895: spellID = 27874; break;  // Lightwell Renew	Rank 3
+                        case 31894: spellID = 28276; break;  // Lightwell Renew	Rank 4
+                        case 31893: spellID = 48084; break;  // Lightwell Renew	Rank 5
+                        case 31883: spellID = 48085; break;  // Lightwell Renew	Rank 6
+                        default:
+                            sLog.outError("Unknown Lightwell spell caster %u", m_caster->GetEntry());
+                            return;
+                    }
+
+                    if (SpellAuraHolder* chargesholder = m_caster->GetSpellAuraHolder(59907))
+                    {
+                        if (Unit *owner = m_caster->GetOwner())
+                        {
+                            if (const SpellEntry *pSpell = sSpellStore.LookupEntry(spellID))
+                            {
+                                damage = owner->SpellHealingBonusDone(unitTarget, pSpell, pSpell->EffectBasePoints[EFFECT_INDEX_0], DOT);
+                                damage = unitTarget->SpellHealingBonusTaken(owner, pSpell, damage, DOT);
+
+                                if (Aura *dummy = owner->GetDummyAura(55673))
+                                    damage += damage * dummy->GetModifier()->m_amount /100.0f;
+                            }
+                        }
+
+                        uint8 charges = chargesholder->GetAuraCharges();
+
+                        if (charges >= 1)
+                            m_caster->CastCustomSpell(unitTarget, spellID, &damage, NULL, NULL, true, NULL, NULL, m_originalCasterGUID);
+                        if (charges <= 1)
+                            ((TemporarySummon*)m_caster)->UnSummon();
+                    }
                 }
                 case 66477:                                 // Bountiful Feast
                 {
