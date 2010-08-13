@@ -2631,7 +2631,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 return;
             }
             // Obliterate
-            /*else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0002000000000000))
+            else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0002000000000000))
             {
                 // search for Annihilation
                 Unit::AuraList const& dummyList = m_caster->GetAurasByType(SPELL_AURA_DUMMY);
@@ -2644,28 +2644,27 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
  
                 // consume diseases
                 Unit::SpellAuraHolderMap& Auras = unitTarget->GetSpellAuraHolderMap();
-                for(Unit::SpellAuraHolderMap::iterator i = Auras.begin(); i != Auras.end(); ++i)
+                for(Unit::SpellAuraHolderMap::iterator iter = Auras.begin(); iter != Auras.end();)
                 {
-                    if (i->second->GetSpellProto()->Dispel == DISPEL_DISEASE &&
-                       i->second->GetCasterGUID() == m_caster->GetGUID())
+                    // Remove diseases from target
+                    if (iter->second->GetCasterGUID() == m_caster->GetGUID() && 
+                       (iter->second->GetSpellProto()->Id == 55095      // Frost Fever
+                        || iter->second->GetSpellProto()->Id == 55078   // Blood Plague
+                        || iter->second->GetSpellProto()->Id == 51735   // Ebon Plague (Rank 3)
+                        || iter->second->GetSpellProto()->Id == 51734   // Ebon Plague (Rank 2)
+                        || iter->second->GetSpellProto()->Id == 51726   // Ebon Plague (Rank 1)
+                        || iter->second->GetSpellProto()->Id == 50510   // Crypt Fever (Rank 3)
+                        || iter->second->GetSpellProto()->Id == 50509   // Crypt Fever (Rank 2)
+                        || iter->second->GetSpellProto()->Id == 50508)) // Crypt Fever (Rank 1)
                     {
-                        unitTarget->RemoveAurasDueToSpell(i->second->GetSpellProto()->Id);
-                        i = Auras.begin();
+                        unitTarget->RemoveAurasDueToSpell(iter->second->GetSpellProto()->Id);
+                        iter = Auras.begin();
                     }
-                }
-                // Do twice the check, don't know why but if target has more than one disease, with only one check,
-                // the last disease doesn't is removed :/
-                for(Unit::SpellAuraHolderMap::iterator i = Auras.begin(); i != Auras.end(); ++i)
-                {
-                    if (i->second->GetSpellProto()->Dispel == DISPEL_DISEASE &&
-                       i->second->GetCasterGUID() == m_caster->GetGUID())
-                    {
-                        unitTarget->RemoveAurasDueToSpell(i->second->GetSpellProto()->Id);
-                        i = Auras.begin();
-                    }
+                    else
+                        ++iter;
                 }
                 return;
-            }*/
+            }
             if( m_spellInfo->SpellFamilyFlags & 0x02000000LL )
             {
                 if(!unitTarget || !m_caster)

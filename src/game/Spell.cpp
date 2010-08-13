@@ -3113,7 +3113,7 @@ void Spell::cast(bool skipCheck)
             else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x400080000000000))
             {
                 if (m_caster->HasSpell(51161))              // Ebon Plague (Rank 3)
-                    AddPrecastSpell(51735);
+                    AddTriggeredSpell(51735);
                 else if (m_caster->HasSpell(51160))         // Ebon Plague (Rank 2)
                     AddTriggeredSpell(51734);
                 else if (m_caster->HasSpell(51099))         // Ebon Plague (Rank 1)
