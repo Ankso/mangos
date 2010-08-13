@@ -2611,7 +2611,10 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     if (itr->second->GetSpellProto()->Dispel == DISPEL_DISEASE &&
                         itr->second->GetCasterGUID() == m_caster->GetGUID())
                     {
-                        ++count;
+                        if (itr->second->GetSpellProto()->Id == 65142)
+                            sLog.outError("ERROR: Spell 65142 detected as disease, ignoring");
+                        else
+                            ++count;
                         // max. 15%
                         if (count == 3)
                             break;

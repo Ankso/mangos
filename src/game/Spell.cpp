@@ -2968,15 +2968,6 @@ void Spell::cast(bool skipCheck)
             return;
         }
     }
-	
-    // TODO: Remove this and found what the hell is the spell 65142!
-    if (m_spellInfo->Id == 65142)
-    {
-        DEBUG_LOG("Spell 65142 , that not exists in DBC (but it is in spell_dbc, in database), should not be casted because is another disease, ignoring");
-        finish(false);
-        SetExecutedCurrently(false);
-        return;
-    }
 
     if (m_spellInfo->Id == 32592)
         if(const SpellEntry* spellInfo = sSpellStore.LookupEntry(m_spellInfo->Id))
