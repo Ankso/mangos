@@ -204,7 +204,10 @@ enum ScoreType
     SCORE_SECONDARY_OBJECTIVES  = 15,
 	//SA
 	SCORE_GATES_DESTROYED		= 16,
-	SCORE_DEMOLISHERS_DESTROYED	= 17
+	SCORE_DEMOLISHERS_DESTROYED	= 17,
+    /* WoWArmory */
+    SCORE_DAMAGE_TAKEN          = 18,
+    SCORE_HEALING_TAKEN         = 19
 };
 
 enum ArenaType
@@ -287,6 +290,8 @@ class BattleGroundScore
         uint32 BonusHonor;
         uint32 DamageDone;
         uint32 HealingDone;
+        uint32 DamageTaken;
+        uint32 HealingTaken;
 };
 
 /*

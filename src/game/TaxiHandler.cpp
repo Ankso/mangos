@@ -122,7 +122,7 @@ void WorldSession::SendDoFlight( uint32 mountDisplayId, uint32 path, uint32 path
     {
         GetPlayer()->GetMotionMaster()->MovementExpired(false);
         ++emergency;
-        if (GetPlayer()->GetMotionMaster()->empty() || emergency == 1000) // 1000 iterations, 
+        if (GetPlayer()->GetMotionMaster()->empty() || emergency == 1000) // 1000 iterations, or empty stack.
         {
             sLog.outError("ERROR: The stack is empty or has more than 1000 iterations, breaking while");
             break;
