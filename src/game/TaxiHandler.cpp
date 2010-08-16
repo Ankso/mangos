@@ -117,18 +117,8 @@ void WorldSession::SendDoFlight( uint32 mountDisplayId, uint32 path, uint32 path
     if (GetPlayer()->hasUnitState(UNIT_STAT_DIED))
         GetPlayer()->RemoveSpellsCausingAura(SPELL_AURA_FEIGN_DEATH);
     
-    uint32 emergency = 0;
     while(GetPlayer()->GetMotionMaster()->GetCurrentMovementGeneratorType()==FLIGHT_MOTION_TYPE)
-    {
         GetPlayer()->GetMotionMaster()->MovementExpired(false);
-        ++emergency;
-        if (GetPlayer()->GetMotionMaster()->empty() || emergency == 1000) // 1000 iterations, or empty stack.
-        {
-            sLog.outError("ERROR: The stack is empty or has more than 1000 iterations, breaking while");
-            break;
-        }
-    }
-    emergency = 0;
 
     if (mountDisplayId)
         GetPlayer()->Mount( mountDisplayId );
