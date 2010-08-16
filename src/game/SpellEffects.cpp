@@ -2229,6 +2229,9 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                         if (spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE && (spellInfo->SpellFamilyFlags & UI64LIT(0x0000024000000860)))
                             ((Player*)m_caster)->RemoveSpellCooldown((itr++)->first,true);
+                        // Glyph of Preparation
+                        else if (m_caster->HasAura(56819) && (spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE && (spellInfo->SpellFamilyFlags & 0x40000010 || spellInfo->Id == 51722)))
+                            ((Player*)m_caster)->RemoveSpellCooldown((itr++)->first,true);
                         else
                             ++itr;
                     }
@@ -4458,6 +4461,7 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
             {
                 int32 heal_amount = m_spellInfo->CalculateSimpleValue(EFFECT_INDEX_1);
                 m_caster->CastCustomSpell(m_caster, 19658, &heal_amount, NULL, NULL, true);
+
                 // Glyph of Felhunter
                 if (Unit *owner = m_caster->GetOwner())
                     if (owner->HasAura(56249))
@@ -6558,6 +6562,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         if (charges <= 1)
                             ((TemporarySummon*)m_caster)->UnSummon();
                     }
+                    return;
                 }
                 case 66477:                                 // Bountiful Feast
                 {
