@@ -412,28 +412,26 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                     }
                     case 74607:
                     // SPELL_FIERY_COMBUSTION_EXPLODE - Ruby sanctum boss Halion,
-                    // damage proportional number of mark (74567, dummy), after cast summon NPC 40001
+                    // damage proportional number of mark (74567, dummy)
                     {
                         if (Aura* aura = m_caster->GetAura(74567, EFFECT_INDEX_0))
                         {
                             if (aura->GetStackAmount() > 0)
                                 damage = 1000 * aura->GetStackAmount();
-                             m_caster->RemoveAurasDueToSpell(74567);
-                             m_caster->SummonCreature(40001, 0, 0, 0, 0, TEMPSUMMON_TIMED_DESPAWN, 60000);
+                            m_caster->RemoveAurasDueToSpell(74567);
                         }
                         else damage = 0;
                         break;
                     }
                     case 74799:
                     // SPELL_SOUL_CONSUMPTION_EXPLODE - Ruby sanctum boss Halion,
-                    // damage proportional number of mark (74795, dummy), after cast summon NPC 40135
+                    // damage proportional number of mark (74795, dummy)
                     {
                         if (Aura* aura = m_caster->GetAura(74795, EFFECT_INDEX_0))
                         {
                             if (aura->GetStackAmount() > 0)
                                 damage = 1000 * aura->GetStackAmount();
-                             m_caster->RemoveAurasDueToSpell(74795);
-                             m_caster->SummonCreature(40135, 0, 0, 0, 0, TEMPSUMMON_TIMED_DESPAWN, 60000);
+                            m_caster->RemoveAurasDueToSpell(74795);
                         }
                         else damage = 0;
                         break;
@@ -2242,6 +2240,11 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     m_caster->CastSpell(m_caster, 45182, true);
                     return;
                 }
+                case 51662:                                 // Hunger for Blood
+                {
+                    m_caster->CastSpell(m_caster, 63848, true);
+                    return;
+                }
             }
             break;
         }
@@ -3755,6 +3758,7 @@ void Spell::EffectEnergize(SpellEffectIndex eff_idx)
         case 31930:                                         // Judgements of the Wise
         case 48542:                                         // Revitalize (mana restore case)
         case 63375:                                         // Improved Stormstrike
+        case 67545:                                         // Empowered Fire
         case 68082:                                         // Glyph of Seal of Command
             damage = damage * unitTarget->GetCreateMana() / 100;
             break;
@@ -5395,6 +5399,26 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
 
                     totalDamagePercentMod /= float(count);  // divide to all targets
                     break;
+                }
+            }
+            break;
+        }
+        case SPELLFAMILY_DRUID:
+        {
+            // Rend and Tear ( on Maul / Shred )
+            if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000008800))
+            {
+                if(unitTarget && unitTarget->HasAuraState(AURA_STATE_MECHANIC_BLEED))
+                {
+                    Unit::AuraList const& aura = m_caster->GetAurasByType(SPELL_AURA_DUMMY);
+                    for(Unit::AuraList::const_iterator itr = aura.begin(); itr != aura.end(); ++itr)
+                    {
+                        if ((*itr)->GetSpellProto()->SpellIconID == 2859 && (*itr)->GetEffIndex() == 0)
+                        {
+                            totalDamagePercentMod += (totalDamagePercentMod * (*itr)->GetModifier()->m_amount) / 100;
+                            break;
+                        }
+                    }
                 }
             }
             break;
