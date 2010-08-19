@@ -149,6 +149,12 @@ enum BG_SA_MessageType
 	BG_SA_DESTROY			= 2
 };
 
+enum BG_SA_type_gyd_attack
+{
+    STATUS_CLAIMED          = 0,
+    STATUS_CONQUESTED       = 1
+};
+
 class BattleGroundSAScore : public BattleGroundScore
 {
     public:
@@ -201,6 +207,8 @@ class BattleGroundSA : public BattleGround
 		/* Scorekeeping */
 		void RewardMedalsToTeam(uint32 teamid, bool winner);
         void UpdatePlayerScore(Player *Source, uint32 type, uint32 value);
+        /* For SendWarningToAll */
+        void SendWarningToAllSA(uint8 gyd, int status, Team team, bool isDoor = false, int door = NULL, bool destroyed = false);
 
     private:
         uint8               m_Gyd[BG_SA_GRY_MAX];

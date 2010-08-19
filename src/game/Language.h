@@ -1017,8 +1017,40 @@ enum MangosStrings
 	LANG_BG_SA_HORDE_END_2ROUND				= 20020,
 	LANG_BG_SA_NETRALL_END_1ROUND			= 20021,
 	LANG_BG_SA_NETRALL_END_2ROUND			= 20022,
+    /*##############################################
+    #          Strings for SendWarningToAll        #
+    ##############################################*/
+    LANG_BG_SA_HORDE_EAST_CLAIMED           = 20024,
+    LANG_BG_SA_HORDE_WEST_CLAIMED           = 20025,
+    LANG_BG_SA_HORDE_SOUTH_CLAIMED          = 20026,
+    LANG_BG_SA_ALLIANCE_EAST_CLAIMED        = 20027,
+    LANG_BG_SA_ALLIANCE_WEST_CLAIMED        = 20028,
+    LANG_BG_SA_ALLIANCE_SOUTH_CLAIMED       = 20029,
+    LANG_BG_SA_HORDE_EAST_CONQUESTED        = 20030,
+    LANG_BG_SA_HORDE_WEST_CONQUESTED        = 20031,
+    LANG_BG_SA_HORDE_SOUTH_CONQUESTED       = 20032,
+    LANG_BG_SA_ALLIANCE_EAST_CONQUESTED     = 20033,
+    LANG_BG_SA_ALLIANCE_WEST_CONQUESTED     = 20034,
+    LANG_BG_SA_ALLIANCE_SOUTH_CONQUESTED    = 20035,
+    
+    LANG_BG_SA_GATE_ROOM_ANCIENT_SHRINE_DESTROYED = 20036,
+    LANG_BG_SA_GATE_GREEN_EMERALD_DESTROYED       = 20037,
+    LANG_BG_SA_GATE_BLUE_SAPHIRE_DESTROYED        = 20038,
+    LANG_BG_SA_GATE_MAUVE_AMETHYST_DESTROYED      = 20039,
+    LANG_BG_SA_GATE_RED_SUN_DESTROYED             = 20040,
+    LANG_BG_SA_GATE_YELLOW_MOON_DESTROYED         = 20041,
+    LANG_BG_SA_GATE_ROOM_ANCIENT_SHRINE_DAMAGED   = 20042,
+    LANG_BG_SA_GATE_GREEN_EMERALD_DAMAGED         = 20043,
+    LANG_BG_SA_GATE_BLUE_SAPHIRE_DAMAGED          = 20044,
+    LANG_BG_SA_GATE_MAUVE_AMETHYST_DAMAGED        = 20045,
+    LANG_BG_SA_GATE_RED_SUN_DAMAGED               = 20046,
+    LANG_BG_SA_GATE_YELLOW_MOON_DAMAGED           = 20047
+    
+    /*##############################################
+    #                End of strings                #
+    ##############################################*/
 
-///////////////////////////// Battle Ground Strand of the Ancients /////////////////////////////
+/////////////////////////// Battle Ground Strand of the Ancients end ///////////////////////////
 
     // NOT RESERVED IDS                   12000-1999999999
     // `db_script_string` table index     2000000000-2000009999 (MIN_DB_SCRIPT_STRING_ID-MAX_DB_SCRIPT_STRING_ID)

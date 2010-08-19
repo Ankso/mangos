@@ -187,6 +187,37 @@ INSERT INTO `mangos_string` (`entry`, `content_default`, `content_loc1`, `conten
 (20021, '¡La Horda gana la segunda ronda, la Reliquia de Titán ha sido capturada!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (20022, '¡La Alianza gana la segunda ronda, la Reliquia de Titán no ha sido capturada!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
+-- For SendWarningToAll(entry)
+DELETE FROM `mangos_string` WHERE `entry` IN (20024, 20025, 20026, 20027, 20028, 20029, 20030, 20031, 20032, 20033, 20034, 20035, 20036, 20037, 20038, 20039, 20040, 20041, 20042, 20043, 20044, 20045, 20046, 20047);
+INSERT INTO `mangos_string` (`entry`, `content_default`, `content_loc1`, `content_loc2`, `content_loc3`, `content_loc4`, `content_loc5`, `content_loc6`, `content_loc7`, `content_loc8`) VALUES
+(20024, '¡La Horda está conquistando el Cementerio Oriental!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20025, '¡La Horda está conquistando el Cementerio Occidental!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20026, '¡La Horda está conquistando el Cementerio Sur!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20027, '¡La Alianza está conquistando el Cementerio Oriental!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20028, '¡La Alianza está conquistando el Cementerio Occidental!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20029, '¡La Alianza está conquistando el Cementerio Sur!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+
+(20030, '¡La Horda ha conquistado el Cementerio Oriental!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20031, '¡La Horda ha conquistado el Cementerio Occidental!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20032, '¡La Horda ha conquistado el Cementerio Sur!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20033, '¡La Alianza ha conquistado el Cementerio Oriental!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20034, '¡La Alianza ha conquistado el Cementerio Occidental!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20035, '¡La Alianza ha conquistado el Cementerio Sur!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+
+(20036, '¡La puerta de la Cámara de Reliquias antiguas ha sido destruída!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20037, '¡La puerta Esmeralda Verde ha sido destruída!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20038, '¡La puerta Zafiro Azul ha sido destruída!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20039, '¡La puerta Amatista Púrpura ha sido destruída!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20040, '¡La puerta Sol Rojo ha sido destruída!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20041, '¡La puerta Luna Amarilla ha sido destruída!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+
+(20042, '¡La puerta de la Cámara de Reliquias antiguas está dañada!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20043, '¡La puerta Esmeralda Verde está dañada!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20044, '¡La puerta Zafiro Azul está dañada!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20045, '¡La puerta Amatista Púrpura está dañada!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20046, '¡La puerta Sol Rojo está dañada!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20047, '¡La puerta Luna Amarilla está dañada!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+
 DELETE FROM `gameobject` WHERE `guid` in (200008,200009,200010,200011,200012,200013,200014,200015,200016,200017,200018,200019,200020,200021,200022,200023,200024,200025,200026,200027,200028);
 INSERT INTO `gameobject` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `position_x`, `position_y`, `position_z`, `orientation`, `rotation0`, `rotation1`, `rotation2`, `rotation3`, `spawntimesecs`, `animprogress`, `state`) VALUES
 (200008, 180058, 607, 1, 1, 1337.23, -157.79, 30.8947, 3.51587, 0, 0, 0.982541, -0.186048, 86400, 100, 1),-- Alliance Banner

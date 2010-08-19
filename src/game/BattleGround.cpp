@@ -1744,10 +1744,18 @@ void BattleGround::SendWarningToAll(int32 entry, ...)
     data << (uint32)(strlen(msg.c_str())+1);
     data << msg.c_str();
     data << (uint8)0;
+    int control = 0;
     for (BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
+    {
+        if (control == 40)  // More than 40 iterations? This is imposible, so, break me!
+            break;
+
         if (Player *plr = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first)))
             if (plr->GetSession())
                 plr->GetSession()->SendPacket(&data);
+
+        ++control;
+    }
 }
 
 void BattleGround::SendMessage2ToAll(int32 entry, ChatMsg type, Player const* source, int32 arg1, int32 arg2)

@@ -172,15 +172,15 @@ void BattleGroundSA::Update(uint32 diff)
 					}
                     if (teamIndex == 0)
                     {
-                        SendMessage2ToAll(LANG_BG_SA_AH_SEIZES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_ALLIANCE,NULL,LANG_BG_ALLY,_GydName(gyd));
+                        // SendMessage2ToAll(LANG_BG_SA_AH_SEIZES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_ALLIANCE,NULL,LANG_BG_ALLY,_GydName(gyd));
                         PlaySoundToAll(BG_SA_SOUND_GYD_CAPTURED_ALLIANCE);
-                        SendWarningToAll(LANG_BG_SA_AH_SEIZES_GRAVEYARD);
+                        SendWarningToAllSA(gyd, STATUS_CONQUESTED, ALLIANCE);
                     }
                     else
                     {
-                        SendMessage2ToAll(LANG_BG_SA_AH_SEIZES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_HORDE,NULL,LANG_BG_HORDE,_GydName(gyd));
+                        // SendMessage2ToAll(LANG_BG_SA_AH_SEIZES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_HORDE,NULL,LANG_BG_HORDE,_GydName(gyd));
                         PlaySoundToAll(BG_SA_SOUND_GYD_CAPTURED_HORDE);
-                        SendWarningToAll(LANG_BG_SA_AH_SEIZES_GRAVEYARD);
+                        SendWarningToAllSA(gyd, STATUS_CONQUESTED, HORDE);
                     }
                 }
             }
@@ -197,6 +197,7 @@ void BattleGroundSA::Update(uint32 diff)
 			SetStatus(STATUS_IN_PROGRESS);
 			PlaySoundToAll(SOUND_BG_START);
 			SendMessageToAll(LANG_BG_SA_HAS_BEGUN, CHAT_MSG_BG_SYSTEM_NEUTRAL, NULL);
+            SendWarningToAll(LANG_BG_SA_HAS_BEGUN);
 		} else TimeST2Round -= diff;
 
 		if ((TimeST2Round / 2) == 15000)
@@ -511,13 +512,13 @@ void BattleGroundSA::EventPlayerClickedOnFlag(Player *source, GameObject* target
 
             if (teamIndex == BG_TEAM_ALLIANCE)
             {
-                SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_ALLIANCE, source, LANG_BG_ALLY, _GydName(gyd));
-                SendWarningToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD);
+                // SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_ALLIANCE, source, LANG_BG_ALLY, _GydName(gyd));
+                SendWarningToAllSA(gyd, STATUS_CLAIMED, ALLIANCE);
             }
             else
             {
-                SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_HORDE, source, LANG_BG_HORDE, _GydName(gyd));
-                SendWarningToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD);
+                // SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_HORDE, source, LANG_BG_HORDE, _GydName(gyd));
+                SendWarningToAllSA(gyd, STATUS_CLAIMED, HORDE);
             }
         }
         // If contested, change back to occupied
@@ -534,13 +535,13 @@ void BattleGroundSA::EventPlayerClickedOnFlag(Player *source, GameObject* target
 
             if (teamIndex == BG_TEAM_ALLIANCE)
             {
-                SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_ALLIANCE, source, LANG_BG_ALLY, _GydName(gyd));
-                SendWarningToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD);
+                // SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_ALLIANCE, source, LANG_BG_ALLY, _GydName(gyd));
+                SendWarningToAllSA(gyd, STATUS_CLAIMED, ALLIANCE);
             }
             else
             {
-                SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_HORDE, source, LANG_BG_HORDE, _GydName(gyd));
-                SendWarningToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD);
+                // SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_HORDE, source, LANG_BG_HORDE, _GydName(gyd));
+                SendWarningToAllSA(gyd, STATUS_CLAIMED, HORDE);
             }
         }
         sound = (teamIndex == BG_TEAM_ALLIANCE) ? BG_SA_SOUND_GYD_ASSAULTED_ALLIANCE : BG_SA_SOUND_GYD_ASSAULTED_HORDE;
@@ -560,13 +561,13 @@ void BattleGroundSA::EventPlayerClickedOnFlag(Player *source, GameObject* target
 
             if (teamIndex == BG_TEAM_ALLIANCE)
             {
-                SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_ALLIANCE, source, LANG_BG_ALLY, _GydName(gyd));
-                SendWarningToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD);
+                // SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_ALLIANCE, source, LANG_BG_ALLY, _GydName(gyd));
+                SendWarningToAllSA(gyd, STATUS_CLAIMED, ALLIANCE);
             }
             else
             {
-                SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_HORDE, source, LANG_BG_HORDE, _GydName(gyd));
-                SendWarningToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD);
+                // SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_HORDE, source, LANG_BG_HORDE, _GydName(gyd));
+                SendWarningToAllSA(gyd, STATUS_CLAIMED, HORDE);
             }
             sound = (teamIndex == BG_TEAM_ALLIANCE) ? BG_SA_SOUND_GYD_ASSAULTED_ALLIANCE : BG_SA_SOUND_GYD_ASSAULTED_HORDE;
 		}
@@ -585,13 +586,13 @@ void BattleGroundSA::EventPlayerClickedOnFlag(Player *source, GameObject* target
 
             if (teamIndex == BG_TEAM_ALLIANCE)
             {
-                SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_ALLIANCE, source, LANG_BG_ALLY, _GydName(gyd));
-                SendWarningToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD);
+                // SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_ALLIANCE, source, LANG_BG_ALLY, _GydName(gyd));
+                SendWarningToAllSA(gyd, STATUS_CLAIMED, ALLIANCE);
             }
             else
             {
-                SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_HORDE, source, LANG_BG_HORDE, _GydName(gyd));
-			    SendWarningToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD);
+                // SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_HORDE, source, LANG_BG_HORDE, _GydName(gyd));
+			    SendWarningToAllSA(gyd, STATUS_CLAIMED, HORDE);
             }
             sound = (teamIndex == BG_TEAM_ALLIANCE) ? BG_SA_SOUND_GYD_ASSAULTED_ALLIANCE : BG_SA_SOUND_GYD_ASSAULTED_HORDE;
 		}
@@ -612,12 +613,7 @@ void BattleGroundSA::SendMessageSA(Player *player, uint32 type, uint32 name)
 	{
 		case 0: entryMSG = LANG_BG_SA_GATE_ATTACK; break;
 		case 1: entryMSG = LANG_BG_SA_GATE_DAMAGE; break;
-		case 2: 
-        {
-            entryMSG = LANG_BG_SA_GATE_DETROYED;
-            SendWarningToAll(LANG_BG_SA_GATE_DETROYED);
-            break;
-        }
+		case 2: entryMSG = LANG_BG_SA_GATE_DETROYED; break;
 	}
     if (teamIndex == BG_TEAM_ALLIANCE)
         SendMessage2ToAll(entryMSG,CHAT_MSG_BG_SYSTEM_ALLIANCE, player, name);
@@ -641,11 +637,13 @@ void BattleGroundSA::EventPlayerDamegeGO(Player *player, GameObject* target_obj,
 					SendMessageSA(player, BG_SA_ATTACK, _GatesName(target_obj));
 					break;
 				case 19836:
-					SendMessageSA(player, BG_SA_DAMAGE, _GatesName(target_obj));
-					UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DAMAGE);
+					// SendMessageSA(player, BG_SA_DAMAGE, _GatesName(target_obj));
+					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type);
+                    UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DAMAGE);
 					break;
 				case 19837:
-					SendMessageSA(player, BG_SA_DESTROY, _GatesName(target_obj));
+					// SendMessageSA(player, BG_SA_DESTROY, _GatesName(target_obj));
+                    SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type, true);
 					UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DESTROY);
 					UpdatePlayerScore(player, SCORE_GATES_DESTROYED, 1);
 					RewardHonorToTeam(100, (teamIndex == 0) ? ALLIANCE:HORDE);
@@ -663,12 +661,14 @@ void BattleGroundSA::EventPlayerDamegeGO(Player *player, GameObject* target_obj,
 					SendMessageSA(player, BG_SA_ATTACK, _GatesName(target_obj));
 					break;
 				case 19041:
-					SendMessageSA(player, BG_SA_DAMAGE, _GatesName(target_obj));
+					// SendMessageSA(player, BG_SA_DAMAGE, _GatesName(target_obj));
+                    SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type);
 					UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DAMAGE);
 					break;
 				case 19046:
-					SendMessageSA(player, BG_SA_DESTROY, _GatesName(target_obj));
-					UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DESTROY);
+					// SendMessageSA(player, BG_SA_DESTROY, _GatesName(target_obj));
+					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type, true);
+                    UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DESTROY);
 					UpdatePlayerScore(player, SCORE_GATES_DESTROYED, 1);
 					RewardHonorToTeam(85, (teamIndex == 0) ? ALLIANCE:HORDE);
 					RewardReputationToTeam((teamIndex == 0) ? 1050:1085, 65, (teamIndex == 0) ? ALLIANCE:HORDE);
@@ -685,12 +685,14 @@ void BattleGroundSA::EventPlayerDamegeGO(Player *player, GameObject* target_obj,
 					SendMessageSA(player, BG_SA_ATTACK, _GatesName(target_obj));
 					break;
 				case 19040:
-					SendMessageSA(player, BG_SA_DAMAGE, _GatesName(target_obj));
-					UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DAMAGE);
+					// SendMessageSA(player, BG_SA_DAMAGE, _GatesName(target_obj));
+					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type);
+                    UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DAMAGE);
 					break;
 				case 19045:
-					SendMessageSA(player, BG_SA_DESTROY, _GatesName(target_obj));
-					UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DESTROY);
+					// SendMessageSA(player, BG_SA_DESTROY, _GatesName(target_obj));
+					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type, true);
+                    UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DESTROY);
 					UpdatePlayerScore(player, SCORE_GATES_DESTROYED, 1);
 					RewardHonorToTeam(85, (teamIndex == 0) ? ALLIANCE:HORDE);
 					RewardReputationToTeam((teamIndex == 0) ? 1050:1085, 65, (teamIndex == 0) ? ALLIANCE:HORDE);
@@ -707,12 +709,14 @@ void BattleGroundSA::EventPlayerDamegeGO(Player *player, GameObject* target_obj,
 					SendMessageSA(player, BG_SA_ATTACK, _GatesName(target_obj));
 					break;
 				case 19043:
-					SendMessageSA(player, BG_SA_DAMAGE, _GatesName(target_obj));
-					UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DAMAGE);
+					// SendMessageSA(player, BG_SA_DAMAGE, _GatesName(target_obj));
+					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type);
+                    UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DAMAGE);
 					break;
 				case 19048:
-					SendMessageSA(player, BG_SA_DESTROY, _GatesName(target_obj));
-					UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DESTROY);
+					// SendMessageSA(player, BG_SA_DESTROY, _GatesName(target_obj));
+					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type, true);
+                    UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DESTROY);
 					UpdatePlayerScore(player, SCORE_GATES_DESTROYED, 1);
 					RewardHonorToTeam(85, (teamIndex == 0) ? ALLIANCE:HORDE);
 					RewardReputationToTeam((teamIndex == 0) ? 1050:1085, 65, (teamIndex == 0) ? ALLIANCE:HORDE);
@@ -729,12 +733,14 @@ void BattleGroundSA::EventPlayerDamegeGO(Player *player, GameObject* target_obj,
 					SendMessageSA(player, BG_SA_ATTACK, _GatesName(target_obj));
 					break;
 				case 19042:
-					SendMessageSA(player, BG_SA_DAMAGE, _GatesName(target_obj));
-					UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DAMAGE);
+					// SendMessageSA(player, BG_SA_DAMAGE, _GatesName(target_obj));
+					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type);
+                    UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DAMAGE);
 					break;
 				case 19047:
-					SendMessageSA(player, BG_SA_DESTROY, _GatesName(target_obj));
-					UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DESTROY);
+					// SendMessageSA(player, BG_SA_DESTROY, _GatesName(target_obj));
+					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type, true);
+                    UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DESTROY);
 					UpdatePlayerScore(player, SCORE_GATES_DESTROYED, 1);
 					RewardHonorToTeam(85, (teamIndex == 0) ? ALLIANCE:HORDE);
 					RewardReputationToTeam((teamIndex == 0) ? 1050:1085, 65, (teamIndex == 0) ? ALLIANCE:HORDE);
@@ -751,12 +757,14 @@ void BattleGroundSA::EventPlayerDamegeGO(Player *player, GameObject* target_obj,
 					SendMessageSA(player, BG_SA_ATTACK, _GatesName(target_obj));
 					break;
 				case 19044:
-					SendMessageSA(player, BG_SA_DAMAGE, _GatesName(target_obj));
-					UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DAMAGE);
+					// SendMessageSA(player, BG_SA_DAMAGE, _GatesName(target_obj));
+					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type);
+                    UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DAMAGE);
 					break;
 				case 19049:
-					SendMessageSA(player, BG_SA_DESTROY, _GatesName(target_obj));
-					UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DESTROY);
+					// SendMessageSA(player, BG_SA_DESTROY, _GatesName(target_obj));
+					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type, true);
+                    UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DESTROY);
 					UpdatePlayerScore(player, SCORE_GATES_DESTROYED, 1);
 					RewardHonorToTeam(85, (teamIndex == 0) ? ALLIANCE:HORDE);
 					RewardReputationToTeam((teamIndex == 0) ? 1050:1085, 65, (teamIndex == 0) ? ALLIANCE:HORDE);
@@ -924,4 +932,95 @@ void BattleGroundSA::_GydOccupied(uint8 node,Team team)
 			}
 		}
 	}
+}
+
+void BattleGroundSA::SendWarningToAllSA(uint8 gyd, int status, Team team, bool isDoor, int door, bool destroyed)
+{
+    if (!isDoor)
+    {
+        switch(status)
+        {
+            case STATUS_CLAIMED:
+            {
+                if (team == HORDE)
+                {
+                    switch(gyd)
+                    {
+                        case 0: SendWarningToAll(LANG_BG_SA_HORDE_EAST_CLAIMED); break;
+                        case 1: SendWarningToAll(LANG_BG_SA_HORDE_WEST_CLAIMED); break;
+                        case 2: SendWarningToAll(LANG_BG_SA_HORDE_SOUTH_CLAIMED); break;
+                        default: sLog.outError("Error in SA strings: Unknow graveyard %s", gyd); break;
+                    }
+                }
+                else
+                {
+                    switch(gyd)
+                    {
+                        case 0: SendWarningToAll(LANG_BG_SA_ALLIANCE_EAST_CLAIMED); break;
+                        case 1: SendWarningToAll(LANG_BG_SA_ALLIANCE_WEST_CLAIMED); break;
+                        case 2: SendWarningToAll(LANG_BG_SA_ALLIANCE_SOUTH_CLAIMED); break;
+                        default: sLog.outError("Error in SA strings: Unknow graveyard %s", gyd); break;
+                    }
+                }
+                break;
+            }
+            case STATUS_CONQUESTED:
+            {
+                if (team == HORDE)
+                {
+                    switch(gyd)
+                    {
+                        case 0: SendWarningToAll(LANG_BG_SA_HORDE_EAST_CONQUESTED); break;
+                        case 1: SendWarningToAll(LANG_BG_SA_HORDE_WEST_CONQUESTED); break;
+                        case 2: SendWarningToAll(LANG_BG_SA_HORDE_SOUTH_CONQUESTED); break;
+                        default: sLog.outError("Error in SA strings: Unknow graveyard %s", gyd); break;
+                    }
+                }
+                else
+                {
+                    switch(gyd)
+                    {
+                        case 0: SendWarningToAll(LANG_BG_SA_ALLIANCE_EAST_CONQUESTED); break;
+                        case 1: SendWarningToAll(LANG_BG_SA_ALLIANCE_WEST_CONQUESTED); break;
+                        case 2: SendWarningToAll(LANG_BG_SA_ALLIANCE_SOUTH_CONQUESTED); break;
+                        default: sLog.outError("Error in SA strings: Unknow graveyard %s", gyd); break;
+                    }
+                }
+                break;
+            }
+            default:
+                sLog.outError("Error in SA strings: Unknow status %s", status); break;
+        }
+    }
+    else
+    {
+        if(destroyed)
+        {
+            switch(door)
+            {
+                case BG_SA_GO_GATES_T_ROOM_ANCIENT_SHRINE: SendWarningToAll(LANG_BG_SA_GATE_ROOM_ANCIENT_SHRINE_DESTROYED); break;
+                case BG_SA_GO_GATES_T_GREEN_EMERALD: SendWarningToAll(LANG_BG_SA_GATE_GREEN_EMERALD_DESTROYED); break;
+                case BG_SA_GO_GATES_T_BLUE_SAPHIRE: SendWarningToAll(LANG_BG_SA_GATE_BLUE_SAPHIRE_DESTROYED); break;
+                case BG_SA_GO_GATES_T_MAUVE_AMETHYST: SendWarningToAll(LANG_BG_SA_GATE_MAUVE_AMETHYST_DESTROYED); break;
+                case BG_SA_GO_GATES_T_RED_SUN: SendWarningToAll(LANG_BG_SA_GATE_RED_SUN_DESTROYED); break;
+                case BG_SA_GO_GATES_T_YELLOW_MOON: SendWarningToAll(LANG_BG_SA_GATE_YELLOW_MOON_DESTROYED); break;
+                default:
+                    sLog.outError("Error in SA strings: Unknow door %s", door); break;
+            }
+        }
+        else
+        {
+            switch(door)
+            {
+                case BG_SA_GO_GATES_T_ROOM_ANCIENT_SHRINE: SendWarningToAll(LANG_BG_SA_GATE_ROOM_ANCIENT_SHRINE_DAMAGED); break;
+                case BG_SA_GO_GATES_T_GREEN_EMERALD: SendWarningToAll(LANG_BG_SA_GATE_GREEN_EMERALD_DAMAGED); break;
+                case BG_SA_GO_GATES_T_BLUE_SAPHIRE: SendWarningToAll(LANG_BG_SA_GATE_BLUE_SAPHIRE_DAMAGED); break;
+                case BG_SA_GO_GATES_T_MAUVE_AMETHYST: SendWarningToAll(LANG_BG_SA_GATE_MAUVE_AMETHYST_DAMAGED); break;
+                case BG_SA_GO_GATES_T_RED_SUN: SendWarningToAll(LANG_BG_SA_GATE_RED_SUN_DAMAGED); break;
+                case BG_SA_GO_GATES_T_YELLOW_MOON: SendWarningToAll(LANG_BG_SA_GATE_YELLOW_MOON_DAMAGED); break;
+                default:
+                    sLog.outError("Error in SA strings: Unknow door %s", door); break;
+            }
+        }
+    }
 }
