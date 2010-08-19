@@ -20,7 +20,7 @@
 #define MANGOS_OBJECTREGISTRY_H
 
 #include "Platform/Define.h"
-#include "Utilities/UnorderedMapSet.h"
+#include "Utilities/UnorderedMap.h"
 #include "Policies/Singleton.h"
 
 #include <string>

@@ -1994,7 +1994,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
 
                         // we must assume db or script set display id to native at ending flight (if not, target is stuck with this model)
                         if (cInfo)
-                            target->SetDisplayId(Creature::ChooseDisplayId(cInfo));
+                            target->SetDisplayId(Creature::ChooseDisplayId(0, cInfo));
 
                         return;
                     }
@@ -2724,7 +2724,11 @@ void Aura::HandleAuraMounted(bool apply, bool Real)
             return;
         }
 
-        uint32 display_id = Creature::ChooseDisplayId(ci);
+        uint32 team = 0;
+        if (target->GetTypeId()==TYPEID_PLAYER)
+            team = ((Player*)target)->GetTeam();
+
+        uint32 display_id = Creature::ChooseDisplayId(team,ci);
         CreatureModelInfo const *minfo = sObjectMgr.GetCreatureModelRandomGender(display_id);
         if (minfo)
             display_id = minfo->modelid;
@@ -3227,7 +3231,7 @@ void Aura::HandleAuraTransform(bool apply, bool Real)
                 sLog.outError("Auras: unknown creature id = %d (only need its modelid) Form Spell Aura Transform in Spell ID = %d", m_modifier.m_miscvalue, GetId());
             }
             else
-                model_id = Creature::ChooseDisplayId(ci);   // Will use the default model here
+                model_id = Creature::ChooseDisplayId(0,ci); // Will use the default model here
 
             // Polymorph (sheep/penguin case)
             if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_MAGE && GetSpellProto()->SpellIconID == 82)
@@ -3299,7 +3303,11 @@ void Aura::HandleAuraTransform(bool apply, bool Real)
                 uint32 cr_id = target->GetAurasByType(SPELL_AURA_MOUNTED).front()->GetModifier()->m_miscvalue;
                 if (CreatureInfo const* ci = ObjectMgr::GetCreatureTemplate(cr_id))
                 {
-                    uint32 display_id = Creature::ChooseDisplayId(ci);
+                    uint32 team = 0;
+                    if (target->GetTypeId() == TYPEID_PLAYER)
+                        team = ((Player*)target)->GetTeam();
+
+                    uint32 display_id = Creature::ChooseDisplayId(team, ci);
                     CreatureModelInfo const *minfo = sObjectMgr.GetCreatureModelRandomGender(display_id);
                     if (minfo)
                         display_id = minfo->modelid;

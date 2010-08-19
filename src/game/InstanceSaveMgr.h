@@ -24,7 +24,7 @@
 #include "ace/Thread_Mutex.h"
 #include <list>
 #include <map>
-#include "Utilities/UnorderedMapSet.h"
+#include "Utilities/UnorderedMap.h"
 #include "Database/DatabaseEnv.h"
 #include "DBCEnums.h"
 #include "ObjectGuid.h"
