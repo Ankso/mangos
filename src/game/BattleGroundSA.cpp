@@ -174,11 +174,13 @@ void BattleGroundSA::Update(uint32 diff)
                     {
                         SendMessage2ToAll(LANG_BG_SA_AH_SEIZES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_ALLIANCE,NULL,LANG_BG_ALLY,_GydName(gyd));
                         PlaySoundToAll(BG_SA_SOUND_GYD_CAPTURED_ALLIANCE);
+                        SendWarningToAll(LANG_BG_SA_AH_SEIZES_GRAVEYARD);
                     }
                     else
                     {
                         SendMessage2ToAll(LANG_BG_SA_AH_SEIZES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_HORDE,NULL,LANG_BG_HORDE,_GydName(gyd));
                         PlaySoundToAll(BG_SA_SOUND_GYD_CAPTURED_HORDE);
+                        SendWarningToAll(LANG_BG_SA_AH_SEIZES_GRAVEYARD);
                     }
                 }
             }
@@ -508,9 +510,15 @@ void BattleGroundSA::EventPlayerClickedOnFlag(Player *source, GameObject* target
             m_GydTimers[gyd] = BG_SA_FLAG_CAPTURING_TIME;
 
             if (teamIndex == BG_TEAM_ALLIANCE)
+            {
                 SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_ALLIANCE, source, LANG_BG_ALLY, _GydName(gyd));
+                SendWarningToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD);
+            }
             else
+            {
                 SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_HORDE, source, LANG_BG_HORDE, _GydName(gyd));
+                SendWarningToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD);
+            }
         }
         // If contested, change back to occupied
         else
@@ -525,9 +533,15 @@ void BattleGroundSA::EventPlayerClickedOnFlag(Player *source, GameObject* target
             //_NodeOccupied(node,(teamIndex == BG_TEAM_ALLIANCE) ? ALLIANCE:HORDE);
 
             if (teamIndex == BG_TEAM_ALLIANCE)
+            {
                 SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_ALLIANCE, source, LANG_BG_ALLY, _GydName(gyd));
+                SendWarningToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD);
+            }
             else
+            {
                 SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_HORDE, source, LANG_BG_HORDE, _GydName(gyd));
+                SendWarningToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD);
+            }
         }
         sound = (teamIndex == BG_TEAM_ALLIANCE) ? BG_SA_SOUND_GYD_ASSAULTED_ALLIANCE : BG_SA_SOUND_GYD_ASSAULTED_HORDE;
     }
@@ -545,10 +559,16 @@ void BattleGroundSA::EventPlayerClickedOnFlag(Player *source, GameObject* target
 			m_GydTimers[gyd] = BG_SA_FLAG_CAPTURING_TIME;
 
             if (teamIndex == BG_TEAM_ALLIANCE)
+            {
                 SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_ALLIANCE, source, LANG_BG_ALLY, _GydName(gyd));
+                SendWarningToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD);
+            }
             else
+            {
                 SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_HORDE, source, LANG_BG_HORDE, _GydName(gyd));
-			sound = (teamIndex == BG_TEAM_ALLIANCE) ? BG_SA_SOUND_GYD_ASSAULTED_ALLIANCE : BG_SA_SOUND_GYD_ASSAULTED_HORDE;
+                SendWarningToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD);
+            }
+            sound = (teamIndex == BG_TEAM_ALLIANCE) ? BG_SA_SOUND_GYD_ASSAULTED_ALLIANCE : BG_SA_SOUND_GYD_ASSAULTED_HORDE;
 		}
 	}
     else if (controller == ALLIANCE)
@@ -564,10 +584,16 @@ void BattleGroundSA::EventPlayerClickedOnFlag(Player *source, GameObject* target
 			m_GydTimers[gyd] = BG_SA_FLAG_CAPTURING_TIME;
 
             if (teamIndex == BG_TEAM_ALLIANCE)
+            {
                 SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_ALLIANCE, source, LANG_BG_ALLY, _GydName(gyd));
+                SendWarningToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD);
+            }
             else
+            {
                 SendMessage2ToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD,CHAT_MSG_BG_SYSTEM_HORDE, source, LANG_BG_HORDE, _GydName(gyd));
-			sound = (teamIndex == BG_TEAM_ALLIANCE) ? BG_SA_SOUND_GYD_ASSAULTED_ALLIANCE : BG_SA_SOUND_GYD_ASSAULTED_HORDE;
+			    SendWarningToAll(LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD);
+            }
+            sound = (teamIndex == BG_TEAM_ALLIANCE) ? BG_SA_SOUND_GYD_ASSAULTED_ALLIANCE : BG_SA_SOUND_GYD_ASSAULTED_HORDE;
 		}
 	}
    PlaySoundToAll(sound);
@@ -586,7 +612,12 @@ void BattleGroundSA::SendMessageSA(Player *player, uint32 type, uint32 name)
 	{
 		case 0: entryMSG = LANG_BG_SA_GATE_ATTACK; break;
 		case 1: entryMSG = LANG_BG_SA_GATE_DAMAGE; break;
-		case 2: entryMSG = LANG_BG_SA_GATE_DETROYED; break;
+		case 2: 
+        {
+            entryMSG = LANG_BG_SA_GATE_DETROYED;
+            SendWarningToAll(LANG_BG_SA_GATE_DETROYED);
+            break;
+        }
 	}
     if (teamIndex == BG_TEAM_ALLIANCE)
         SendMessage2ToAll(entryMSG,CHAT_MSG_BG_SYSTEM_ALLIANCE, player, name);
