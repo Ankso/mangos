@@ -564,6 +564,7 @@ int8 Vehicle::GetEmptySeatsCount(bool force)
 
     return count;
 }
+
 int8 Vehicle::GetNextEmptySeatNum(int8 seatId, bool next) const
 {
     SeatMap::const_iterator seat = m_Seats.find(seatId);
@@ -638,6 +639,9 @@ void Vehicle::Dismiss()
 
 void Vehicle::RellocatePassengers(Map *map)
 {
+    if (m_Seats.empty())
+        return;
+
     for(SeatMap::iterator itr = m_Seats.begin(); itr != m_Seats.end(); ++itr)
     {
         if(itr->second.flags & SEAT_FULL)
@@ -924,6 +928,7 @@ void Vehicle::BuildVehicleActionBar(Player *plr) const
     data << uint64(GetGUID());
     plr->GetSession()->SendPacket(&data);
 }
+
 void Vehicle::InstallAllAccessories()
 {
     if(!GetMap())
