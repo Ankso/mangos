@@ -28,6 +28,15 @@
 #include "Util.h"
 #include "MapManager.h"
 
+/*
+* Strand of the Ancients by Rage Hunter, with modifications and bug fixes by me.
+* TODO:
+*   - Crashes at Windows sometimes when someone leaves de bg (only my core?)
+*   - Boats system, attackers must appear in a boat.
+*   - Move all the harcoded variables such coords to header BattleGroundSA.h
+*   - Cosmetics & avoid hacks.
+*/
+
 BattleGroundSA::BattleGroundSA()
 {
     m_StartMessageIds[BG_STARTING_EVENT_FIRST]  = LANG_BG_SA_START_TWO_MINUTE;
@@ -198,6 +207,7 @@ void BattleGroundSA::Update(uint32 diff)
 			PlaySoundToAll(SOUND_BG_START);
 			SendMessageToAll(LANG_BG_SA_HAS_BEGUN, CHAT_MSG_BG_SYSTEM_NEUTRAL, NULL);
             SendWarningToAll(LANG_BG_SA_HAS_BEGUN);
+            LetsFly();
 		} else TimeST2Round -= diff;
 
 		if ((TimeST2Round / 2) == 15000)
@@ -222,6 +232,7 @@ void BattleGroundSA::StartingEventOpenDoors()
 	OpenDoorEvent(SA_EVENT_OP_DOOR, 0);
 	SpawnEvent(SA_EVENT_ADD_NPC, 0, true);
 	ToggleTimer();
+    LetsFly();
 }
 
 void BattleGroundSA::RemovePlayer(Player* /*plr*/,uint64 /*guid*/)
@@ -248,37 +259,74 @@ void BattleGroundSA::AddPlayer(Player *plr)
 {
     BattleGround::AddPlayer(plr);
 
-	if(plr->GetTeam()==ALLIANCE)
-	{
-		if (GetController() == HORDE)
-		{
-			switch(urand(1,2))
-			{
-				case 1: plr->TeleportTo(607, 1804.093f, -168.457f, 60.549f, 2.65f);break;
-				case 2: plr->TeleportTo(607, 1803.71f, 118.601f, 59.824f, 3.563f);break;
-			}
-		}
-		else
-		{
-			plr->TeleportTo(607, 1200.67f, -67.87f, 70.08f, 0.06f);
-		}
-	}
-	else if(plr->GetTeam()==HORDE)
-	{
-		if (GetController() == ALLIANCE)
-		{
-			switch(urand(1,2))
-			{
-				case 1: plr->TeleportTo(607, 1804.093f, -168.457f, 60.549f, 2.65f);break;
-				case 2: plr->TeleportTo(607, 1803.71f, 118.601f, 59.824f, 3.563f);break;
-			}
-		}
-		else
-		{
-			plr->TeleportTo(607, 1200.67f, -67.87f, 70.08f, 0.06f);
-		}
-	}
+    if (GetStatus() != STATUS_IN_PROGRESS)
+    {
+	    if (plr->GetTeam()== ALLIANCE)
+	    {
+		    if (GetController() == HORDE)
+		    {
+			    switch(urand(1,2))
+			    {
+				    case 1: plr->TeleportTo(607, 1804.093f, -168.457f, 60.549f, 2.65f);break;
+				    case 2: plr->TeleportTo(607, 1803.71f, 118.601f, 59.824f, 3.563f);break;
+			    }
+		    }
+		    else
+		    {
+			    plr->TeleportTo(607, 1200.67f, -67.87f, 70.08f, 0.06f);
+		    }
+	    }
+	    else if (plr->GetTeam()== HORDE)
+	    {
+		    if (GetController() == ALLIANCE)
+		    {
+			    switch(urand(1,2))
+			    {
+				    case 1: plr->TeleportTo(607, 1804.093f, -168.457f, 60.549f, 2.65f);break;
+				    case 2: plr->TeleportTo(607, 1803.71f, 118.601f, 59.824f, 3.563f);break;
+			    }
+		    }
+		    else
+		    {
+			    plr->TeleportTo(607, 1200.67f, -67.87f, 70.08f, 0.06f);
+		    }
+	    }
+    }
+    else
+    {
+        if (plr->GetTeam()== ALLIANCE)
+	    {
+		    if (GetController() == HORDE)
+		    {
+			    switch(urand(1,2))
+			    {
+				    case 1: plr->TeleportTo(607, 1597.637f, -106.348f, 8.888f, 4.1263f); break;
+				    case 2: plr->TeleportTo(607, 1606.608f, 50.1236f, 7.58f, 2.3898f); break;
+			    }
+		    }
+		    else
+		    {
+			    plr->TeleportTo(607, 1200.67f, -67.87f, 70.08f, 0.06f);
+		    }
+	    }
+	    else if (plr->GetTeam()== HORDE)
+	    {
+		    if (GetController() == ALLIANCE)
+		    {
+			    switch(urand(1,2))
+			    {
+				    case 1: plr->TeleportTo(607, 1597.637f, -106.348f, 8.888f, 4.1263f); break;
+				    case 2: plr->TeleportTo(607, 1606.608f, 50.1236f, 7.58f, 2.3898f); break;
+			    }
+		    }
+		    else
+		    {
+			    plr->TeleportTo(607, 1200.67f, -67.87f, 70.08f, 0.06f);
+		    }
+	    }
+    }
 
+    
     BattleGroundSAScore* sc = new BattleGroundSAScore;
 
     m_PlayerScores[plr->GetGUID()] = sc;
@@ -354,7 +402,11 @@ void BattleGroundSA::ResetBattle(uint32 vinner)
 
 		if (plr)
 		{
-			if (plr->isDead()){plr->ResurrectPlayer(100);plr->SpawnCorpseBones();}
+			if (plr->isDead())
+            {
+                plr->ResurrectPlayer(100);
+                plr->SpawnCorpseBones();
+            }
 		}
 		else
 			continue;
@@ -1021,6 +1073,26 @@ void BattleGroundSA::SendWarningToAllSA(uint8 gyd, int status, Team team, bool i
                 default:
                     sLog.outError("Error in SA strings: Unknow door %s", door); break;
             }
+        }
+    }
+}
+
+void BattleGroundSA::LetsFly()
+{
+    for (BattleGroundPlayerMap::const_iterator iter = m_Players.begin(); iter != m_Players.end(); ++iter)
+    {
+        Player *player = sObjectMgr.GetPlayer(iter->first);
+        
+        if (GetController() != player->GetTeam())
+        {
+            // This is custom, I haven't implemented boats yet, so, , fly!
+            player->CastSpell(player, 54168, true); // Parachute :)
+            if (player->GetPositionY() < 0)
+                //player->TeleportTo(607, 1597.637f, -106.348f, 8.888f, 4.1263f);
+                player->SendMonsterMove(1597.637f, -106.348f, 8.888f, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 10000);
+            else
+                //player->TeleportTo(607, 1606.608f, 50.1236f, 7.58f, 2.3898f);
+                player->SendMonsterMove(1606.608f, 50.1236f, 7.58f, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 10000);
         }
     }
 }
