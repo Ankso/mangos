@@ -10,7 +10,7 @@ INSERT INTO `gameobject_template` (`entry`, `type`, `displayId`, `name`, `IconNa
 (190753, 22, 8582, 'Seaforium Barrel', '', '', '', 12, 0, 2, 0, 0, 0, 0, 0, 0, 52415, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''),
 (194086, 22, 8582, 'Seaforium Barrel', '', '', '', 29, 0, 2, 0, 0, 0, 0, 0, 0, 52415, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '');
 --  
-UPDATE `creature_template` SET `npcflag` = '1', `ScriptName` = 'npc_sa_demolisher' WHERE `entry` = '28781';
+UPDATE `creature_template` SET `npcflag` = '0', `ScriptName` = '' WHERE `entry` = '28781';
 DELETE FROM `vehicle_seat_data` WHERE seat in (2021,2023,2024);
 INSERT INTO `vehicle_seat_data` VALUES ('2021', '7');
 INSERT INTO `vehicle_seat_data` VALUES ('2023', '6');
@@ -19,7 +19,7 @@ DeleTe From `npc_spellclick_spells` WHERE npc_entry in (28781);
 INSERT INTO `npc_spellclick_spells` VALUES ('28781', '60968', '0', '0', '0', '0');
 
 --
-UPDATE `creature_template` SET unit_flags = 8, `faction_A` = '35', `faction_H` = '35', `ScriptName` = 'npc_sa_cannon' WHERE entry IN (27894);
+UPDATE `creature_template` SET unit_flags = 0, `faction_A` = '35', `faction_H` = '35', `ScriptName` = '' WHERE entry IN (27894);
 DELETE FROM `vehicle_seat_data` WHERE seat in (2029);
 INSERT INTO `vehicle_seat_data` VALUES ('2029', '5');
 DeleTe From `npc_spellclick_spells` WHERE npc_entry in (27894);
@@ -333,3 +333,8 @@ INSERT INTO `gameobject` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `positi
 (200084, 300000, 607, 1, 1, 1803.93, -168.457, 60.549, 2.74522, 0, 0, 0.980426, 0.196889, 250000, 0, 1),
 (200085, 300000, 607, 1, 1, 1803.71, 118.601, 59.8234, 3.56313, 0, 0, 0.97787, -0.209212, 250000, 0, 1),
 (200086, 184719, 607, 1, 1, 1200.67, -67.87, 70.08, 6.28297, 0, 0, 0.000106724, -1, 250000, 0, 1);
+
+-- Delete the defender's forcefield
+DELETE FROM gameobject WHERE guid = '200086';
+DELETE FROM game_event_gameobject WHERE guid = '200086';
+DELETE FROM gameobject_battleground WHERE guid = '200086';
