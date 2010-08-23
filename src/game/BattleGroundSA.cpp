@@ -396,34 +396,7 @@ void BattleGroundSA::ResetBattle(uint32 vinner)
 	controller = ALLIANCE;
 	ToggleTimer();
 
-    for (BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
-    {
-        Player *plr = sObjectMgr.GetPlayer(itr->first);
-
-		if (plr)
-		{
-			if (plr->isDead())
-            {
-                plr->ResurrectPlayer(100);
-                plr->SpawnCorpseBones();
-            }
-		}
-		else
-			continue;
-
-		if (plr->GetTeam()==HORDE)
-		{
-			switch(urand(1,2))
-			{
-				case 1: plr->TeleportTo(607, 1804.093f, -168.457f, 60.549f, 2.65f);break;
-				case 2: plr->TeleportTo(607, 1803.71f, 118.601f, 59.824f, 3.563f);break;
-			}
-		}
-		else if (plr->GetTeam()==ALLIANCE)
-		{
-			plr->TeleportTo(607, 1200.67f, -67.87f, 70.08f, 0.06f);
-		}
-    }
+    TeleportPlayers();
 
 	UpdatePhase();
 }
@@ -1077,12 +1050,48 @@ void BattleGroundSA::SendWarningToAllSA(uint8 gyd, int status, Team team, bool i
     }
 }
 
+void BattleGroundSA::TeleportPlayers()
+{
+    for (BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
+    {
+        if (Player *plr = sObjectMgr.GetPlayer(itr->first))
+        {
+            if (!plr->isAlive())
+            {
+                plr->ResurrectPlayer(1.0f);
+                plr->SpawnCorpseBones();
+            }
+
+            plr->SetHealth(plr->GetMaxHealth());
+            plr->SetPower(POWER_MANA, plr->GetMaxPower(POWER_MANA));
+            plr->CombatStopWithPets(true);
+            if (plr->IsMounted())
+                plr->Unmount();
+
+            if (plr->GetTeam() != GetController())
+            {
+                if (urand(0,1))
+                    plr->TeleportTo(607, 1804.093f, -168.457f, 60.549f, 2.65f);
+                else
+                    plr->TeleportTo(607, 1803.71f, 118.601f, 59.824f, 3.563f);
+            }
+            else
+                plr->TeleportTo(607, 1209.7f, -65.16f, 70.1f, 0.0f, 0);
+
+            plr->CastSpell(plr, 44521, true);   // Preparation
+        }
+    }
+}
+
 void BattleGroundSA::LetsFly()
 {
     for (BattleGroundPlayerMap::const_iterator iter = m_Players.begin(); iter != m_Players.end(); ++iter)
     {
         Player *player = sObjectMgr.GetPlayer(iter->first);
         
+        if (player->HasAura(44521))                 // Remove Preparation
+            player->RemoveAurasDueToSpell(44521);
+
         if (GetController() != player->GetTeam())
         {
             // This is custom, I haven't implemented boats yet, so, , fly!

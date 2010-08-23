@@ -155,11 +155,11 @@ enum BG_SA_type_gyd_attack
     STATUS_CONQUESTED       = 1
 };
 
-/*const float BG_SA_DOCK_COORDS[2][4] =
+static float BG_SA_DOCK_COORDS[2][4] =
 {
     {1597.637f, -106.348f, 8.888f, 4.1263f},
     {1606.608f, 50.1236f, 7.58f, 2.3898f}
-};*/
+};
 
 class BattleGroundSAScore : public BattleGroundScore
 {
@@ -215,7 +215,8 @@ class BattleGroundSA : public BattleGround
         void UpdatePlayerScore(Player *Source, uint32 type, uint32 value);
         /* For SendWarningToAll */
         void SendWarningToAllSA(uint8 gyd, int status, Team team, bool isDoor = false, int door = NULL, bool destroyed = false);
-
+        
+        void TeleportPlayers();
         void LetsFly();
     private:
         uint8               m_Gyd[BG_SA_GRY_MAX];
