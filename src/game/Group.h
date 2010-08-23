@@ -24,6 +24,7 @@
 #include "BattleGround.h"
 #include "LootMgr.h"
 #include "DBCEnums.h"
+#include "../shared/Database/Field.h"
 
 #include <map>
 #include <vector>
