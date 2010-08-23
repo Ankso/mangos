@@ -9,8 +9,8 @@ DELETE FROM `gameobject_template` WHERE `entry` in (190753,194086);
 INSERT INTO `gameobject_template` (`entry`, `type`, `displayId`, `name`, `IconName`, `castBarCaption`, `unk1`, `faction`, `flags`, `size`, `questItem1`, `questItem2`, `questItem3`, `questItem4`, `questItem5`, `questItem6`, `data0`, `data1`, `data2`, `data3`, `data4`, `data5`, `data6`, `data7`, `data8`, `data9`, `data10`, `data11`, `data12`, `data13`, `data14`, `data15`, `data16`, `data17`, `data18`, `data19`, `data20`, `data21`, `data22`, `data23`, `ScriptName`) VALUES
 (190753, 22, 8582, 'Seaforium Barrel', '', '', '', 12, 0, 2, 0, 0, 0, 0, 0, 0, 52415, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''),
 (194086, 22, 8582, 'Seaforium Barrel', '', '', '', 29, 0, 2, 0, 0, 0, 0, 0, 0, 52415, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '');
---  
-UPDATE `creature_template` SET `npcflag` = '0', `ScriptName` = '' WHERE `entry` = '28781';
+-- SA Cannon
+UPDATE `creature_template` SET `npcflag` = '1', `ScriptName` = 'npc_sa_demolisher' WHERE `entry` = '28781';
 DELETE FROM `vehicle_seat_data` WHERE seat in (2021,2023,2024);
 INSERT INTO `vehicle_seat_data` VALUES ('2021', '7');
 INSERT INTO `vehicle_seat_data` VALUES ('2023', '6');
@@ -18,8 +18,8 @@ INSERT INTO `vehicle_seat_data` VALUES ('2024', '6');
 DeleTe From `npc_spellclick_spells` WHERE npc_entry in (28781);
 INSERT INTO `npc_spellclick_spells` VALUES ('28781', '60968', '0', '0', '0', '0');
 
---
-UPDATE `creature_template` SET unit_flags = 0, `faction_A` = '35', `faction_H` = '35', `ScriptName` = '' WHERE entry IN (27894);
+-- Demolisher
+UPDATE `creature_template` SET unit_flags = 8, `faction_A` = '35', `faction_H` = '35', `ScriptName` = 'npc_sa_cannon' WHERE entry IN (27894);
 DELETE FROM `vehicle_seat_data` WHERE seat in (2029);
 INSERT INTO `vehicle_seat_data` VALUES ('2029', '5');
 DeleTe From `npc_spellclick_spells` WHERE npc_entry in (27894);
