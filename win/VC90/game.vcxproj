@@ -356,6 +356,7 @@
     <ClCompile Include="..\..\src\game\InstanceSaveMgr.cpp" />
     <ClCompile Include="..\..\src\game\ItemHandler.cpp" />
     <ClCompile Include="..\..\src\game\LFGHandler.cpp" />
+    <ClCompile Include="..\..\src\game\LFGMgr.cpp" />
     <ClCompile Include="..\..\src\game\LootHandler.cpp" />
     <ClCompile Include="..\..\src\game\Mail.cpp" />
     <ClCompile Include="..\..\src\game\Map.cpp" />
@@ -510,6 +511,7 @@
     <ClInclude Include="..\..\src\game\Group.h" />
     <ClInclude Include="..\..\src\game\InstanceData.h" />
     <ClInclude Include="..\..\src\game\InstanceSaveMgr.h" />
+    <ClInclude Include="..\..\src\game\LFGMgr.h" />
     <ClInclude Include="..\..\src\game\Mail.h" />
     <ClInclude Include="..\..\src\game\Map.h" />
     <ClInclude Include="..\..\src\game\MapInstanced.h" />

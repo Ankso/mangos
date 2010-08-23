@@ -64,6 +64,7 @@
 #include "Util.h"
 #include "CharacterDatabaseCleaner.h"
 #include "AuctionHouseBot.h"
+#include "LFGMgr.h"
 
 INSTANTIATE_SINGLETON_1( World );
 
@@ -1245,6 +1246,10 @@ void World::SetInitialWorldSettings()
     sLog.outString( "Loading GM tickets...");
     sTicketMgr.LoadGMTickets();
 
+    ///- Initialize Looking For Group
+    sLog.outString("Starting Looking For Group System");
+    sLFGMgr.InitLFG();
+
     ///- Handle outdated emails (delete/return)
     sLog.outString( "Returning old mails..." );
     sObjectMgr.ReturnOrDeleteOldMails(false);
@@ -1519,6 +1524,8 @@ void World::Update(uint32 diff)
         m_timers[WUPDATE_DELETECHARS].Reset();
         Player::DeleteOldCharacters();
     }
+
+    sLFGMgr.Update(diff);
 
     // execute callbacks from sql queries that were queued recently
     UpdateResultQueue();
