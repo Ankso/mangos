@@ -202,7 +202,7 @@ void WorldSession::HandleSendMail(WorldPacket & recv_data )
             return;
         }
 
-        if (item->IsBoundAccountWide() && item->IsSoulBound() && pl->GetSession()->GetAccountId() != rc_account)
+        if (item->IsBoundAccountWide() /*&& item->IsSoulBound() */&& pl->GetSession()->GetAccountId() != rc_account)
         {
             pl->SendMailResult(0, MAIL_SEND, MAIL_ERR_EQUIP_ERROR, EQUIP_ERR_ARTEFACTS_ONLY_FOR_OWN_CHARACTERS);
             return;
@@ -961,7 +961,8 @@ void MailDraft::SendReturnToSender(uint32 sender_acc, uint32 sender_lowguid, uin
     uint32 deliver_delay = needItemDelay ? sWorld.getConfig(CONFIG_UINT32_MAIL_DELIVERY_DELAY) : 0;
 
     // will delete item or place to receiver mail list
-    if (sender_lowguid == auctionbot.GetAHBplayerGUID())
+
+    if (sender_lowguid == auctionbot.GetAHBplayerGUID().GetCounter())
     {
         SendMailTo(MailReceiver(receiver,receiver_lowguid), MailSender(MAIL_CREATURE, sender_lowguid), MAIL_CHECK_MASK_RETURNED, deliver_delay);
     }
@@ -982,7 +983,7 @@ void MailDraft::SendMailTo(MailReceiver const& receiver, MailSender const& sende
 {
     Player* pReceiver = receiver.GetPlayer();               // can be NULL
 
-    if (receiver.GetPlayerGUIDLow() == auctionbot.GetAHBplayerGUID())
+    if (pReceiver && pReceiver->GetGUIDLow() == auctionbot.GetAHBplayerGUID().GetCounter())
     {
         if (!m_items.empty())
         {

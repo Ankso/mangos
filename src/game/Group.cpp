@@ -78,7 +78,7 @@ RollVoteMask Roll::GetVoteMaskFor(Player* player) const
 
 Group::Group() : m_Id(0), m_groupType(GROUPTYPE_NORMAL),
     m_dungeonDifficulty(REGULAR_DIFFICULTY), m_raidDifficulty(REGULAR_DIFFICULTY),
-    m_bgGroup(NULL), m_lootMethod(FREE_FOR_ALL), m_looterGuid(0), m_lootThreshold(ITEM_QUALITY_UNCOMMON),
+    m_bgGroup(NULL), m_lootMethod(FREE_FOR_ALL), m_looterGuid(), m_lootThreshold(ITEM_QUALITY_UNCOMMON),
     m_subGroupsCounts(NULL), m_guid(0), m_counter(0)
 {
 }
@@ -135,7 +135,6 @@ bool Group::Create(ObjectGuid guid, const char * name)
     if (!isBGGroup())
     {
         m_Id = sObjectMgr.GenerateGroupId();
-        m_guid = MAKE_NEW_GUID(m_Id, 0, HIGHGUID_GROUP);
 
         Player *leader = sObjectMgr.GetPlayer(guid);
         if(leader)
@@ -177,8 +176,6 @@ bool Group::LoadGroupFromDB(Field* fields)
     // result = CharacterDatabase.Query("SELECT mainTank, mainAssistant, lootMethod, looterGuid, lootThreshold, icon1, icon2, icon3, icon4, icon5, icon6, icon7, icon8, groupType, difficulty, raiddifficulty, leaderGuid, groupId FROM groups");
 
     m_Id = fields[17].GetUInt32();
-    m_guid = MAKE_NEW_GUID(m_Id, 0, HIGHGUID_GROUP);
-    m_leaderGuid = MAKE_NEW_GUID(fields[16].GetUInt32(),0,HIGHGUID_PLAYER);
 
     // group leader not exist
     if (!sObjectMgr.GetPlayerNameByGUID(m_leaderGuid, m_leaderName))
@@ -697,7 +694,7 @@ void Group::MasterLoot(WorldObject* object, Loot* loot)
 
         if (looter->IsWithinDist(object, sWorld.getConfig(CONFIG_FLOAT_GROUP_XP_DISTANCE), false))
         {
-            data << uint64(looter->GetGUID());
+            data << looter->GetObjectGuid();
             ++real_count;
         }
     }
@@ -1571,7 +1568,7 @@ void Group::UpdateLooterGuid( WorldObject* object, bool ifneed )
                     //    pl->GetSession()->DoLootRelease(pl->GetLootGUID());
                     SetLooterGuid(pl->GetObjectGuid());
                     SendUpdate();
-                    if (refresh)                            // update loot for new looter
+                    if(refresh)                             // update loot for new looter
                         pl->SendLoot(object->GetObjectGuid(), LOOT_CORPSE);
                     return;
                 }
@@ -1592,7 +1589,7 @@ void Group::UpdateLooterGuid( WorldObject* object, bool ifneed )
                 //    pl->GetSession()->DoLootRelease(pl->GetLootGUID());
                 SetLooterGuid(pl->GetObjectGuid());
                 SendUpdate();
-                if (refresh)                                // update loot for new looter
+                if(refresh)                                 // update loot for new looter
                     pl->SendLoot(object->GetObjectGuid(), LOOT_CORPSE);
                 return;
             }

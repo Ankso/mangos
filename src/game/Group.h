@@ -216,8 +216,8 @@ class MANGOS_DLL_SPEC Group
         uint32 RemoveMember(ObjectGuid guid, uint8 method); // method: 0=just remove, 1=kick
         void   ChangeLeader(ObjectGuid guid);
         void   SetLootMethod(LootMethod method) { m_lootMethod = method; }
-        void   UpdateLooterGuid( WorldObject* object, bool ifneed = false );
         void   SetLooterGuid(ObjectGuid guid) { m_looterGuid = guid; }
+        void   UpdateLooterGuid(WorldObject* object, bool ifneed = false );
         void   SetLootThreshold(ItemQualities threshold) { m_lootThreshold = threshold; }
         void   Disband(bool hideDestroy=false);
 
@@ -238,7 +238,7 @@ class MANGOS_DLL_SPEC Group
         // member manipulation methods
         bool IsMember(ObjectGuid guid) const { return _getMemberCSlot(guid) != m_memberSlots.end(); }
         bool IsLeader(ObjectGuid guid) const { return GetLeaderGuid() == guid; }
-        ObjectGuid GetMemberGUID(const std::string& name)
+        ObjectGuid GetMemberGuid(const std::string& name)
         {
             for(member_citerator itr = m_memberSlots.begin(); itr != m_memberSlots.end(); ++itr)
                 if (itr->name == name)
@@ -436,8 +436,8 @@ class MANGOS_DLL_SPEC Group
         MemberSlotList      m_memberSlots;
         GroupRefManager     m_memberMgr;
         InvitesList         m_invitees;
-        uint8               m_creatorRace;
         ObjectGuid          m_leaderGuid;
+        uint8               m_creatorRace;
         std::string         m_leaderName;
         ObjectGuid          m_mainTankGuid;
         ObjectGuid          m_mainAssistantGuid;

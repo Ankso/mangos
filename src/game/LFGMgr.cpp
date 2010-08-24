@@ -230,7 +230,7 @@ void LFGMgr::Join(Player *plr)
     Group *grp = plr->GetGroup();
 
     // TODO - 2010-05-27 Anyone can init rolecheck when already in a LFD Group?
-    if (grp && grp->GetLeaderGUID() != plr->GetGUID())
+    if (grp && grp->GetLeaderGuid() != plr->GetObjectGuid())
         return;
 
     // Previous checks before joining

@@ -300,12 +300,8 @@ class Guild
         void CreateDefaultGuildRanks(int locale_idx);
         void Disband();
 
-<<<<<<< HEAD
-        typedef std::map<uint32, MemberSlot> MemberList;
-=======
         void DeleteGuildBankItems(bool alsoInDB = false);
         typedef UNORDERED_MAP<uint32, MemberSlot> MemberList;
->>>>>>> a244e1cc57cb0848c7c3673fafd2a7d7a1f91dd2
         typedef std::vector<RankInfo> RankList;
 
         uint32 GetId(){ return m_Id; }

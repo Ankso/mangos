@@ -123,18 +123,13 @@ void WorldSession::SendAuctionOutbiddedMail(AuctionEntry *auction, uint32 newPri
         std::ostringstream msgAuctionOutbiddedSubject;
         msgAuctionOutbiddedSubject << auction->item_template << ":0:" << AUCTION_OUTBIDDED << ":0:0";
 
-<<<<<<< HEAD
         if (oldBidder && !_player)
             oldBidder->GetSession()->SendAuctionBidderNotification( auction->GetHouseId(), auction->Id, auctionbot.GetAHBplayerGUID(), newPrice, auction->GetAuctionOutBid(), auction->item_template);
 
         if (oldBidder && _player)
-            oldBidder->GetSession()->SendAuctionBidderNotification( auction->GetHouseId(), auction->Id, _player->GetGUID(), newPrice, auction->GetAuctionOutBid(), auction->item_template);
-=======
-        if (oldBidder)
             oldBidder->GetSession()->SendAuctionBidderNotification(
                 auction->GetHouseId(), auction->Id, _player->GetObjectGuid(),
                 newPrice, auction->GetAuctionOutBid(), auction->item_template);
->>>>>>> a244e1cc57cb0848c7c3673fafd2a7d7a1f91dd2
 
         MailDraft(msgAuctionOutbiddedSubject.str(), "")     // TODO: fix body
             .AddMoney(auction->bid)

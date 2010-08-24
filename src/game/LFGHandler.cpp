@@ -66,7 +66,7 @@ void WorldSession::HandleLfgLeaveOpcode(WorldPacket & /*recv_data*/)
     // Check cheating - only leader can leave the queue
     if (Group *grp = GetPlayer()->GetGroup())
     {
-        if (grp->GetLeaderGUID() != GetPlayer()->GetGUID())
+        if (grp->GetLeaderGuid() != GetPlayer()->GetObjectGuid())
             return;
         else
             sLFGMgr.Leave(GetPlayer(), grp);

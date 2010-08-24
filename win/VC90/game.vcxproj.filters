@@ -22,9 +22,6 @@
     <Filter Include="References">
       <UniqueIdentifier>{de601e06-8715-4b88-9318-58dd47c27abb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="OutdoorPvP">
-      <UniqueIdentifier>{f918a810-9902-4641-b916-707e8f7cea24}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\game\AccountMgr.cpp">
@@ -459,30 +456,6 @@
     <ClCompile Include="..\..\src\game\ThreatManager.cpp">
       <Filter>References</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\game\OutdoorPvP.cpp">
-      <Filter>OutdoorPvP</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\OutdoorPvPEP.cpp">
-      <Filter>OutdoorPvP</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\OutdoorPvPHP.cpp">
-      <Filter>OutdoorPvP</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\OutdoorPvPMgr.cpp">
-      <Filter>OutdoorPvP</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\OutdoorPvPNA.cpp">
-      <Filter>OutdoorPvP</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\OutdoorPvPSI.cpp">
-      <Filter>OutdoorPvP</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\OutdoorPvPTF.cpp">
-      <Filter>OutdoorPvP</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\OutdoorPvPZM.cpp">
-      <Filter>OutdoorPvP</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\game\pchdef.cpp" />
     <ClCompile Include="..\..\src\game\LFGMgr.cpp">
       <Filter>World/Handlers</Filter>
@@ -887,36 +860,6 @@
     </ClInclude>
     <ClInclude Include="..\..\src\game\ThreatManager.h">
       <Filter>References</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\OutdoorPvP.h">
-      <Filter>OutdoorPvP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\OutdoorPvPEP.h">
-      <Filter>OutdoorPvP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\OutdoorPvPHP.h">
-      <Filter>OutdoorPvP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\OutdoorPvPImpl.h">
-      <Filter>OutdoorPvP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\OutdoorPvPMgr.h">
-      <Filter>OutdoorPvP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\OutdoorPvPNA.h">
-      <Filter>OutdoorPvP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\OutdoorPvPSI.h">
-      <Filter>OutdoorPvP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\OutdoorPvPTF.h">
-      <Filter>OutdoorPvP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\OutdoorPvPZM.h">
-      <Filter>OutdoorPvP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\ZoneScript.h">
-      <Filter>OutdoorPvP</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\pchdef.h" />
     <ClInclude Include="..\..\src\game\LFGMgr.h">
