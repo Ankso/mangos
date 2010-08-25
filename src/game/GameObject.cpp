@@ -146,8 +146,6 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map *map, uint32 phaseMa
     SetGoArtKit(0);                                         // unknown what this is
     SetGoAnimProgress(animprogress);
 
-    SetByteValue(GAMEOBJECT_BYTES_1, 2, artKit);
-
     if(goinfo->type == GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING)
         m_health = goinfo->destructibleBuilding.damagedHealth;
 
