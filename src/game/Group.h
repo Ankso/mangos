@@ -228,7 +228,6 @@ class MANGOS_DLL_SPEC Group
         bool isBGGroup()   const { return m_bgGroup != NULL; }
         bool IsCreated()   const { return GetMembersCount() > 0; }
         const uint8& GetCreatorRace() const { return m_creatorRace; }
-        const uint64& GetGUID() const { return m_guid; }
         ObjectGuid GetLeaderGuid() const { return m_leaderGuid; }
         const char * GetLeaderName() const { return m_leaderName.c_str(); }
         LootMethod    GetLootMethod() const { return m_lootMethod; }
