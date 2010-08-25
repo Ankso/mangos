@@ -2700,22 +2700,24 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 }
                 return;
             }
-            if( m_spellInfo->SpellFamilyFlags & 0x02000000LL )
+            // Death Grip
+            else if (m_spellInfo->Id == 49576)
             {
-                if(!unitTarget || !m_caster)
+                if (!unitTarget)
+                   return;
+
+                m_caster->CastSpell(unitTarget, 49560, true);
+                return;
+            }
+            else if (m_spellInfo->Id == 49560)
+            {
+                if (!unitTarget)
                     return;
 
-                if(unitTarget->GetTypeId() != TYPEID_PLAYER)     // unitTarget is Creature
-                {
-                    float x = m_caster->GetPositionX();
-                    float y = m_caster->GetPositionY(); 
-                    float z = m_caster->GetPositionZ()+1;
-                    unitTarget->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 1);
-                }
-                else                                             // unitTarget is Player
-                {
-                    unitTarget->SendMonsterMove(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ() + 6.5f, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, unitTarget->GetDistance2d(m_caster->GetPositionX(), m_caster->GetPositionY())/10.0f);
-                }
+                // uint32 spellId = m_spellInfo->CalculateSimpleValue(EFFECT_INDEX_0);
+                // unitTarget->CastSpell(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ(), spellId, true);
+                unitTarget->SendMonsterMove(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ() + 3.0f, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 2);
+                return;
             }
             // Raise dead effect
             else if(m_spellInfo->Id == 46584) 
