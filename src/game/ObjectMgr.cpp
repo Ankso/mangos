@@ -6195,8 +6195,6 @@ uint32 ObjectMgr::GenerateLowGuid(HighGuid guidhigh)
             return m_GameobjectGuids.Generate();
         case HIGHGUID_CORPSE:
             return m_CorpseGuids.Generate();
-        case HIGHGUID_GROUP:
-            return m_GroupIds.Generate();
         default:
             ASSERT(0);
     }

@@ -29,7 +29,6 @@
 #include "SocialMgr.h"
 #include "Util.h"
 #include "Vehicle.h"
-#include "LFG.h"
 
 /* differeces from off:
     -you can uninvite yourself - is is useful
@@ -163,8 +162,6 @@ void WorldSession::HandleGroupInviteOpcode( WorldPacket & recv_data )
     data << uint32(0);                                      // unk
     player->GetSession()->SendPacket(&data);
 
-    SendLfgUpdatePlayer(LFG_UPDATETYPE_REMOVED_FROM_QUEUE);
-    SendLfgUpdateParty(LFG_UPDATETYPE_REMOVED_FROM_QUEUE);
     SendPartyResult(PARTY_OP_INVITE, membername, ERR_PARTY_RESULT_OK);
 }
 
@@ -212,16 +209,6 @@ void WorldSession::HandleGroupAcceptOpcode( WorldPacket & recv_data )
     // everything is fine, do it, PLAYER'S GROUP IS SET IN ADDMEMBER!!!
     if(!group->AddMember(GetPlayer()->GetObjectGuid(), GetPlayer()->GetName()))
         return;
-
-    SendLfgUpdatePlayer(LFG_UPDATETYPE_REMOVED_FROM_QUEUE);
-    for (GroupReference *itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
-        if (Player *plrg = itr->getSource())
-        {
-            plrg->GetSession()->SendLfgUpdatePlayer(LFG_UPDATETYPE_CLEAR_LOCK_LIST);
-            plrg->GetSession()->SendLfgUpdateParty(LFG_UPDATETYPE_CLEAR_LOCK_LIST);
-        }
-
-    //group->BroadcastGroupUpdate();
 }
 
 void WorldSession::HandleGroupDeclineOpcode( WorldPacket & /*recv_data*/ )

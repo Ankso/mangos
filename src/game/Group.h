@@ -452,7 +452,5 @@ class MANGOS_DLL_SPEC Group
         Rolls               RollId;
         BoundInstancesMap   m_boundInstances[MAX_DIFFICULTY];
         uint8*              m_subGroupsCounts;
-        uint64              m_guid;
-        uint32              m_counter;                      // used only in SMSG_GROUP_LIST
 };
 #endif

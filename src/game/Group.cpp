@@ -34,7 +34,6 @@
 #include "MapInstanced.h"
 #include "Util.h"
 #include "LootMgr.h"
-#include "LFGMgr.h"
 
 #define LOOT_ROLL_TIMEOUT  (1*MINUTE*IN_MILLISECONDS)
 
@@ -78,8 +77,8 @@ RollVoteMask Roll::GetVoteMaskFor(Player* player) const
 
 Group::Group() : m_Id(0), m_groupType(GROUPTYPE_NORMAL),
     m_dungeonDifficulty(REGULAR_DIFFICULTY), m_raidDifficulty(REGULAR_DIFFICULTY),
-    m_bgGroup(NULL), m_lootMethod(FREE_FOR_ALL), m_looterGuid(), m_lootThreshold(ITEM_QUALITY_UNCOMMON),
-    m_subGroupsCounts(NULL), m_guid(0), m_counter(0)
+    m_bgGroup(NULL), m_lootMethod(FREE_FOR_ALL), m_looterGuid(0), m_lootThreshold(ITEM_QUALITY_UNCOMMON),
+    m_subGroupsCounts(NULL)
 {
 }
 
@@ -176,6 +175,7 @@ bool Group::LoadGroupFromDB(Field* fields)
     // result = CharacterDatabase.Query("SELECT mainTank, mainAssistant, lootMethod, looterGuid, lootThreshold, icon1, icon2, icon3, icon4, icon5, icon6, icon7, icon8, groupType, difficulty, raiddifficulty, leaderGuid, groupId FROM groups");
 
     m_Id = fields[17].GetUInt32();
+    m_leaderGuid = ObjectGuid(HIGHGUID_PLAYER, fields[16].GetUInt32());
 
     // group leader not exist
     if (!sObjectMgr.GetPlayerNameByGUID(m_leaderGuid, m_leaderName))
@@ -364,11 +364,6 @@ bool Group::AddMember(ObjectGuid guid, const char* name)
 
 uint32 Group::RemoveMember(ObjectGuid guid, uint8 method)
 {
-    //BroadcastGroupUpdate();
-
-    if (!isBGGroup())
-        sLFGMgr.Leave(NULL, this);
-
     // remove member and change leader (if need) only if strong more 2 members _before_ member remove
     if (GetMembersCount() > uint32(isBGGroup() ? 1 : 2))    // in BG group case allow 1 members group
     {
@@ -384,9 +379,8 @@ uint32 Group::RemoveMember(ObjectGuid guid, uint8 method)
 
             if (method == 1)
             {
-                data.Initialize(SMSG_GROUP_UNINVITE, 0);
-                player->GetSession()->SendLfgUpdateParty(LFG_UPDATETYPE_LEADER);
-                player->GetSession()->SendPacket(&data);
+                data.Initialize( SMSG_GROUP_UNINVITE, 0 );
+                player->GetSession()->SendPacket( &data );
             }
 
             //we already removed player from group and in player->GetGroup() is his original group!
@@ -398,7 +392,7 @@ uint32 Group::RemoveMember(ObjectGuid guid, uint8 method)
             {
                 data.Initialize(SMSG_GROUP_LIST, 1+1+1+1+8+4+4+8);
                 data << uint8(0x10) << uint8(0) << uint8(0) << uint8(0);
-                data << uint64(m_guid) << uint32(m_counter) << uint32(0) << uint64(0);
+                data << uint64(0) << uint32(0) << uint32(0) << uint64(0);
                 player->GetSession()->SendPacket(&data);
             }
 
@@ -423,7 +417,7 @@ uint32 Group::RemoveMember(ObjectGuid guid, uint8 method)
     }
     // if group before remove <= 2 disband it
     else
-        Disband();
+        Disband(true);
 
     return m_memberSlots.size();
 }
@@ -463,8 +457,6 @@ void Group::Disband(bool hideDestroy)
                 player->SetOriginalGroup(NULL);
             else
                 player->SetGroup(NULL);
-            player->GetSession()->SendLfgUpdateParty(LFG_UPDATETYPE_GROUP_DISBAND);
-            player->GetSession()->SendLfgUpdateParty(LFG_UPDATETYPE_LEADER);
         }
 
           // Restore original faction if needed
@@ -497,7 +489,7 @@ void Group::Disband(bool hideDestroy)
         {
             data.Initialize(SMSG_GROUP_LIST, 1+1+1+1+8+4+4+8);
             data << uint8(0x10) << uint8(0) << uint8(0) << uint8(0);
-            data << uint64(m_guid) << uint32(m_counter) << uint32(0) << uint64(0);
+            data << uint64(0) << uint32(0) << uint32(0) << uint64(0);
             player->GetSession()->SendPacket(&data);
         }
 
@@ -518,7 +510,6 @@ void Group::Disband(bool hideDestroy)
         ResetInstances(INSTANCE_RESET_GROUP_DISBAND, true, NULL);
     }
 
-    m_guid = 0;
     m_leaderGuid.Clear();
     m_leaderName = "";
 }
@@ -1076,8 +1067,8 @@ void Group::SendUpdate()
             data << uint8(0);
             data << uint32(0);
         }
-        data << uint64(m_guid);
-        data << uint32(m_counter++);                        // 3.3, value increases every time this packet gets sent
+        data << uint64(0x50000000FFFFFFFELL);               // related to voice chat?
+        data << uint32(0);                                  // 3.3, this value increments every time SMSG_GROUP_LIST is sent
         data << uint32(GetMembersCount()-1);
         for(member_citerator citr2 = m_memberSlots.begin(); citr2 != m_memberSlots.end(); ++citr2)
         {
@@ -1256,7 +1247,6 @@ bool Group::_removeMember(ObjectGuid guid)
                 player->SetOriginalGroup(NULL);
             else
                 player->SetGroup(NULL);
-            player->GetSession()->SendLfgUpdateParty(LFG_UPDATETYPE_LEADER);
         }
     }
 
