@@ -1894,6 +1894,11 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     m_caster->CastSpell(m_caster, spell_id, true);
                     return;
                 }
+                case 70769:                                 // Divine Storm!
+                {
+                    ((Player*)m_caster)->RemoveSpellCooldown(53385, true);
+                    return;
+                }
             }
             break;
         }
@@ -4168,6 +4173,7 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
         {
             //1562 - force of nature  - sid 33831
             //1161 - feral spirit - sid 51533
+            //89 - Infernal - sid 1122
             DoSummon(eff_idx);
             break;
         }
@@ -4230,6 +4236,9 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
             summoner = spawnCreature;
         }
 
+        if (m_spellInfo->Id == 1122) return;   // Warlock Infernal spell has in DBC flags
+                                               // SUMMON_PROP_GROUP_PETS && SUMMON_PROP_TYPE_ARMY
+                                               // and value = 50+lvl 8-(---)
         if (!amount)
             return;
     }
