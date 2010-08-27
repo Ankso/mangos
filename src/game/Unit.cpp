@@ -50,6 +50,7 @@
 #include "Vehicle.h"
 #include "VMapFactory.h"
 #include "MovementGenerator.h"
+#include "GameEventMgr.h"
 
 #include <math.h>
 #include <stdarg.h>
@@ -608,13 +609,19 @@ void Unit::DealDamageMods(Unit *pVictim, uint32 &damage, uint32* absorb)
         return;
     }
 
+    // For allow duels in dalaran and custom event on my server
+    bool isDuel = false;
+    if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        isDuel = ((Player*)pVictim)->duel;
+
+
     //You don't lose health from damage taken from another player while in a sanctuary
     //You still see it in the combat log though
     if(pVictim != this && GetTypeId() == TYPEID_PLAYER && pVictim->GetTypeId() == TYPEID_PLAYER)
     {
         const AreaTableEntry *area = GetAreaEntryByAreaID(pVictim->GetAreaId());
         float height = pVictim->GetPositionZ();
-        if(area && (area->flags & AREA_FLAG_SANCTUARY) && !(pVictim->GetZoneId() == 4395))       //sanctuary, but allow duels in Dalaran.
+        if(area && (area->flags & AREA_FLAG_SANCTUARY) && !isDuel)       //sanctuary, but allow duels in Dalaran.
         {
             if(absorb)
                 *absorb += damage;
@@ -1448,13 +1455,18 @@ void Unit::DealSpellDamage(SpellNonMeleeDamage *damageInfo, bool durabilityLoss)
         return;
     }
 
+    // For allow duels in dalaran and custom event on my server
+    bool isDuel =false;
+    if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        isDuel = ((Player*)pVictim)->duel;
+
     //You don't lose health from damage taken from another player while in a sanctuary
     //You still see it in the combat log though
     if(pVictim != this && GetTypeId() == TYPEID_PLAYER && pVictim->GetTypeId() == TYPEID_PLAYER)
     {
         const AreaTableEntry *area = GetAreaEntryByAreaID(pVictim->GetAreaId());
         float height = pVictim->GetPositionZ();
-        if(area && area->flags & AREA_FLAG_SANCTUARY && !(area->zone & 4395) && !(pVictim->GetZoneId() == 4395))       //sanctuary, but allow duels in Dalaran.
+        if(area && area->flags & AREA_FLAG_SANCTUARY && !isDuel)       //sanctuary, but allow duels in Dalaran.
             return;
     }
 
@@ -1753,13 +1765,18 @@ void Unit::DealMeleeDamage(CalcDamageInfo *damageInfo, bool durabilityLoss)
     if (!pVictim->isAlive() || pVictim->IsTaxiFlying() || pVictim->GetTypeId() == TYPEID_UNIT && ((Creature*)pVictim)->IsInEvadeMode())
         return;
 
+    // For allow duels in dalaran and custom event on my server
+    bool isDuel = false;
+    if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        isDuel = ((Player*)pVictim)->duel;
+    
     //You don't lose health from damage taken from another player while in a sanctuary
     //You still see it in the combat log though
     if(pVictim != this && GetTypeId() == TYPEID_PLAYER && pVictim->GetTypeId() == TYPEID_PLAYER)
     {
         const AreaTableEntry *area = GetAreaEntryByAreaID(pVictim->GetAreaId());
         float height = pVictim->GetPositionZ();
-        if(area && area->flags & AREA_FLAG_SANCTUARY && !(area->zone & 4395) && !(pVictim->GetZoneId() == 4395))       //sanctuary, but allow duels in Dalaran.
+        if(area && area->flags & AREA_FLAG_SANCTUARY && !isDuel)       //sanctuary, but allow duels in Dalaran.
             return;
     }
 

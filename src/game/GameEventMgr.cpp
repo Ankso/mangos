@@ -887,3 +887,22 @@ MANGOS_DLL_SPEC bool IsHolidayActive( HolidayIds id )
 
     return false;
 }
+
+bool IsEventActive(uint32 event_entry)
+{
+    GameEventMgr::GameEventDataMap const& events = sGameEventMgr.GetEventMap();
+    GameEventMgr::ActiveEvents const& activeEvents = sGameEventMgr.GetActiveEventList();
+    for (uint32 event_id = 0; event_id < events.size(); ++event_id)
+    {
+        if ((activeEvents.find(event_entry) == activeEvents.end()))
+            continue;
+        else
+        {
+            return true;
+            break;
+        }
+    }
+
+    DEBUG_LOG("GameEventMgr::IsEventActive: Event (entry %) not found in active event list.", event_entry);
+    return false;
+}

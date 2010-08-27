@@ -61,6 +61,7 @@
 #include "SocialMgr.h"
 #include "AchievementMgr.h"
 #include "Mail.h"
+#include "GameEventMgr.h"
 
 #include <cmath>
 
@@ -7151,9 +7152,18 @@ void Player::DuelComplete(DuelCompleteType type)
 
     if (type == DUEL_WON)
     {
+        bool pvp_event = (IsEventActive(100) && GetZoneId() == 3703); 
+        uint32 item = 47395;  // Isle of Conquest mark of honor - not used, only for custom event on my server.
+
         GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_LOSE_DUEL, 1);
+        if (pvp_event)
+            AddItem(item, 1);
         if (duel->opponent)
+        {
             duel->opponent->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_WIN_DUEL, 1);
+            if (pvp_event)
+                duel->opponent->AddItem(item, 2);
+        }
     }
 
     //Remove Duel Flag object
@@ -13119,6 +13129,26 @@ void Player::SendNewItem(Item *item, uint32 count, bool received, bool created, 
         GetGroup()->BroadcastPacket(&data, true);
     else
         GetSession()->SendPacket(&data);
+}
+
+void Player::AddItem(uint32 item_id, uint32 count)
+{
+    ItemPosCountVec dest;
+    uint32 no_space_count = 0;
+    uint8 msg = CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, item_id, count, &no_space_count );
+
+    if( msg == EQUIP_ERR_ITEM_NOT_FOUND)
+    {
+        sLog.outErrorDb("Player::AddItem ERROR: Item (Entry %u) not exist in `item_template`.",item_id);
+        return;
+    }
+
+    if( msg != EQUIP_ERR_OK )                               // convert to possible store amount
+        count -= no_space_count;
+
+    if( count != 0 && !dest.empty())                        // can add some
+        if (Item* item = StoreNewItem( dest, item_id, true, 0))
+            SendNewItem(item,count,true,false);
 }
 
 /*********************************************************/

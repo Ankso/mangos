@@ -104,4 +104,7 @@ class GameEventMgr
 
 MANGOS_DLL_SPEC bool IsHolidayActive(HolidayIds id);
 
+/* Custom */
+bool IsEventActive(uint32 event_entry);
+
 #endif

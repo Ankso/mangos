@@ -686,19 +686,7 @@ void BattleGround::EndBattleGround(uint32 winner)
     uint32 winner_rating = 0;
     WorldPacket data;
     int32 winmsg_id = 0;
-
-    bool event_found = false;
-
-    // For custom event on my server
-    GameEventMgr::ActiveEvents const& activeEvents = sGameEventMgr.GetActiveEventList();
-    for ( uint32 event_id = 0; event_id < activeEvents.size(); ++event_id )
-    {
-        if (event_id == 100)
-        {
-            event_found = true;
-            break;
-        }
-    }
+    bool pvp_event = IsEventActive(100);  // For custom event on my server
 
     if (winner == ALLIANCE)
     {
@@ -857,7 +845,7 @@ void BattleGround::EndBattleGround(uint32 winner)
             RewardQuestComplete(plr);
             QuestComplete(plr);
             
-            if (event_found)                        // Custom event
+            if (pvp_event)                        // Custom event
                 RewardItem(plr, 20560, 10);
 
             if (IsRandom() || BattleGroundMgr::IsBGWeekend(GetTypeID()))
@@ -874,7 +862,7 @@ void BattleGround::EndBattleGround(uint32 winner)
         {
             RewardMark(plr,ITEM_LOSER_COUNT);
 
-            if (event_found)                        // Custom event
+            if (pvp_event)                        // Custom event
                 RewardItem(plr, 20560, 5);
 
             if (IsRandom() || BattleGroundMgr::IsBGWeekend(GetTypeID()))

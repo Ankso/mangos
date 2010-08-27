@@ -60,6 +60,7 @@
 #include "GridNotifiersImpl.h"
 #include "CellImpl.h"
 #include "Vehicle.h"
+#include "GameEventMgr.h"
 
 #define BOMB_ID			50000
 
@@ -7226,7 +7227,9 @@ void Spell::EffectDuel(SpellEffectIndex eff_idx)
         return;
     }
     AreaTableEntry const* casterAreaEntry = GetAreaEntryByAreaID(caster->GetZoneId());
-    if(casterAreaEntry && (casterAreaEntry->flags & AREA_FLAG_CAPITAL) && !(caster->GetPositionZ() < 615.0 && caster->GetPositionZ() > 580.0 && caster->GetZoneId() == 4395))
+    float height = caster->GetPositionZ();
+    bool event_found = (IsEventActive(100) && caster->GetZoneId() == 3703 && height > -14.0f && height < -8.0f);                                              // For custom event on my server
+    if(casterAreaEntry && (casterAreaEntry->flags & AREA_FLAG_CAPITAL) && !(height < 615.0 && height > 580.0 && caster->GetZoneId() == 4395) && !event_found) // Exception for Dalaran underground and for custom Shattrat event.
     {
         SendCastResult(SPELL_FAILED_NO_DUELING);            // Dueling isn't allowed here
         DEBUG_LOG("Player %u has dueled in zone: %u, positionZ: %u", caster->GetGUID(), caster->GetZoneId(), caster->GetPositionZ());
@@ -7234,7 +7237,9 @@ void Spell::EffectDuel(SpellEffectIndex eff_idx)
     }
 
     AreaTableEntry const* targetAreaEntry = GetAreaEntryByAreaID(target->GetZoneId());
-    if(casterAreaEntry && (casterAreaEntry->flags & AREA_FLAG_CAPITAL) && !(target->GetPositionZ() < 615.0 && target->GetPositionZ() > 580.0 && target->GetZoneId() == 4395))
+    height = target->GetPositionZ();
+    event_found = (IsEventActive(100) && target->GetZoneId() == 3703 && height > -14.0f && height < -8.0f);
+    if(casterAreaEntry && (casterAreaEntry->flags & AREA_FLAG_CAPITAL) && !(height < 615.0 && height > 580.0 && target->GetZoneId() == 4395) && !event_found) // Exception for Dalaran underground and for custom Shattrat event.
     {
         SendCastResult(SPELL_FAILED_NO_DUELING);            // Dueling isn't allowed here
         DEBUG_LOG("Player %u has been dueled in zone: %u, positionZ: %u", target->GetGUID(), target->GetZoneId(), target->GetPositionZ());
