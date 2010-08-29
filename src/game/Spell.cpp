@@ -3597,25 +3597,37 @@ void Spell::finish(bool ok)
             if(holder->DropAuraCharge())
                 m_caster->RemoveSpellAuraHolder(holder);
 
-    // hack for SPELL_AURA_IGNORE_UNIT_STATE charges
+    // For SPELL_AURA_IGNORE_UNIT_STATE charges
+    // TODO: find way without this hack
     bool break_for = false;
     Unit::AuraList const& stateAuras = m_caster->GetAurasByType(SPELL_AURA_IGNORE_UNIT_STATE);
     for(Unit::AuraList::const_iterator j = stateAuras.begin();j != stateAuras.end(); ++j)
     {
         switch((*j)->GetId())
         {
-            case 52437:        //Sudden death should disappear after execute
+            case 52437:                        //Sudden death should disappear after execute
                 if (m_spellInfo->SpellIconID == 1648)
                 {
-                    m_caster->RemoveAura((*j));
-                    break_for = true;
+                   if((*j)->GetHolder()->GetAuraCharges() <= 1)
+                       m_caster->RemoveAurasDueToSpell(52437);
+                   else
+                       m_caster->RemoveAura((*j));
+                    
+                   break_for = true;
                 }
                 break;
             case 60503:        // Taste for blood 
             case 68051:        // Glyph of overpower - Both should disappear after overpower
                 if(m_spellInfo->Id == 7384)
                 {
-                    m_caster->RemoveAura((*j));
+                    if((*j)->GetHolder()->GetAuraCharges() <= 1)
+                    {
+                        m_caster->RemoveAurasDueToSpell(60503);
+                        m_caster->RemoveAurasDueToSpell(68051);
+                    }
+                    else
+                        m_caster->RemoveAura((*j));
+
                     break_for = true;
                 }
                 break;
