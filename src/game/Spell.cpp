@@ -3006,7 +3006,11 @@ void Spell::cast(bool skipCheck)
                 AddPrecastSpell(41425);                     // Hypothermia
             // Fingers of Frost
             else if (m_spellInfo->Id == 44544)
-                AddPrecastSpell(74396);
+            {
+                int chance = urand(0, 100);
+                if (chance <= 15)
+                    AddTriggeredSpell(74396);
+            }
             break;
         }
         case SPELLFAMILY_WARRIOR:

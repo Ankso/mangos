@@ -2342,7 +2342,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                 return;
             }
         }
-
         // Living Bomb
         if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_MAGE && (GetSpellProto()->SpellFamilyFlags & UI64LIT(0x2000000000000)))
         {
@@ -7990,45 +7989,6 @@ void Aura::HandlePhase(bool apply, bool Real)
     // need triggering visibility update base at phase update of not GM invisible (other GMs anyway see in any phases)
     if(target->GetVisibility() != VISIBILITY_OFF)
         target->SetVisibility(target->GetVisibility());
-}
-
-void SpellAuraHolder::HandleIgnoreUnitState(bool apply, bool Real)
-{
-    if(m_target->GetTypeId() != TYPEID_PLAYER || !Real)
-        return;
-
-    if(Unit* caster = GetCaster())
-    {
-        if (apply)
-        {
-            switch(GetId())
-            {
-                // Fingers of Frost
-                case 44544:
-                    SetAuraCharges(3); // 3 because first is droped on proc
-                    break;
-                // Juggernaut & Warbringer both need special slot and flag
-                // for alowing charge in combat and Warbringer
-                // for alowing charge in different stances, too
-                case 64976:
-                case 57499:
-                    SetAuraSlot(255);
-                    SetAuraFlags(19);
-                    SendAuraUpdate(false);
-                    break;
-            }
-        }
-        else
-        {
-            switch(GetId())
-            {
-                case 64976:
-                case 57499:
-                    SendAuraUpdate(true);
-                    break;
-            }
-        }
-    }
 }
 
 void Aura::HandleAuraSafeFall( bool Apply, bool Real )
