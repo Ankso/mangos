@@ -3057,8 +3057,6 @@ void Spell::cast(bool skipCheck)
             // Faerie Fire (Feral)
             if (m_spellInfo->Id == 16857 && m_caster->m_form != FORM_CAT)
                 AddTriggeredSpell(60089);
-            else if (m_spellInfo->SpellIconID == 2852 && (m_spellInfo->AttributesEx & 0x28020)) // Berserk
-                AddPrecastSpell(58923); // Hit 3 targets at once with mangle in dire bear form
 
             else if (m_spellInfo->SpellFamilyFlags2 & 0x00000800  && m_caster->m_form == FORM_CAT)
                 if (m_caster->HasSpell(48495))
@@ -3077,6 +3075,9 @@ void Spell::cast(bool skipCheck)
             // Lock and Load
             if (m_spellInfo->Id == 56453)
                 AddPrecastSpell(67544);                     // Lock and Load Marker
+            // Berserk (Bear Mangle part)
+            else if (m_spellInfo->Id == 50334)
+                AddTriggeredSpell(58923); 
             break;
         }
         case SPELLFAMILY_ROGUE:
