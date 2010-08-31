@@ -4524,8 +4524,12 @@ void Aura::HandleModMechanicImmunity(bool apply, bool /*Real*/)
         {
             GameObject* obj = target->GetGameObject(48018);
             if (obj)
+            {
                 if (target->IsWithinDist(obj,GetSpellMaxRange(sSpellRangeStore.LookupEntry(GetSpellProto()->rangeIndex))))
+                {
                     ((Player*)target)->TeleportTo(obj->GetMapId(),obj->GetPositionX(),obj->GetPositionY(),obj->GetPositionZ(),obj->GetOrientation());
+                }
+            }
         }
     }
 
@@ -4819,21 +4823,27 @@ void Aura::HandleAuraPeriodicDummy(bool apply, bool Real)
             }
             break;
         }
-        case SPELLFAMILY_HUNTER:
+        case SPELLFAMILY_WARLOCK:
         {
-            Unit* caster = GetCaster();
-
             switch (spell->Id)
             {
                 case 48018:        // Demonic circle - teleport
+                {
                     if (apply)
+                    {
                         GetHolder()->SendFakeAuraUpdate(62388,false);
+                    }
                     else
                     {
                         target->RemoveGameObject(spell->Id,true);
                         GetHolder()->SendFakeAuraUpdate(62388,true);
                     }
+                }
             }
+        }
+        case SPELLFAMILY_HUNTER:
+        {
+            Unit* caster = GetCaster();
 
             // Explosive Shot
             if (apply && !loading && caster)
@@ -7601,14 +7611,23 @@ void Aura::PeriodicDummyTick()
             switch (spell->Id)
             {
                 case 48018:
+                {
                     GameObject* obj = target->GetGameObject(spell->Id);
-                    if (!obj) return;
+                    if (!obj)
+                    {
+                        return;
+                    }
                     // We must take a range of teleport spell, not summon.
                     const SpellEntry* goToCircleSpell = sSpellStore.LookupEntry(48020);
                     if (target->IsWithinDist(obj,GetSpellMaxRange(sSpellRangeStore.LookupEntry(goToCircleSpell->rangeIndex))))
+                    {
                         GetHolder()->SendFakeAuraUpdate(62388,false);
+                    }
                     else
+                    {
                         GetHolder()->SendFakeAuraUpdate(62388,true);
+                    }
+                }
             }
             break;
         }

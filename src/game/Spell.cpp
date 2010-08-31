@@ -4585,8 +4585,11 @@ SpellCastResult Spell::CheckCast(bool strict)
     // Caster aura req check if need
     if(m_spellInfo->casterAuraSpell
        && sSpellStore.LookupEntry(m_spellInfo->casterAuraSpell)
-       && !m_caster->HasAura(m_spellInfo->casterAuraSpell))
-          return SPELL_FAILED_CASTER_AURASTATE;
+       && !m_caster->HasAura(m_spellInfo->casterAuraSpell)
+       && !m_caster->HasAura(48018))
+    {
+         return SPELL_FAILED_CASTER_AURASTATE;
+    }
 
     if(m_spellInfo->excludeCasterAuraSpell)
     {
