@@ -1705,7 +1705,8 @@ bool InstanceMap::Add(Player *player)
                         GetInstanceSave()->GetMapId(), GetInstanceSave()->GetInstanceId(),
                         GetInstanceSave()->GetDifficulty(), GetInstanceSave()->GetPlayerCount(),
                         GetInstanceSave()->GetGroupCount(), GetInstanceSave()->CanReset());
-                    MANGOS_ASSERT(false);
+                    // MANGOS_ASSERT(false);
+                    player->RepopAtGraveyard();
                 }
             }
             else
@@ -1755,7 +1756,8 @@ bool InstanceMap::Add(Player *player)
                                 sLog.outError("GroupBind save players: %d, group count: %d", groupBind->save->GetPlayerCount(), groupBind->save->GetGroupCount());
                             else
                                 sLog.outError("GroupBind save NULL");
-                            MANGOS_ASSERT(false);
+                            // MANGOS_ASSERT(false);
+                            player->RepopAtGraveyard();
                         }
                         // if the group/leader is permanently bound to the instance
                         // players also become permanently bound when they enter
@@ -1775,7 +1777,8 @@ bool InstanceMap::Add(Player *player)
                         player->BindToInstance(GetInstanceSave(), false);
                     else
                         // cannot jump to a different instance without resetting it
-                        MANGOS_ASSERT(playerBind->save == GetInstanceSave());
+                        // MANGOS_ASSERT(playerBind->save == GetInstanceSave());
+                        player->RepopAtGraveyard();
                 }
             }
             // OK, and now the hack: this will avoid the "walking without moving" visual bug in instances:
@@ -1783,10 +1786,9 @@ bool InstanceMap::Add(Player *player)
                 player->Unmount();
         }
         // And this for Battlegrounds:
-        else
-            if (IsBattleGround())
-                if (player->IsMounted())
-                    player->Unmount();
+        if (IsBattleGround())
+            if (player->IsMounted())
+                player->Unmount();
 
         // for normal instances cancel the reset schedule when the
         // first player enters (no players yet)
