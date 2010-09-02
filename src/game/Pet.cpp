@@ -16,13 +16,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "Common.h"
+#include "Pet.h"
 #include "Database/DatabaseEnv.h"
 #include "Log.h"
 #include "WorldPacket.h"
 #include "ObjectMgr.h"
 #include "SpellMgr.h"
-#include "Pet.h"
 #include "Formulas.h"
 #include "SpellAuras.h"
 #include "CreatureAI.h"
@@ -509,7 +508,7 @@ void Pet::Update(uint32 diff)
         {
             if( m_deathTimer <= diff )
             {
-                ASSERT(getPetType()!=SUMMON_PET && "Must be already removed.");
+                MANGOS_ASSERT(getPetType()!=SUMMON_PET && "Must be already removed.");
                 Remove(PET_SAVE_NOT_IN_SLOT);               //hunters' pets never get removed because of death, NEVER!
                 return;
             }
@@ -519,6 +518,8 @@ void Pet::Update(uint32 diff)
         {
             // unsummon pet that lost owner
             Unit* owner = GetOwner();
+
+            if(m_duration == 0)
             if(!owner || (!IsWithinDistInMap(owner, GetMap()->GetVisibilityDistance()) && (owner->GetCharmGUID() && (owner->GetCharmGUID() != GetGUID()))) || (isControlled() && !owner->GetPetGUID()))
             {
                 Remove(PET_SAVE_NOT_IN_SLOT, true);
@@ -831,7 +832,7 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
 {
 
     CreatureInfo const *cinfo = GetCreatureInfo();
-    ASSERT(cinfo);
+    MANGOS_ASSERT(cinfo);
 
     if(!owner)
     {
@@ -866,7 +867,7 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
                                        0,      // MAXHEALTH
                                        0};     // MAXPOWER/MANA
 
-    int32 ResistanceAdd[MAX_SPELL_SCHOOL] = {0,0,0,0,0,0,0};
+    uint32 ResistanceAdd[MAX_SPELL_SCHOOL] = {0,0,0,0,0,0,0};
 
     if(cinfo)
     {
@@ -950,7 +951,7 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
     {
         if (pInfo->health)
             SetCreateHealth(pInfo->health);
-        else 
+        else
             SetCreateHealth(createStats[MAX_STATS]);
 
         if (pInfo->mana)
@@ -959,14 +960,23 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
             SetCreateMana(createStats[MAX_STATS+1]);
 
         if (pInfo->armor)
-            SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE, float(pInfo->armor) + ArmorAdd);
+            SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE, float(pInfo->armor));
         else
-            SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE,  float(cinfo->armor  * petlevel / cinfo->maxlevel)  + ArmorAdd);
+            SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE,  float(cinfo->armor  * petlevel / cinfo->maxlevel));
+
+        SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE, float(ArmorAdd));
 
         for( int i = STAT_STRENGTH; i < MAX_STATS; ++i)
         {
             SetCreateStat(Stats(i),  float(pInfo->stats[i]));
+
+            SetModifierValue(UnitMods(i), BASE_VALUE, 0.0f);
+            SetModifierValue(UnitMods(i), BASE_PCT, 1.0f);
+            SetModifierValue(UnitMods(i), TOTAL_VALUE, 0.0f);
+            SetModifierValue(UnitMods(i), TOTAL_PCT, 1.0f);
         }
+
+        SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, float(pInfo->attackpower));
 
         if (pInfo->attackpower)
             SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, float(pInfo->attackpower));
@@ -993,7 +1003,14 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
     {
         DEBUG_LOG("Summoned pet (Entry: %u) not have pet stats data in DB. Use hardcoded values.",cinfo->Entry);
         for (int i = STAT_STRENGTH; i < MAX_STATS; ++i)
+        {
             SetCreateStat(Stats(i),float(createStats[i]));
+
+            SetModifierValue(UnitMods(i), BASE_VALUE, 0.0f);
+            SetModifierValue(UnitMods(i), BASE_PCT, 1.0f);
+            SetModifierValue(UnitMods(i), TOTAL_VALUE, 0.0f);
+            SetModifierValue(UnitMods(i), TOTAL_PCT, 1.0f);
+        }
         SetCreateHealth(createStats[MAX_STATS]);
         SetCreateMana(createStats[MAX_STATS+1]);
         SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE,  float(cinfo->armor  * petlevel / cinfo->maxlevel)  + ArmorAdd);
@@ -1018,6 +1035,7 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
     for (int i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; ++i)
         if (ResistanceAdd[i] > 0)
             SetModifierValue(UnitMods(UNIT_MOD_RESISTANCE_START + i), BASE_VALUE, float(ResistanceAdd[i]));
+        else SetModifierValue(UnitMods(UNIT_MOD_RESISTANCE_START + i), BASE_VALUE, 0);
 
     UpdateAllStats();
 
