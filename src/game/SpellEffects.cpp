@@ -3280,6 +3280,10 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
         Aur->SetAuraDuration(duration);
     }
 
+    if (m_spellInfo->Id == 71563)
+        for (uint8 i = 0; i < 5; ++i)
+            caster->CastSpell(caster, 71564, true);
+
     spellAuraHolder->AddAura(Aur, eff_idx);
 }
 
