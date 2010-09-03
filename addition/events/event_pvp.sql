@@ -412,7 +412,7 @@ DELETE FROM `creature_involvedrelation` WHERE `quest` = 100003;
 DELETE FROM `gameobject_involvedrelation` WHERE `quest` = 100003;
 INSERT INTO `creature_involvedrelation` (`id`, `quest`) VALUES (100005, 100003);
 UPDATE `creature_template` SET `npcflag`=`npcflag`|2 WHERE `entry`=100005;
-REPLACE INTO `quest_template` (`entry`, `Method`, `ZoneOrSort`, `SkillOrClass`, `MinLevel`, `QuestLevel`, `Type`, `RequiredRaces`, `RequiredSkillValue`, `RepObjectiveFaction`, `RepObjectiveValue`, `RequiredMinRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepFaction`, `RequiredMaxRepValue`, `SuggestedPlayers`, `LimitTime`, `QuestFlags`, `SpecialFlags`, `CharTitleId`, `PlayersSlain`, `BonusTalents`, `PrevQuestId`, `NextQuestId`, `ExclusiveGroup`, `NextQuestInChain`, `RewXPId`, `SrcItemId`, `SrcItemCount`, `SrcSpell`, `Title`, `Details`, `Objectives`, `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`, `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`, `ReqItemId1`, `ReqItemId2`, `ReqItemId3`, `ReqItemId4`, `ReqItemId5`, `ReqItemId6`, `ReqItemCount1`, `ReqItemCount2`, `ReqItemCount3`, `ReqItemCount4`, `ReqItemCount5`, `ReqItemCount6`, `ReqSourceId1`, `ReqSourceId2`, `ReqSourceId3`, `ReqSourceId4`, `ReqSourceCount1`, `ReqSourceCount2`, `ReqSourceCount3`, `ReqSourceCount4`, `ReqCreatureOrGOId1`, `ReqCreatureOrGOId2`, `ReqCreatureOrGOId3`, `ReqCreatureOrGOId4`, `ReqCreatureOrGOCount1`, `ReqCreatureOrGOCount2`, `ReqCreatureOrGOCount3`, `ReqCreatureOrGOCount4`, `ReqSpellCast1`, `ReqSpellCast2`, `ReqSpellCast3`, `ReqSpellCast4`, `RewChoiceItemId1`, `RewChoiceItemId2`, `RewChoiceItemId3`, `RewChoiceItemId4`, `RewChoiceItemId5`, `RewChoiceItemId6`, `RewChoiceItemCount1`, `RewChoiceItemCount2`, `RewChoiceItemCount3`, `RewChoiceItemCount4`, `RewChoiceItemCount5`, `RewChoiceItemCount6`, `RewItemId1`, `RewItemId2`, `RewItemId3`, `RewItemId4`, `RewItemCount1`, `RewItemCount2`, `RewItemCount3`, `RewItemCount4`, `RewRepFaction1`, `RewRepFaction2`, `RewRepFaction3`, `RewRepFaction4`, `RewRepFaction5`, `RewRepValueId1`, `RewRepValueId2`, `RewRepValueId3`, `RewRepValueId4`, `RewRepValueId5`, `RewRepValue1`, `RewRepValue2`, `RewRepValue3`, `RewRepValue4`, `RewRepValue5`, `RewHonorAddition`, `RewHonorMultiplier`, `RewOrReqMoney`, `RewMoneyMaxLevel`, `RewSpell`, `RewSpellCast`, `RewMailTemplateId`, `RewMailDelaySecs`, `PointMapId`, `PointX`, `PointY`, `PointOpt`, `DetailsEmote1`, `DetailsEmote2`, `DetailsEmote3`, `DetailsEmote4`, `DetailsEmoteDelay1`, `DetailsEmoteDelay2`, `DetailsEmoteDelay3`, `DetailsEmoteDelay4`, `IncompleteEmote`, `CompleteEmote`, `OfferRewardEmote1`, `OfferRewardEmote2`, `OfferRewardEmote3`, `OfferRewardEmote4`, `OfferRewardEmoteDelay1`, `OfferRewardEmoteDelay2`, `OfferRewardEmoteDelay3`, `OfferRewardEmoteDelay4`, `StartScript`, `CompleteScript`) VALUES (100003, 2, 0, 0, 80, 80, 0, 690, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32768, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'La recompensa del Caballero de la Muerte Odioso', '¿Que estás haciendo aquí, $n? ¡Deberías estar luchando por tu pequeño lugar en este mundo! ¡Ve ahora y demuéstrame de lo que eres capaz!$B$B<Dir\'Mahul se da la vuelta un momento>$B$B¿Aún sigues ahí? ¡¿A que estás esperando?!', 'Dir\'Mahul quiere que le entregues 70 Marcas de Guerrero de los eventos JcJ de los fines de semana.', 'En fin, ya sabes donde estaré la semana que viene. ¡Y espero volver a verte, hay muchos enemigos que matar aún!', 'Veo que al menos lo has intentado. Veamos... ¿Que tienes para mi hoy?', '', 'Marca de Guerrero', '', '', '', '', 20560,0, 0, 0, 0, 0, 70, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 40857, 40779, 40803, 40820, 40841, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+REPLACE INTO `quest_template` (`entry`, `Method`, `ZoneOrSort`, `SkillOrClass`, `MinLevel`, `QuestLevel`, `Type`, `RequiredRaces`, `RequiredSkillValue`, `RepObjectiveFaction`, `RepObjectiveValue`, `RequiredMinRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepFaction`, `RequiredMaxRepValue`, `SuggestedPlayers`, `LimitTime`, `QuestFlags`, `SpecialFlags`, `CharTitleId`, `PlayersSlain`, `BonusTalents`, `PrevQuestId`, `NextQuestId`, `ExclusiveGroup`, `NextQuestInChain`, `RewXPId`, `SrcItemId`, `SrcItemCount`, `SrcSpell`, `Title`, `Details`, `Objectives`, `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`, `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`, `ReqItemId1`, `ReqItemId2`, `ReqItemId3`, `ReqItemId4`, `ReqItemId5`, `ReqItemId6`, `ReqItemCount1`, `ReqItemCount2`, `ReqItemCount3`, `ReqItemCount4`, `ReqItemCount5`, `ReqItemCount6`, `ReqSourceId1`, `ReqSourceId2`, `ReqSourceId3`, `ReqSourceId4`, `ReqSourceCount1`, `ReqSourceCount2`, `ReqSourceCount3`, `ReqSourceCount4`, `ReqCreatureOrGOId1`, `ReqCreatureOrGOId2`, `ReqCreatureOrGOId3`, `ReqCreatureOrGOId4`, `ReqCreatureOrGOCount1`, `ReqCreatureOrGOCount2`, `ReqCreatureOrGOCount3`, `ReqCreatureOrGOCount4`, `ReqSpellCast1`, `ReqSpellCast2`, `ReqSpellCast3`, `ReqSpellCast4`, `RewChoiceItemId1`, `RewChoiceItemId2`, `RewChoiceItemId3`, `RewChoiceItemId4`, `RewChoiceItemId5`, `RewChoiceItemId6`, `RewChoiceItemCount1`, `RewChoiceItemCount2`, `RewChoiceItemCount3`, `RewChoiceItemCount4`, `RewChoiceItemCount5`, `RewChoiceItemCount6`, `RewItemId1`, `RewItemId2`, `RewItemId3`, `RewItemId4`, `RewItemCount1`, `RewItemCount2`, `RewItemCount3`, `RewItemCount4`, `RewRepFaction1`, `RewRepFaction2`, `RewRepFaction3`, `RewRepFaction4`, `RewRepFaction5`, `RewRepValueId1`, `RewRepValueId2`, `RewRepValueId3`, `RewRepValueId4`, `RewRepValueId5`, `RewRepValue1`, `RewRepValue2`, `RewRepValue3`, `RewRepValue4`, `RewRepValue5`, `RewHonorAddition`, `RewHonorMultiplier`, `RewOrReqMoney`, `RewMoneyMaxLevel`, `RewSpell`, `RewSpellCast`, `RewMailTemplateId`, `RewMailDelaySecs`, `PointMapId`, `PointX`, `PointY`, `PointOpt`, `DetailsEmote1`, `DetailsEmote2`, `DetailsEmote3`, `DetailsEmote4`, `DetailsEmoteDelay1`, `DetailsEmoteDelay2`, `DetailsEmoteDelay3`, `DetailsEmoteDelay4`, `IncompleteEmote`, `CompleteEmote`, `OfferRewardEmote1`, `OfferRewardEmote2`, `OfferRewardEmote3`, `OfferRewardEmote4`, `OfferRewardEmoteDelay1`, `OfferRewardEmoteDelay2`, `OfferRewardEmoteDelay3`, `OfferRewardEmoteDelay4`, `StartScript`, `CompleteScript`) VALUES (100003, 2, 0, 0, 80, 80, 0, 690, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32768, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'La recompensa del Caballero de la Muerte Odioso', '¿Que estás haciendo aquí, $n? ¡Deberías estar luchando por tu pequeño lugar en este mundo! ¡Ve ahora y demuéstrame de lo que eres capaz!$B$B<Dir\'Mahul se da la vuelta un momento>$B$B¿Aún sigues ahí? ¡¿A que estás esperando?!', 'Dir\'Mahul quiere que le entregues 70 Marcas de Guerrero de los eventos JcJ de los fines de semana.', 'En fin, ya sabes donde estaré la semana que viene. ¡Y espero volver a verte, hay muchos enemigos que matar aún!', 'Veo que al menos lo has intentado. Veamos... ¿Que tienes para mi hoy?', '', 'Marca de Guerrero', '', '', '', '', 20560,0, 0, 0, 0, 0, 70, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 40781, 40779, 40803, 40820, 40841, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 -- 26/08/2010 16:03:38
 DELETE FROM `creature_questrelation` WHERE `quest` = 100004;
@@ -1410,4 +1410,1125 @@ INSERT INTO `creature_involvedrelation` (`id`, `quest`) VALUES (100007, 100085);
 UPDATE `creature_template` SET `npcflag`=`npcflag`|2 WHERE `entry`=100007;
 REPLACE INTO `quest_template` (`entry`, `Method`, `ZoneOrSort`, `SkillOrClass`, `MinLevel`, `QuestLevel`, `Type`, `RequiredRaces`, `RequiredSkillValue`, `RepObjectiveFaction`, `RepObjectiveValue`, `RequiredMinRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepFaction`, `RequiredMaxRepValue`, `SuggestedPlayers`, `LimitTime`, `QuestFlags`, `SpecialFlags`, `CharTitleId`, `PlayersSlain`, `BonusTalents`, `PrevQuestId`, `NextQuestId`, `ExclusiveGroup`, `NextQuestInChain`, `RewXPId`, `SrcItemId`, `SrcItemCount`, `SrcSpell`, `Title`, `Details`, `Objectives`, `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`, `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`, `ReqItemId1`, `ReqItemId2`, `ReqItemId3`, `ReqItemId4`, `ReqItemId5`, `ReqItemId6`, `ReqItemCount1`, `ReqItemCount2`, `ReqItemCount3`, `ReqItemCount4`, `ReqItemCount5`, `ReqItemCount6`, `ReqSourceId1`, `ReqSourceId2`, `ReqSourceId3`, `ReqSourceId4`, `ReqSourceCount1`, `ReqSourceCount2`, `ReqSourceCount3`, `ReqSourceCount4`, `ReqCreatureOrGOId1`, `ReqCreatureOrGOId2`, `ReqCreatureOrGOId3`, `ReqCreatureOrGOId4`, `ReqCreatureOrGOCount1`, `ReqCreatureOrGOCount2`, `ReqCreatureOrGOCount3`, `ReqCreatureOrGOCount4`, `ReqSpellCast1`, `ReqSpellCast2`, `ReqSpellCast3`, `ReqSpellCast4`, `RewChoiceItemId1`, `RewChoiceItemId2`, `RewChoiceItemId3`, `RewChoiceItemId4`, `RewChoiceItemId5`, `RewChoiceItemId6`, `RewChoiceItemCount1`, `RewChoiceItemCount2`, `RewChoiceItemCount3`, `RewChoiceItemCount4`, `RewChoiceItemCount5`, `RewChoiceItemCount6`, `RewItemId1`, `RewItemId2`, `RewItemId3`, `RewItemId4`, `RewItemCount1`, `RewItemCount2`, `RewItemCount3`, `RewItemCount4`, `RewRepFaction1`, `RewRepFaction2`, `RewRepFaction3`, `RewRepFaction4`, `RewRepFaction5`, `RewRepValueId1`, `RewRepValueId2`, `RewRepValueId3`, `RewRepValueId4`, `RewRepValueId5`, `RewRepValue1`, `RewRepValue2`, `RewRepValue3`, `RewRepValue4`, `RewRepValue5`, `RewHonorAddition`, `RewHonorMultiplier`, `RewOrReqMoney`, `RewMoneyMaxLevel`, `RewSpell`, `RewSpellCast`, `RewMailTemplateId`, `RewMailDelaySecs`, `PointMapId`, `PointX`, `PointY`, `PointOpt`, `DetailsEmote1`, `DetailsEmote2`, `DetailsEmote3`, `DetailsEmote4`, `DetailsEmoteDelay1`, `DetailsEmoteDelay2`, `DetailsEmoteDelay3`, `DetailsEmoteDelay4`, `IncompleteEmote`, `CompleteEmote`, `OfferRewardEmote1`, `OfferRewardEmote2`, `OfferRewardEmote3`, `OfferRewardEmote4`, `OfferRewardEmoteDelay1`, `OfferRewardEmoteDelay2`, `OfferRewardEmoteDelay3`, `OfferRewardEmoteDelay4`, `StartScript`, `CompleteScript`) VALUES (100085, 2, 0, 0, 80, 80, 0, 690, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32768, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'Armas a distancia.', 'Te veo mala cara, $n, quizás necesites ir a matar a unos cuantos gnomos... eso siempre sube la moral.$B$BAdemás, te podría proporcionar una amplia variedad de armas. Pero primero demuestra lo que vales.', 'Consigue al menos 400 Marcas de Guerrero en los campos de batalla luchando durante el fin de semana.', 'En fin, ya sabes donde estaré la semana que viene. ¡Y espero volver a verte, hay muchos enemigos que matar aún!', '¡Oh, vaya! ¿Ya has vuelto? ¿Y donde están mis preciosas marcas?', '', 'Marca de Guerrero', '', '', '', '', 20560, 0, 0, 0, 0, 0, 400, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 42490, 42495, 42485, 42450, 42502, 42519, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
+-- ----------------
+-- locales esES: --
+-- ----------------
+
+DELETE FROM `locales_quest` WHERE `entry` = 100000;
+DELETE FROM `locales_quest` WHERE `entry` = 100001;
+DELETE FROM `locales_quest` WHERE `entry` = 100002;
+DELETE FROM `locales_quest` WHERE `entry` = 100003;
+DELETE FROM `locales_quest` WHERE `entry` = 100004;
+DELETE FROM `locales_quest` WHERE `entry` = 100005;
+DELETE FROM `locales_quest` WHERE `entry` = 100006;
+DELETE FROM `locales_quest` WHERE `entry` = 100007;
+DELETE FROM `locales_quest` WHERE `entry` = 100008;
+DELETE FROM `locales_quest` WHERE `entry` = 100009;
+DELETE FROM `locales_quest` WHERE `entry` = 100010;
+DELETE FROM `locales_quest` WHERE `entry` = 100011;
+DELETE FROM `locales_quest` WHERE `entry` = 100012;
+DELETE FROM `locales_quest` WHERE `entry` = 100013;
+DELETE FROM `locales_quest` WHERE `entry` = 100014;
+DELETE FROM `locales_quest` WHERE `entry` = 100015;
+DELETE FROM `locales_quest` WHERE `entry` = 100016;
+DELETE FROM `locales_quest` WHERE `entry` = 100017;
+DELETE FROM `locales_quest` WHERE `entry` = 100018;
+DELETE FROM `locales_quest` WHERE `entry` = 100019;
+DELETE FROM `locales_quest` WHERE `entry` = 100020;
+DELETE FROM `locales_quest` WHERE `entry` = 100021;
+DELETE FROM `locales_quest` WHERE `entry` = 100022;
+DELETE FROM `locales_quest` WHERE `entry` = 100023;
+DELETE FROM `locales_quest` WHERE `entry` = 100024;
+DELETE FROM `locales_quest` WHERE `entry` = 100025;
+DELETE FROM `locales_quest` WHERE `entry` = 100026;
+DELETE FROM `locales_quest` WHERE `entry` = 100027;
+DELETE FROM `locales_quest` WHERE `entry` = 100028;
+DELETE FROM `locales_quest` WHERE `entry` = 100029;
+DELETE FROM `locales_quest` WHERE `entry` = 100030;
+DELETE FROM `locales_quest` WHERE `entry` = 100031;
+DELETE FROM `locales_quest` WHERE `entry` = 100032;
+DELETE FROM `locales_quest` WHERE `entry` = 100033;
+DELETE FROM `locales_quest` WHERE `entry` = 100034;
+DELETE FROM `locales_quest` WHERE `entry` = 100035;
+DELETE FROM `locales_quest` WHERE `entry` = 100036;
+DELETE FROM `locales_quest` WHERE `entry` = 100037;
+DELETE FROM `locales_quest` WHERE `entry` = 100038;
+DELETE FROM `locales_quest` WHERE `entry` = 100039;
+DELETE FROM `locales_quest` WHERE `entry` = 100040;
+DELETE FROM `locales_quest` WHERE `entry` = 100041;
+DELETE FROM `locales_quest` WHERE `entry` = 100042;
+DELETE FROM `locales_quest` WHERE `entry` = 100043;
+DELETE FROM `locales_quest` WHERE `entry` = 100044;
+DELETE FROM `locales_quest` WHERE `entry` = 100045;
+DELETE FROM `locales_quest` WHERE `entry` = 100046;
+DELETE FROM `locales_quest` WHERE `entry` = 100047;
+DELETE FROM `locales_quest` WHERE `entry` = 100048;
+DELETE FROM `locales_quest` WHERE `entry` = 100049;
+DELETE FROM `locales_quest` WHERE `entry` = 100050;
+DELETE FROM `locales_quest` WHERE `entry` = 100051;
+DELETE FROM `locales_quest` WHERE `entry` = 100052;
+DELETE FROM `locales_quest` WHERE `entry` = 100053;
+DELETE FROM `locales_quest` WHERE `entry` = 100054;
+DELETE FROM `locales_quest` WHERE `entry` = 100055;
+DELETE FROM `locales_quest` WHERE `entry` = 100056;
+DELETE FROM `locales_quest` WHERE `entry` = 100057;
+DELETE FROM `locales_quest` WHERE `entry` = 100058;
+DELETE FROM `locales_quest` WHERE `entry` = 100059;
+DELETE FROM `locales_quest` WHERE `entry` = 100060;
+DELETE FROM `locales_quest` WHERE `entry` = 100061;
+DELETE FROM `locales_quest` WHERE `entry` = 100062;
+DELETE FROM `locales_quest` WHERE `entry` = 100063;
+DELETE FROM `locales_quest` WHERE `entry` = 100064;
+DELETE FROM `locales_quest` WHERE `entry` = 100065;
+DELETE FROM `locales_quest` WHERE `entry` = 100066;
+DELETE FROM `locales_quest` WHERE `entry` = 100067;
+DELETE FROM `locales_quest` WHERE `entry` = 100068;
+DELETE FROM `locales_quest` WHERE `entry` = 100069;
+DELETE FROM `locales_quest` WHERE `entry` = 100070;
+DELETE FROM `locales_quest` WHERE `entry` = 100071;
+DELETE FROM `locales_quest` WHERE `entry` = 100072;
+DELETE FROM `locales_quest` WHERE `entry` = 100073;
+DELETE FROM `locales_quest` WHERE `entry` = 100074;
+DELETE FROM `locales_quest` WHERE `entry` = 100075;
+DELETE FROM `locales_quest` WHERE `entry` = 100076;
+DELETE FROM `locales_quest` WHERE `entry` = 100077;
+DELETE FROM `locales_quest` WHERE `entry` = 100078;
+DELETE FROM `locales_quest` WHERE `entry` = 100079;
+DELETE FROM `locales_quest` WHERE `entry` = 100080;
+DELETE FROM `locales_quest` WHERE `entry` = 100081;
+DELETE FROM `locales_quest` WHERE `entry` = 100082;
+DELETE FROM `locales_quest` WHERE `entry` = 100083;
+DELETE FROM `locales_quest` WHERE `entry` = 100084;
+DELETE FROM `locales_quest` WHERE `entry` = 100085;
+
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100000,
+(SELECT `title` FROM quest_template WHERE `entry` = 100000),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100000),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100000),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100000),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100000),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100000),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100000),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100000));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100001;
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100001,
+(SELECT `title` FROM quest_template WHERE `entry` = 100001),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100001),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100001),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100001),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100001),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100001),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100001),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100001));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100002);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100002,
+(SELECT `title` FROM quest_template WHERE `entry` = 100002),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100002),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100002),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100002),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100002),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100002),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100002),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100002));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100003);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100003,
+(SELECT `title` FROM quest_template WHERE `entry` = 100003),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100003),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100003),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100003),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100003),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100003),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100003),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100003));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100004);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100004,
+(SELECT `title` FROM quest_template WHERE `entry` = 100004),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100004),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100004),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100004),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100004),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100004),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100004),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100004));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100005);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100005,
+(SELECT `title` FROM quest_template WHERE `entry` = 100005),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100005),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100005),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100005),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100005),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100005),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100005),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100005));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100006);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100006,
+(SELECT `title` FROM quest_template WHERE `entry` = 100006),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100006),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100006),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100006),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100006),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100006),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100006),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100006));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100007);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100007,
+(SELECT `title` FROM quest_template WHERE `entry` = 100007),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100007),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100007),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100007),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100007),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100007),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100007),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100007));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100008);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100008,
+(SELECT `title` FROM quest_template WHERE `entry` = 100008),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100008),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100008),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100008),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100008),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100008),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100008),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100008));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100009);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100009,
+(SELECT `title` FROM quest_template WHERE `entry` = 100009),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100009),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100009),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100009),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100009),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100009),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100009),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100009));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100010);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100010,
+(SELECT `title` FROM quest_template WHERE `entry` = 100010),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100010),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100010),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100010),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100010),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100010),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100010),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100010));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100011);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100011,
+(SELECT `title` FROM quest_template WHERE `entry` = 100011),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100011),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100011),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100011),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100011),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100011),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100011),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100011));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100012);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100012,
+(SELECT `title` FROM quest_template WHERE `entry` = 100012),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100012),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100012),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100012),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100012),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100012),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100012),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100012));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100013);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100013,
+(SELECT `title` FROM quest_template WHERE `entry` = 100013),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100013),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100013),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100013),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100013),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100013),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100013),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100013));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100014);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100014,
+(SELECT `title` FROM quest_template WHERE `entry` = 100014),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100014),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100014),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100014),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100014),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100014),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100014),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100014));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100015);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100015,
+(SELECT `title` FROM quest_template WHERE `entry` = 100015),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100015),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100015),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100015),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100015),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100015),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100015),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100015));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100016);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100016,
+(SELECT `title` FROM quest_template WHERE `entry` = 100016),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100016),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100016),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100016),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100016),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100016),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100016),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100016));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100017);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100017,
+(SELECT `title` FROM quest_template WHERE `entry` = 100017),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100017),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100017),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100017),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100017),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100017),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100017),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100017));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100018);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100018,
+(SELECT `title` FROM quest_template WHERE `entry` = 100018),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100018),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100018),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100018),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100018),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100018),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100018),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100018));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100019);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100019,
+(SELECT `title` FROM quest_template WHERE `entry` = 100019),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100019),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100019),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100019),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100019),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100019),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100019),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100019));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100020);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100020,
+(SELECT `title` FROM quest_template WHERE `entry` = 100020),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100020),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100020),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100020),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100020),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100020),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100020),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100020));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100021);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100021,
+(SELECT `title` FROM quest_template WHERE `entry` = 100021),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100021),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100021),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100021),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100021),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100021),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100021),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100021));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100022);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100022,
+(SELECT `title` FROM quest_template WHERE `entry` = 100022),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100022),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100022),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100022),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100022),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100022),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100022),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100022));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100023);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100023,
+(SELECT `title` FROM quest_template WHERE `entry` = 100023),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100023),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100023),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100023),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100023),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100023),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100023),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100023));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100024);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100024,
+(SELECT `title` FROM quest_template WHERE `entry` = 100024),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100024),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100024),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100024),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100024),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100024),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100024),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100024));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100025);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100025,
+(SELECT `title` FROM quest_template WHERE `entry` = 100025),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100025),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100025),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100025),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100025),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100025),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100025),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100025));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100026);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100026,
+(SELECT `title` FROM quest_template WHERE `entry` = 100026),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100026),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100026),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100026),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100026),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100026),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100026),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100026));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100027);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100027,
+(SELECT `title` FROM quest_template WHERE `entry` = 100027),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100027),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100027),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100027),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100027),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100027),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100027),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100027));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100028);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100028,
+(SELECT `title` FROM quest_template WHERE `entry` = 100028),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100028),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100028),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100028),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100028),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100028),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100028),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100028));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100029);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100029,
+(SELECT `title` FROM quest_template WHERE `entry` = 100029),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100029),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100029),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100029),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100029),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100029),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100029),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100029));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100030);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100030,
+(SELECT `title` FROM quest_template WHERE `entry` = 100030),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100030),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100030),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100030),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100030),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100030),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100030),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100030));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100031);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100031,
+(SELECT `title` FROM quest_template WHERE `entry` = 100031),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100031),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100031),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100031),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100031),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100031),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100031),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100031));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100032);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100032,
+(SELECT `title` FROM quest_template WHERE `entry` = 100032),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100032),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100032),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100032),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100032),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100032),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100032),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100032));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100033);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100033,
+(SELECT `title` FROM quest_template WHERE `entry` = 100033),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100033),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100033),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100033),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100033),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100033),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100033),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100033));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100034);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100034,
+(SELECT `title` FROM quest_template WHERE `entry` = 100034),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100034),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100034),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100034),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100034),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100034),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100034),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100034));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100035);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100035,
+(SELECT `title` FROM quest_template WHERE `entry` = 100035),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100035),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100035),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100035),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100035),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100035),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100035),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100035));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100036);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100036,
+(SELECT `title` FROM quest_template WHERE `entry` = 100036),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100036),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100036),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100036),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100036),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100036),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100036),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100036));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100037);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100037,
+(SELECT `title` FROM quest_template WHERE `entry` = 100037),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100037),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100037),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100037),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100037),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100037),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100037),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100037));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100038);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100038,
+(SELECT `title` FROM quest_template WHERE `entry` = 100038),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100038),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100038),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100038),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100038),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100038),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100038),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100038));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100039);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100039,
+(SELECT `title` FROM quest_template WHERE `entry` = 100039),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100039),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100039),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100039),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100039),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100039),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100039),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100039));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100040);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100040,
+(SELECT `title` FROM quest_template WHERE `entry` = 100040),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100040),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100040),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100040),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100040),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100040),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100040),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100040));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100041);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100041,
+(SELECT `title` FROM quest_template WHERE `entry` = 100041),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100041),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100041),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100041),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100041),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100041),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100041),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100041));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100042);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100042,
+(SELECT `title` FROM quest_template WHERE `entry` = 100042),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100042),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100042),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100042),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100042),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100042),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100042),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100042));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100043);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100043,
+(SELECT `title` FROM quest_template WHERE `entry` = 100043),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100043),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100043),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100043),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100043),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100043),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100043),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100043));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100044);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100044,
+(SELECT `title` FROM quest_template WHERE `entry` = 100044),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100044),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100044),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100044),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100044),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100044),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100044),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100044));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100045);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100045,
+(SELECT `title` FROM quest_template WHERE `entry` = 100045),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100045),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100045),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100045),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100045),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100045),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100045),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100045));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100046);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100046,
+(SELECT `title` FROM quest_template WHERE `entry` = 100046),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100046),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100046),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100046),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100046),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100046),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100046),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100046));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100047);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100047,
+(SELECT `title` FROM quest_template WHERE `entry` = 100047),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100047),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100047),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100047),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100047),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100047),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100047),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100047));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100048);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100048,
+(SELECT `title` FROM quest_template WHERE `entry` = 100048),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100048),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100048),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100048),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100048),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100048),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100048),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100048));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100049);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100049,
+(SELECT `title` FROM quest_template WHERE `entry` = 100049),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100049),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100049),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100049),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100049),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100049),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100049),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100049));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100050);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100050,
+(SELECT `title` FROM quest_template WHERE `entry` = 100050),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100050),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100050),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100050),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100050),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100050),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100050),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100050));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100051);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100051,
+(SELECT `title` FROM quest_template WHERE `entry` = 100051),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100051),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100051),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100051),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100051),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100051),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100051),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100051));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100052);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100052,
+(SELECT `title` FROM quest_template WHERE `entry` = 100052),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100052),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100052),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100052),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100052),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100052),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100052),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100052));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100053);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100053,
+(SELECT `title` FROM quest_template WHERE `entry` = 100053),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100053),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100053),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100053),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100053),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100053),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100053),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100053));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100054);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100054,
+(SELECT `title` FROM quest_template WHERE `entry` = 100054),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100054),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100054),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100054),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100054),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100054),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100054),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100054));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100055);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100055,
+(SELECT `title` FROM quest_template WHERE `entry` = 100055),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100055),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100055),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100055),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100055),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100055),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100055),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100055));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100056);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100056,
+(SELECT `title` FROM quest_template WHERE `entry` = 100056),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100056),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100056),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100056),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100056),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100056),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100056),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100056));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100057);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100057,
+(SELECT `title` FROM quest_template WHERE `entry` = 100057),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100057),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100057),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100057),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100057),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100057),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100057),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100057));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100058);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100058,
+(SELECT `title` FROM quest_template WHERE `entry` = 100058),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100058),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100058),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100058),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100058),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100058),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100058),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100058));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100059);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100059,
+(SELECT `title` FROM quest_template WHERE `entry` = 100059),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100059),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100059),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100059),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100059),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100059),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100059),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100059));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100060);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100060,
+(SELECT `title` FROM quest_template WHERE `entry` = 100060),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100060),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100060),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100060),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100060),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100060),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100060),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100060));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100061);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100061,
+(SELECT `title` FROM quest_template WHERE `entry` = 100061),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100061),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100061),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100061),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100061),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100061),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100061),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100061));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100062);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100062,
+(SELECT `title` FROM quest_template WHERE `entry` = 100062),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100062),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100062),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100062),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100062),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100062),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100062),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100062));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100063);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100063,
+(SELECT `title` FROM quest_template WHERE `entry` = 100063),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100063),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100063),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100063),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100063),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100063),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100063),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100063));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100064);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100064,
+(SELECT `title` FROM quest_template WHERE `entry` = 100064),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100064),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100064),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100064),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100064),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100064),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100064),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100064));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100065);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100065,
+(SELECT `title` FROM quest_template WHERE `entry` = 100065),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100065),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100065),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100065),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100065),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100065),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100065),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100065));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100066);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100066,
+(SELECT `title` FROM quest_template WHERE `entry` = 100066),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100066),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100066),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100066),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100066),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100066),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100066),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100066));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100067);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100067,
+(SELECT `title` FROM quest_template WHERE `entry` = 100067),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100067),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100067),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100067),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100067),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100067),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100067),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100067));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100068);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100068,
+(SELECT `title` FROM quest_template WHERE `entry` = 100068),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100068),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100068),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100068),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100068),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100068),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100068),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100068));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100069);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100069,
+(SELECT `title` FROM quest_template WHERE `entry` = 100069),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100069),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100069),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100069),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100069),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100069),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100069),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100069));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100070);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100070,
+(SELECT `title` FROM quest_template WHERE `entry` = 100070),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100070),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100070),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100070),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100070),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100070),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100070),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100070));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100071);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100071,
+(SELECT `title` FROM quest_template WHERE `entry` = 100071),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100071),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100071),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100071),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100071),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100071),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100071),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100071));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100072);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100072,
+(SELECT `title` FROM quest_template WHERE `entry` = 100072),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100072),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100072),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100072),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100072),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100072),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100072),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100072));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100073);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100073,
+(SELECT `title` FROM quest_template WHERE `entry` = 100073),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100073),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100073),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100073),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100073),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100073),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100073),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100073));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100074);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100074,
+(SELECT `title` FROM quest_template WHERE `entry` = 100074),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100074),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100074),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100074),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100074),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100074),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100074),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100074));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100075);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100075,
+(SELECT `title` FROM quest_template WHERE `entry` = 100075),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100075),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100075),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100075),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100075),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100075),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100075),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100075));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100076);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100076,
+(SELECT `title` FROM quest_template WHERE `entry` = 100076),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100076),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100076),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100076),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100076),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100076),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100076),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100076));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100077);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100077,
+(SELECT `title` FROM quest_template WHERE `entry` = 100077),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100077),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100077),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100077),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100077),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100077),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100077),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100077));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100078);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100078,
+(SELECT `title` FROM quest_template WHERE `entry` = 100078),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100078),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100078),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100078),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100078),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100078),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100078),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100078));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100079);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100079,
+(SELECT `title` FROM quest_template WHERE `entry` = 100079),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100079),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100079),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100079),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100079),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100079),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100079),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100079));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100080);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100080,
+(SELECT `title` FROM quest_template WHERE `entry` = 100080),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100080),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100080),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100080),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100080),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100080),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100080),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100080));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100081);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100081,
+(SELECT `title` FROM quest_template WHERE `entry` = 100081),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100081),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100081),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100081),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100081),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100081),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100081),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100081));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100082);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100082,
+(SELECT `title` FROM quest_template WHERE `entry` = 100082),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100082),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100082),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100082),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100082),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100082),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100082),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100082));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100083);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100083,
+(SELECT `title` FROM quest_template WHERE `entry` = 100083),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100083),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100083),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100083),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100083),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100083),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100083),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100083));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100084);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100084,
+(SELECT `title` FROM quest_template WHERE `entry` = 100084),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100084),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100084),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100084),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100084),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100084),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100084),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100084));
+
+-- delete FROM `locales_quest` WHERE `entry` = 100085);
+INSERT INTO `locales_quest` (`entry`, `Title_loc6`, `Details_loc6`, `Objectives_loc6`, `OfferRewardText_loc6`, `RequestItemsText_loc6`, `EndText_loc6`, `CompletedText_loc6`, `ObjectiveText1_loc6`) VALUES
+(100085,
+(SELECT `title` FROM quest_template WHERE `entry` = 100085),
+(SELECT `Details` FROM quest_template WHERE `entry` = 100085),
+(SELECT `Objectives` FROM quest_template WHERE `entry` = 100085),
+(SELECT `OfferRewardText` FROM quest_template WHERE `entry` = 100085),
+(SELECT `RequestItemsText` FROM quest_template WHERE `entry` = 100085),
+(SELECT `EndText` FROM quest_template WHERE `entry` = 100085),
+(SELECT `CompletedText` FROM quest_template WHERE `entry` = 100085),
+(SELECT `ObjectiveText1` FROM quest_template WHERE `entry` = 100085));
 -- END
