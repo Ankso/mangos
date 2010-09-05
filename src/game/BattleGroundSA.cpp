@@ -1087,21 +1087,22 @@ void BattleGroundSA::LetsFly()
 {
     for (BattleGroundPlayerMap::const_iterator iter = m_Players.begin(); iter != m_Players.end(); ++iter)
     {
-        Player *player = sObjectMgr.GetPlayer(iter->first);
-        
-        if (player->HasAura(44521))                 // Remove Preparation
-            player->RemoveAurasDueToSpell(44521);
-
-        if (GetController() != player->GetTeam())
+        if (Player *player = sObjectMgr.GetPlayer(iter->first))
         {
-            // This is custom, I haven't implemented boats yet, so, , fly!
-            player->CastSpell(player, 54168, true); // Parachute :)
-            if (player->GetPositionY() < 0)
-                //player->TeleportTo(607, 1597.637f, -106.348f, 8.888f, 4.1263f);
-                player->SendMonsterMove(1597.637f, -106.348f, 8.888f, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 10000);
-            else
-                //player->TeleportTo(607, 1606.608f, 50.1236f, 7.58f, 2.3898f);
-                player->SendMonsterMove(1606.608f, 50.1236f, 7.58f, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 10000);
+            if (player->HasAura(44521))                 // Remove Preparation
+                player->RemoveAurasDueToSpell(44521);
+
+            if (GetController() != player->GetTeam())
+            {
+                // This is custom, I haven't implemented boats yet, so, fly!
+                player->CastSpell(player, 54168, true); // Parachute :)
+                if (player->GetPositionY() < 0)
+                    //player->TeleportTo(607, 1597.637f, -106.348f, 8.888f, 4.1263f);
+                    player->SendMonsterMove(1597.637f, -106.348f, 8.888f, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 10000);
+                else
+                    //player->TeleportTo(607, 1606.608f, 50.1236f, 7.58f, 2.3898f);
+                    player->SendMonsterMove(1606.608f, 50.1236f, 7.58f, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 10000);
+            }
         }
     }
 }

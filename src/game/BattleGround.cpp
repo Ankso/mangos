@@ -846,7 +846,10 @@ void BattleGround::EndBattleGround(uint32 winner)
             QuestComplete(plr);
             
             if (pvp_event)                        // Custom event
-                RewardItem(plr, 20560, 10);
+                if (isBattleGround())
+                    RewardItem(plr, 20560, 10);
+                else
+                    RewardItem(plr, 20560, 5);
 
             if (IsRandom() || BattleGroundMgr::IsBGWeekend(GetTypeID()))
             {
@@ -863,7 +866,10 @@ void BattleGround::EndBattleGround(uint32 winner)
             RewardMark(plr,ITEM_LOSER_COUNT);
 
             if (pvp_event)                        // Custom event
-                RewardItem(plr, 20560, 5);
+                if (isBattleGround())
+                    RewardItem(plr, 20560, 5);
+                else
+                    RewardItem(plr, 20560, 2);
 
             if (IsRandom() || BattleGroundMgr::IsBGWeekend(GetTypeID()))
                 UpdatePlayerScore(plr, SCORE_BONUS_HONOR, GetBonusHonorFromKill(loos_kills*4));

@@ -7161,17 +7161,17 @@ void Player::DuelComplete(DuelCompleteType type)
 
     if (type == DUEL_WON)
     {
-        bool pvp_event = (IsEventActive(100) && GetZoneId() == 3703); 
-        uint32 item = 47395;  // Isle of Conquest mark of honor - not used, only for custom event on my server.
+        // bool pvp_event = (IsEventActive(100) && GetZoneId() == 3703); 
+        // uint32 item = 47395;  // Isle of Conquest mark of honor - not used, only for custom event on my server.
 
         GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_LOSE_DUEL, 1);
-        if (pvp_event)
-            AddItem(item, 1);
+        /*if (pvp_event)
+            AddItem(item, 1);*/
         if (duel->opponent)
         {
             duel->opponent->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_WIN_DUEL, 1);
-            if (pvp_event)
-                duel->opponent->AddItem(item, 2);
+            /*if (pvp_event)
+                duel->opponent->AddItem(item, 2);*/
         }
     }
 
