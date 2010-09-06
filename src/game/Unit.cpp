@@ -197,6 +197,11 @@ Unit::Unit()
 
     m_Visibility = VISIBILITY_ON;
 
+    m_notify_sheduled = false;
+    m_last_notified_position.x = 0;
+    m_last_notified_position.y = 0;
+    m_last_notified_position.z = 0;
+
     m_detectInvisibilityMask = 0;
     m_invisibilityMask = 0;
     m_transform = 0;
@@ -4175,45 +4180,34 @@ bool Unit::AddSpellAuraHolder(SpellAuraHolder *holder)
     }
 
     // update single target auras list (before aura add to aura list, to prevent unexpected remove recently added aura)
-    if (holder->IsSingleTarget() && holder->GetTarget())
+    if (holder->IsSingleTarget())
     {
-        // caster pointer can be deleted in time aura remove, find it by guid at each iteration
-        for(;;)
+        if (Unit* caster = holder->GetCaster())             // caster not in world
         {
-            Unit* caster = holder->GetCaster();
-            if(!caster)                                     // caster deleted and not required adding scAura
-                break;
-
-            bool restart = false;
-            SpellAuraHolderList& scAuras = caster->GetSingleCastSpellAuraHolders();
-            for(SpellAuraHolderList::const_iterator itr = scAuras.begin(); itr != scAuras.end(); ++itr)
+            SingleCastSpellTargetMap& scTargets = caster->GetSingleCastSpellTargets();
+            for(SingleCastSpellTargetMap::iterator itr = scTargets.begin(); itr != scTargets.end();)
             {
-                if( (*itr)->GetTarget() != holder->GetTarget() &&
-                    IsSingleTargetSpells((*itr)->GetSpellProto(),aurSpellInfo) )
+                SpellEntry const* itr_spellEntry = itr->first;
+                ObjectGuid itr_targetGuid = itr->second;
+
+                if (itr_targetGuid != GetObjectGuid() &&
+                    IsSingleTargetSpells(itr_spellEntry, aurSpellInfo))
                 {
-                    if ((*itr)->IsInUse())
-                    {
-                        sLog.outError("Holder (Spell %u) is in process but attempt removed at aura (Spell %u) adding, need add stack rule for IsSingleTargetSpell", (*itr)->GetId(), holder->GetId());
-                        continue;
-                    }
-                    (*itr)->GetTarget()->RemoveSpellAuraHolder((*itr));
-                    restart = true;
-                    break;
-                }  
-                // Judgements are always single 
-                else if (GetSpellSpecific(holder->GetId()) == SPELL_JUDGEMENT)
-                {
-                    (*itr)->GetTarget()->RemoveSpellAuraHolder((*itr));
-                    break;
+                    scTargets.erase(itr);                   // remove for caster in any case
+
+                    // remove from target if target found
+                    if (Unit* itr_target = GetMap()->GetUnit(itr_targetGuid))
+                        itr_target->RemoveAurasDueToSpell(itr_spellEntry->Id);
+
+                    itr = scTargets.begin();                // list can be chnaged at remove aura
+                    continue;
                 }
+
+                ++itr;
             }
 
-            if(!restart)
-            {
-                // done
-                scAuras.push_back(holder);
-                break;
-            }
+            // register spell holder single target
+            scTargets[aurSpellInfo] = GetObjectGuid();
         }
     }
 
@@ -4740,12 +4734,13 @@ void Unit::RemoveNotOwnSingleTargetAuras(uint32 newPhase)
     // single target auras from other casters
     for (SpellAuraHolderMap::iterator iter = m_spellAuraHolders.begin(); iter != m_spellAuraHolders.end(); )
     {
-        if (iter->second->GetCasterGUID()!=GetGUID() && IsSingleTargetSpell(iter->second->GetSpellProto()))
+        if (iter->second->GetCasterGUID() != GetGUID() && iter->second->IsSingleTarget())
         {
             if(!newPhase)
             {
                 RemoveSpellAuraHolder(iter->second);
                 iter = m_spellAuraHolders.begin();
+                continue;
             }
             else
             {
@@ -4754,29 +4749,52 @@ void Unit::RemoveNotOwnSingleTargetAuras(uint32 newPhase)
                 {
                     RemoveSpellAuraHolder(iter->second);
                     iter = m_spellAuraHolders.begin();
+                    continue;
                 }
-                else
-                    ++iter;
             }
         }
-        else
-            ++iter;
+
+        ++iter;
     }
 
-    // single cast!!
     // single target auras at other targets
-    SpellAuraHolderList& scAuras = GetSingleCastSpellAuraHolders();
-    for (SpellAuraHolderList::iterator iter = scAuras.begin(); iter != scAuras.end(); )
+    SingleCastSpellTargetMap& scTargets = GetSingleCastSpellTargets();
+    for (SingleCastSpellTargetMap::iterator itr = scTargets.begin(); itr != scTargets.end(); )
     {
-        SpellAuraHolder* holder = *iter;
-        if (holder->GetTarget() != this && !holder->GetTarget()->InSamePhase(newPhase))
+        SpellEntry const* itr_spellEntry = itr->first;
+        ObjectGuid itr_targetGuid = itr->second;
+
+        if (itr_targetGuid != GetObjectGuid())
         {
-            scAuras.erase(iter);                            // explicitly remove, instead waiting remove in RemoveSpellAuraHolder
-            holder->GetTarget()->RemoveSpellAuraHolder(holder);
-            iter = scAuras.begin();
+            if(!newPhase)
+            {
+                scTargets.erase(itr);                       // remove for caster in any case
+
+                // remove from target if target found
+                if (Unit* itr_target = GetMap()->GetUnit(itr_targetGuid))
+                    itr_target->RemoveAurasByCasterSpell(itr_spellEntry->Id, GetGUID());
+
+                itr = scTargets.begin();                    // list can be changed at remove aura
+                continue;
+            }
+            else
+            {
+                Unit* itr_target = GetMap()->GetUnit(itr_targetGuid);
+                if(!itr_target || !itr_target->InSamePhase(newPhase))
+                {
+                    scTargets.erase(itr);                   // remove for caster in any case
+
+                    // remove from target if target found
+                    if (itr_target)
+                        itr_target->RemoveAurasByCasterSpell(itr_spellEntry->Id, GetGUID());
+
+                    itr = scTargets.begin();                // list can be changed at remove aura
+                    continue;
+                }
+            }
         }
-        else
-            ++iter;
+
+        ++itr;
     }
 
 }
@@ -6480,7 +6498,7 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
             case 7293: // Rage of Rivendare
             {
                 if (pVictim->GetAura(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_DEATHKNIGHT, UI64LIT(0x0200000000000000)))
-                    DoneTotalMod *= ((*i)->GetModifier()->m_amount+100.0f)/100.0f;
+                    DoneTotalMod *= ((*i)->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_1)*2+100.0f)/100.0f;
                 break;
             }
             // Twisted Faith
@@ -6614,6 +6632,12 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
                         break;
                     }
                 }
+            }
+            // Death Coil (bonus from Item - Death Knight T8 DPS Relic)
+            else if (spellProto->SpellFamilyFlags & UI64LIT(0x00002000))
+            {
+                 if (Aura* sigil = GetDummyAura(64962))
+                    DoneTotal += sigil->GetModifier()->m_amount;
             }
             break;
         }
@@ -7487,7 +7511,7 @@ uint32 Unit::MeleeDamageBonusDone(Unit *pVictim, uint32 pdamage,WeaponAttackType
                 case 7293: // Rage of Rivendare
                 {
                     if (pVictim->GetAura(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_DEATHKNIGHT, UI64LIT(0x0200000000000000)))
-                        DonePercent *= ((*i)->GetModifier()->m_amount+100.0f)/100.0f;
+                        DonePercent *= ((*i)->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_1)*2+100.0f)/100.0f;
                     break;
                 }
                 // Marked for Death
@@ -8295,12 +8319,9 @@ void Unit::SetVisibility(UnitVisibility x)
             }
         }
 
-        Map *m = GetMap();
-
-        if(GetTypeId()==TYPEID_PLAYER)
-            m->PlayerRelocation((Player*)this,GetPositionX(),GetPositionY(),GetPositionZ(),GetOrientation());
-        else
-            m->CreatureRelocation((Creature*)this,GetPositionX(),GetPositionY(),GetPositionZ(),GetOrientation());
+        GetViewPoint().Call_UpdateVisibilityForOwner();
+        UpdateObjectVisibility();
+        SheduleAINotify(0);
 
         GetViewPoint().Event_ViewPointVisibilityChanged();
     }
@@ -11465,6 +11486,32 @@ void Unit::EnterVehicle(Vehicle *vehicle, int8 seat_id, bool force)
 
     RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
 
+    if (vehicle->GetEntry() == 28781 && vehicle->GetMapId() == 607 && vehicle->GetMap()->IsBattleGround())
+    {
+        if (GetTypeId() == TYPEID_PLAYER)
+        {
+            Player *player = ((Player*)this);
+            if (BattleGround *bg = player->GetBattleGround())
+                if (bg->GetController() == player->GetTeam())
+                    return;
+                else
+                    ((Creature*)vehicle)->setFaction(player->getFaction());
+        }
+    }
+
+    if (vehicle->GetEntry() == 27894 && vehicle->GetMapId() == 607 && vehicle->GetMap()->IsBattleGround())
+    {
+        if (GetTypeId() == TYPEID_PLAYER)
+        {
+            Player *player = ((Player*)this);
+            if (BattleGround *bg = player->GetBattleGround())
+                if (bg->GetController() != player->GetTeam())
+                    return;
+                else
+                    ((Creature*)vehicle)->setFaction(player->getFaction());
+        }
+    }
+
     Vehicle *v = vehicle->FindFreeSeat(&seat_id, force);
     if(!v)
         return;
@@ -11531,6 +11578,9 @@ void Unit::ExitVehicle()
             }
             v_size = vehicle->GetObjectBoundingRadius();
             vehicle->RemovePassenger(this);
+            if (vehicle->GetEntry() == 28781 || vehicle->GetEntry() == 27894)
+                if (GetTypeId() == TYPEID_PLAYER)
+                    ((Creature*)vehicle)->setFaction(((Player*)this)->getFaction());
         }
         SetVehicleGUID(0);
 
@@ -11619,4 +11669,48 @@ void Unit::_AddAura(uint32 spellID, uint32 duration)
             AddSpellAuraHolder(holder);
         }
     }
+}
+
+class RelocationNotifyEvent : public BasicEvent
+{
+    public:
+        RelocationNotifyEvent(Unit& owner) : BasicEvent(), m_owner(owner)
+        {
+            m_owner.m_notify_sheduled = true;
+        }
+
+        bool Execute(uint64, uint32)
+        {
+            float radius = MAX_CREATURE_ATTACK_RADIUS * sWorld.getConfig(CONFIG_FLOAT_RATE_CREATURE_AGGRO);
+
+            if (m_owner.GetTypeId() == TYPEID_PLAYER)
+            {
+                MaNGOS::PlayerRelocationNotifier notify((Player&)m_owner);
+                Cell::VisitAllObjects(&m_owner,notify,radius);
+            } 
+            else //if(m_owner.GetTypeId() == TYPEID_UNIT)
+            {
+                MaNGOS::CreatureRelocationNotifier notify((Creature&)m_owner);
+                Cell::VisitAllObjects(&m_owner,notify,radius);
+            }
+            m_owner.m_notify_sheduled = false;
+            return true;
+        }
+
+        void Abort(uint64)
+        {
+            m_owner.m_notify_sheduled = false;
+        }
+
+    private:
+        Unit& m_owner;
+};
+
+void Unit::SheduleAINotify(uint32 delay)
+{
+    if (m_notify_sheduled)
+        return;
+
+    RelocationNotifyEvent *notify = new RelocationNotifyEvent(*this);
+    m_Events.AddEvent(notify, m_Events.CalculateTime(delay));
 }
