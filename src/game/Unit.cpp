@@ -11486,6 +11486,32 @@ void Unit::EnterVehicle(Vehicle *vehicle, int8 seat_id, bool force)
 
     RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
 
+    if (vehicle->GetEntry() == 28781 && vehicle->GetMapId() == 607 && vehicle->GetMap()->IsBattleGround())
+    {
+        if (GetTypeId() == TYPEID_PLAYER)
+        {
+            Player *player = ((Player*)this);
+            if (BattleGround *bg = player->GetBattleGround())
+                if (bg->GetController() == player->GetTeam())
+                    return;
+                else
+                    ((Creature*)vehicle)->setFaction(player->getFaction());
+        }
+    }
+
+    if (vehicle->GetEntry() == 27894 && vehicle->GetMapId() == 607 && vehicle->GetMap()->IsBattleGround())
+    {
+        if (GetTypeId() == TYPEID_PLAYER)
+        {
+            Player *player = ((Player*)this);
+            if (BattleGround *bg = player->GetBattleGround())
+                if (bg->GetController() != player->GetTeam())
+                    return;
+                else
+                    ((Creature*)vehicle)->setFaction(player->getFaction());
+        }
+    }
+
     Vehicle *v = vehicle->FindFreeSeat(&seat_id, force);
     if(!v)
         return;
