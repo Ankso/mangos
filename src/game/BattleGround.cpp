@@ -864,15 +864,14 @@ void BattleGround::EndBattleGround(uint32 winner)
         else
         {
             RewardMark(plr,ITEM_LOSER_COUNT);
+            if (IsRandom() || BattleGroundMgr::IsBGWeekend(GetTypeID()))
+                UpdatePlayerScore(plr, SCORE_BONUS_HONOR, GetBonusHonorFromKill(loos_kills*4));
 
             if (pvp_event)                        // Custom event
                 if (isBattleGround())
                     RewardItem(plr, 20560, 5);
                 else
                     RewardItem(plr, 20560, 2);
-
-            if (IsRandom() || BattleGroundMgr::IsBGWeekend(GetTypeID()))
-                UpdatePlayerScore(plr, SCORE_BONUS_HONOR, GetBonusHonorFromKill(loos_kills*4));
         }
 
         plr->CombatStopWithPets(true);

@@ -362,6 +362,7 @@ class BattleGround
         uint32 GetBattlemasterEntry() const;
         uint32 GetBonusHonorFromKill(uint32 kills) const;
         bool IsRandom() { return m_IsRandom; }
+
         //START//////////SA and IC /////////START//
         virtual uint32 GetController()				  const	{ return false; }
         virtual uint8  GetGydController(uint8 /*gyd*/) const { return false; }
@@ -397,7 +398,6 @@ class BattleGround
 
         void DecreaseInvitedCount(uint32 team)      { (team == ALLIANCE) ? --m_InvitedAlliance : --m_InvitedHorde; }
         void IncreaseInvitedCount(uint32 team)      { (team == ALLIANCE) ? ++m_InvitedAlliance : ++m_InvitedHorde; }
-
         void SetRandom(bool isRandom) { m_IsRandom = isRandom; }
         uint32 GetInvitedCount(uint32 team) const
         {

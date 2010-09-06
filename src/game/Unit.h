@@ -1134,6 +1134,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         typedef std::list<DiminishingReturn> Diminishing;
         typedef std::set<uint32> ComboPointHolderSet;
         typedef std::map<uint8, uint32> VisibleAuraMap;
+        typedef std::map<SpellEntry const*, ObjectGuid> SingleCastSpellTargetMap;
+
 
         virtual ~Unit ( );
 
@@ -1698,8 +1700,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         virtual bool IsVisibleInGridForPlayer(Player* pl) const = 0;
         bool isInvisibleForAlive() const;
 
-        SpellAuraHolderList      & GetSingleCastSpellAuraHolders()       { return m_scSpellAuraHolders; }
-        SpellAuraHolderList const& GetSingleCastSpellAuraHolders() const { return m_scSpellAuraHolders; }
+        SingleCastSpellTargetMap      & GetSingleCastSpellTargets()       { return m_singleCastSpellTargets; }
+        SingleCastSpellTargetMap const& GetSingleCastSpellTargets() const { return m_singleCastSpellTargets; }
         SpellImmuneList m_spellImmune[MAX_SPELL_IMMUNITY];
 
         // Threat related methods
@@ -1946,18 +1948,25 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         // Movement info
         MovementInfo m_movementInfo;
 
-         // vehicle system
-         void EnterVehicle(VehicleKit *vehicle, int8 seatId = -1);
-         void EnterVehicle(Vehicle *vehicle, int8 seat_id, bool force = false);
-         void ExitVehicle();
-         void ChangeSeat(int8 seatId, bool next = true);
-         uint64 GetVehicleGUID() { return m_vehicleGUID; }
-         void SetVehicleGUID(uint64 guid) { m_vehicleGUID = guid; }
-         VehicleKit* GetVehicle() { return m_vehicle; }
-         VehicleKit* GetVehicleKit() { return m_vehicleKit; }
-         Unit* GetVehicleBase();
-         bool CreateVehicleKit(uint32 vehicleEntry);
-         void RemoveVehicleKit();
+        // vehicle system
+        void EnterVehicle(VehicleKit *vehicle, int8 seatId = -1);
+        void EnterVehicle(Vehicle *vehicle, int8 seat_id, bool force = false);
+        void ExitVehicle();
+        void ChangeSeat(int8 seatId, bool next = true);
+        uint64 GetVehicleGUID() { return m_vehicleGUID; }
+        void SetVehicleGUID(uint64 guid) { m_vehicleGUID = guid; }
+        VehicleKit* GetVehicle() { return m_vehicle; }
+        VehicleKit* GetVehicleKit() { return m_vehicleKit; }
+        Unit* GetVehicleBase();
+        bool CreateVehicleKit(uint32 vehicleEntry);
+        void RemoveVehicleKit();
+        void SheduleAINotify(uint32 delay);
+
+        bool m_notify_sheduled;
+        struct 
+        {
+            float x, y, z;
+        } m_last_notified_position;
 
     protected:
         explicit Unit ();
@@ -1980,7 +1989,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         SpellAuraHolderList m_deletedHolders;
         AuraList m_dummyAuraLink;                                      // custom linked dummy auras
 
-        SpellAuraHolderList m_scSpellAuraHolders;                      // casted by unit single per-caster auras
+        SingleCastSpellTargetMap m_singleCastSpellTargets;  // casted by unit single per-caster auras
 
         typedef std::list<uint64> DynObjectGUIDs;
         DynObjectGUIDs m_dynObjGUIDs;
