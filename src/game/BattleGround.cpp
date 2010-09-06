@@ -1271,9 +1271,6 @@ void BattleGround::AddPlayer(Player *plr)
     if (plr->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_AFK))
         plr->ToggleAFK();
 
-    if (plr->IsMounted())
-        plr->Unmount();
-
     // score struct must be created in inherited class
 
     ObjectGuid guid = plr->GetObjectGuid();
@@ -1987,31 +1984,4 @@ void BattleGround::SetBracket( PvPDifficultyEntry const* bracketEntry )
 {
     m_BracketId  = bracketEntry->GetBracketId();
     SetLevelRange(bracketEntry->minLevel,bracketEntry->maxLevel);
-}
-
-Player* BattleGround::GetRandomPlayer()
-{
-    uint32 last = 0;
-    Player *player;
-    for (BattleGroundPlayerMap::const_iterator iter = m_Players.begin(); iter != m_Players.end(); ++iter)
-    {
-        if (player = sObjectMgr.GetPlayer(iter->first))
-        {
-            if (urand(0,1))  // 50% to choose if we take this player or not.
-            {
-                return player;
-                break;
-            }
-            else
-            {
-                ++last;
-                if (last = GetMaxPlayers())  // Special case - no player has been chosen, so return the last player.
-                {
-                    return player;
-                    break;
-                }
-            }
-        }
-    }
-    return player;
 }
