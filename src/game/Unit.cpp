@@ -11578,6 +11578,9 @@ void Unit::ExitVehicle()
             }
             v_size = vehicle->GetObjectBoundingRadius();
             vehicle->RemovePassenger(this);
+            if (vehicle->GetEntry() == 28781 || vehicle->GetEntry() == 27894)
+                if (GetTypeId() == TYPEID_PLAYER)
+                    ((Creature*)vehicle)->setFaction(((Player*)this)->getFaction());
         }
         SetVehicleGUID(0);
 
