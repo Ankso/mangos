@@ -53,7 +53,10 @@ public:
     uint32 GetVehicleId() const { return m_vehicleInfo->m_ID; }
     VehicleEntry const* GetVehicleInfo() const { return m_vehicleInfo; }
     Unit* GetBase() { return m_pBase; }
-private:
+
+    private:
+    void UpdateFreeSeatCount();
+
     SeatMap m_Seats;
     uint32 m_uiNumFreeSeats;
     VehicleEntry const *m_vehicleInfo;

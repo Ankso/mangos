@@ -460,20 +460,22 @@ void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
         }
 
         // if we boarded a transport, add us to it
-        if (plMover && !plMover->m_transport)
+        if (plMover && !plMover->GetTransport())
         {
             float trans_rad = movementInfo.GetTransportPos()->x*movementInfo.GetTransportPos()->x + movementInfo.GetTransportPos()->y*movementInfo.GetTransportPos()->y + movementInfo.GetTransportPos()->z*movementInfo.GetTransportPos()->z;
             if (trans_rad > 3600.0f) // transport radius = 60 yards //cheater with on_transport_flag
             {
- 	            return;
+                return;
             }
             // elevators also cause the client to send MOVEFLAG_ONTRANSPORT - just unmount if the guid can be found in the transport list
             for (MapManager::TransportSet::const_iterator iter = sMapMgr.m_Transports.begin(); iter != sMapMgr.m_Transports.end(); ++iter)
             {
-                if ((*iter)->GetObjectGuid() == movementInfo.GetTransportGuid())
+                Transport* transport = *iter;
+
+                if (transport->GetObjectGuid() == movementInfo.GetTransportGuid())
                 {
-                    plMover->m_transport = (*iter);
-                    (*iter)->AddPassenger(plMover);
+                    plMover->SetTransport(transport);
+                    transport->AddPassenger(plMover);
 
                     if (plMover->GetVehicleKit())
                         plMover->GetVehicleKit()->RemoveAllPassengers();
@@ -483,10 +485,10 @@ void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
             }
         }
     }
-    else if (plMover && plMover->m_transport)               // if we were on a transport, leave
+    else if (plMover && plMover->GetTransport())            // if we were on a transport, leave
     {
-        plMover->m_transport->RemovePassenger(plMover);
-        plMover->m_transport = NULL;
+        plMover->GetTransport()->RemovePassenger(plMover);
+        plMover->SetTransport(NULL);
         movementInfo.ClearTransportData();
     }
 
@@ -871,12 +873,12 @@ void WorldSession::HandleRequestVehicleSwitchSeat(WorldPacket &recv_data)
     int8 seatId;
     recv_data >> seatId;
 
-    Unit *pVehicleBase = GetPlayer()->GetVehicleBase();
+    VehicleKit* pVehicle = GetPlayer()->GetVehicle();
 
-    if(!pVehicleBase)
+    if (!pVehicle)
         return;
 
-    if (pVehicleBase->GetObjectGuid() == guid)
+    if (pVehicle->GetBase()->GetObjectGuid() == guid)
         GetPlayer()->ChangeSeat(seatId);
 }
 
@@ -888,30 +890,32 @@ void WorldSession::HandleEnterPlayerVehicle(WorldPacket &recv_data)
     ObjectGuid guid;
     recv_data >> guid;
 
-    if (Player* pl = ObjectAccessor::FindPlayer(guid))
-    {
-        if (!pl->GetVehicleKit())
-            return;
-        if (!pl->IsInSameRaidWith(GetPlayer()))
-            return;
-        if (!pl->IsWithinDistInMap(GetPlayer(), INTERACTION_DISTANCE))
-            return;
-        if (pl->GetTransport())
-            return;
-        GetPlayer()->EnterVehicle(pl->GetVehicleKit());
-    }
+    Player* player = sObjectMgr.GetPlayer(guid);
+
+    if (!player)
+        return;
+
+    if (!GetPlayer()->IsInSameRaidWith(player))
+        return;
+
+    if (!GetPlayer()->IsWithinDistInMap(player, INTERACTION_DISTANCE))
+        return;
+
+    if (player->GetTransport())
+        return;
+
+    if (VehicleKit* pVehicle = player->GetVehicleKit())
+        GetPlayer()->EnterVehicle(pVehicle);
 }
 
 void WorldSession::HandleEjectPasenger(WorldPacket &recv_data)
 {
     DEBUG_LOG("WORLD: Recvd CMSG_EJECT_PASSENGER");
     recv_data.hexlike();
-
-    ObjectGuid guid;
-    recv_data >> guid;
-
-    if (GetPlayer()->GetVehicleKit())
+    if(recv_data.GetOpcode()==CMSG_EJECT_PASSENGER)
     {
+        ObjectGuid guid;
+        recv_data >> guid;
         if (Player* pl = ObjectAccessor::FindPlayer(guid))
             pl->ExitVehicle();
     }
