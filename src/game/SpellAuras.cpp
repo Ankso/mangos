@@ -2794,7 +2794,7 @@ void Aura::HandleAuraMounted(bool apply, bool Real)
         if (minfo)
             display_id = minfo->modelid;
 
-        target->Mount(display_id, GetId(), ci->VehicleEntry);
+        target->Mount(display_id, GetId());
     }
     else
     {
@@ -3574,7 +3574,7 @@ void Aura::HandleModPossess(bool apply, bool Real)
         {
             ((Creature*)target)->AIM_Initialize();
         }
-        else if(target->GetTypeId() == TYPEID_PLAYER && !target->GetVehicle())
+        else if(target->GetTypeId() == TYPEID_PLAYER && !target->GetVehicleGUID())
         {
             ((Player*)target)->SetClientControl(target, 0);
         }
@@ -3607,7 +3607,7 @@ void Aura::HandleModPossess(bool apply, bool Real)
 
         target->SetCharmerGUID(0);
 
-        if(target->GetTypeId() == TYPEID_PLAYER &&  !target->GetVehicle())
+        if(target->GetTypeId() == TYPEID_PLAYER &&  !target->GetVehicleGUID())
         {
             ((Player*)target)->setFactionForRace(target->getRace());
             ((Player*)target)->SetClientControl(target, 1);

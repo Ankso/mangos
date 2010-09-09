@@ -602,9 +602,6 @@ void WorldSession::HandleSpellClick( WorldPacket & recv_data )
         if(!unit->isAlive())
             return;
 
-        if(_player->GetVehicle())
-            return;
-
         if(_player->GetVehicleGUID())
             return;
 
