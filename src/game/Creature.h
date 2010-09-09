@@ -75,6 +75,7 @@ struct CreatureInfo
     uint32  maxlevel;
     uint32  minhealth;
     uint32  maxhealth;
+    uint8   powerType;
     uint32  minmana;
     uint32  maxmana;
     uint32  armor;
@@ -116,6 +117,7 @@ struct CreatureInfo
     int32   resistance6;
     uint32  spells[CREATURE_MAX_SPELLS];
     uint32  PetSpellDataId;
+    uint32  VehicleId;
     uint32  mingold;
     uint32  maxgold;
     char const* AIName;
