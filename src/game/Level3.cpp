@@ -546,8 +546,6 @@ bool ChatHandler::HandleReloadAllCommand(char* /*args*/)
     HandleReloadMangosStringCommand((char*)"");
     HandleReloadGameTeleCommand((char*)"");
 
-    HandleReloadVehicleDataCommand((char*)"");
-    HandleReloadVehicleSeatDataCommand((char*)"");
     return true;
 }
 
@@ -1385,24 +1383,11 @@ bool ChatHandler::HandleReloadMailLevelRewardCommand(char* /*args*/)
 bool ChatHandler::HandleReloadSpellDisabledCommand(char* /*arg*/)
 {
     sLog.outString( "Re-Loading spell disabled table...");
+
     sObjectMgr.LoadSpellDisabledEntrys();
+
     SendGlobalSysMessage("DB table `spell_disabled` reloaded.");
-    return true;
-}
 
-bool ChatHandler::HandleReloadVehicleDataCommand(char*)
-{
-    sLog.outString( "Re-Loading `vehicle_data` Table!" );
-    sObjectMgr.LoadVehicleData();
-    SendGlobalSysMessage("DB table `vehicle_data` reloaded.");
-    return true;
-}
-
-bool ChatHandler::HandleReloadVehicleSeatDataCommand(char*)
-{
-    sLog.outString( "Re-Loading `vehicle_seat_data` Table!" );
-    sObjectMgr.LoadVehicleSeatData();
-    SendGlobalSysMessage("DB table `vehicle_seat_data` reloaded.");
     return true;
 }
 
