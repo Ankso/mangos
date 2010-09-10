@@ -1952,13 +1952,16 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     spellInfo_2->Category == 44 && spellInfo_1->Category == 0))
                     return false;
             }
-
             //Overkill
             if( spellInfo_1->SpellIconID == 2285 && spellInfo_2->SpellIconID == 2285 )
                 return false;
 
             //Tricks of Trade
             if( spellInfo_1->SpellIconID == 3413 && spellInfo_2->SpellIconID == 3413 )
+                return false;
+
+            // Garrote -> Garrote-Silence (multi-family check)
+            if( spellInfo_1->SpellIconID == 498 && spellInfo_2->SpellIconID == 498 && spellInfo_2->SpellVisual[0] == 0 )
                 return false;
 
             break;
@@ -2015,14 +2018,30 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 // Divine Sacrifice and Divine Guardian
                 if (spellInfo_1->SpellIconID == 3837 && spellInfo_2->SpellIconID == 3837)
                     return false;
+
+                // Blessing of Sanctuary (multi-family check, some from 16 spell icon spells)
+                if (spellInfo_2->Id == 67480 && spellInfo_1->Id == 20911)
+                    return false;
+
+                // Inner Fire and Consecration
+                if(spellInfo_2->SpellFamilyName == SPELLFAMILY_PRIEST)
+                    if(spellInfo_1->SpellIconID == 51 && spellInfo_2->SpellIconID == 51)
+                        return false;
+
+                // Combustion and Fire Protection Aura (multi-family check)
+                if( spellInfo_2->Id == 11129 && spellInfo_1->SpellIconID == 33 && spellInfo_1->SpellVisual[0] == 321 )
+                    return false;
+
+                // *Sanctity Aura -> Unstable Currents and other (multi-family check)
+                if( spellInfo_1->SpellIconID==502 && spellInfo_2->SpellFamilyName == SPELLFAMILY_GENERIC && spellInfo_2->SpellIconID==502 && spellInfo_2->SpellVisual[0]==969 )
+                    return false;
+
+                // *Seal of Command and Band of Eternal Champion (multi-family check)
+                if( spellInfo_1->SpellIconID==561 && spellInfo_1->SpellVisual[0]==7992 && spellId_2 == 35081)
+                    return false;
             }
-
-            // Inner Fire and Consecration
-            if(spellInfo_2->SpellFamilyName == SPELLFAMILY_PRIEST)
-                if(spellInfo_1->SpellIconID == 51 && spellInfo_2->SpellIconID == 51)
-                return false;
-
             break;
+
         case SPELLFAMILY_SHAMAN:
             if( spellInfo_2->SpellFamilyName == SPELLFAMILY_SHAMAN )
             {

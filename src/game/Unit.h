@@ -1061,6 +1061,7 @@ struct CharmInfo
         bool HasReactState(ReactStates state) { return (m_reactState == state); }
 
         void InitPossessCreateSpells();
+        void InitVehicleCreateSpells();
         void InitCharmCreateSpells();
         void InitPetActionBar();
         void InitEmptyActionBar();
@@ -1570,7 +1571,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool RemoveNoStackAurasDueToAuraHolder(SpellAuraHolder *holder);
         void RemoveAurasWithInterruptFlags(uint32 flags);
         void RemoveAurasWithAttribute(uint32 flags);
-        void RemoveAurasWithDispelType( DispelType type );
+        void RemoveAurasWithDispelType( DispelType type, uint64 casterGUID = 0 );
         void RemoveAllAuras(AuraRemoveMode mode = AURA_REMOVE_BY_DEFAULT);
         void RemoveArenaAuras(bool onleave = false);
         void RemoveAllAurasOnDeath();
@@ -1936,14 +1937,6 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         // Movement info
         MovementInfo m_movementInfo;
 
-        void SheduleAINotify(uint32 delay);
-
-        bool m_notify_sheduled;
-        struct 
-        {
-            float x, y, z;
-        } m_last_notified_position;
-
         // Transports
         Transport* GetTransport() const { return m_transport; }
         void SetTransport(Transport* pTransport) { m_transport = pTransport; }
@@ -1960,10 +1953,18 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void EnterVehicle(VehicleKit *vehicle, int8 seatId = -1);
         void ExitVehicle();
         void ChangeSeat(int8 seatId, bool next = true);
-        VehicleKit* GetVehicle() { return m_pVehicle; }
-        VehicleKit* GetVehicleKit() { return m_pVehicleKit; }
+        VehicleKit* GetVehicle() const { return m_pVehicle; }
+        VehicleKit* GetVehicleKit() const { return m_pVehicleKit; }
         bool CreateVehicleKit(uint32 vehicleId);
         void RemoveVehicleKit();
+
+        void SheduleAINotify(uint32 delay);
+
+        bool m_notify_sheduled;
+        struct 
+        {
+            float x, y, z;
+        } m_last_notified_position;
 
     protected:
         explicit Unit ();

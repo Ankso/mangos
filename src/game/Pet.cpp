@@ -39,11 +39,15 @@ char const* petTypeSuffix[MAX_PET_TYPE] =
 Pet::Pet(PetType type) :
 Creature(CREATURE_SUBTYPE_PET), m_removed(false), m_petType(type), m_happinessTimer(7500), m_duration(0), m_resetTalentsCost(0),
 m_bonusdamage(0), m_resetTalentsTime(0), m_usedTalentCount(0), m_auraUpdateMask(0), m_loading(false),
-m_declinedname(NULL), m_petModeFlags(PET_MODE_DEFAULT),m_petFollowAngle(PET_DEFAULT_FOLLOW_ANGLE), m_needSave(true), m_petCounter(0)
+m_declinedname(NULL), m_petModeFlags(PET_MODE_DEFAULT),
+m_petFollowAngle(PET_DEFAULT_FOLLOW_ANGLE), m_needSave(true), m_petCounter(0),m_baseAPBonus(0)
 {
     m_name = "Pet";
     m_regenTimer = 4000;
-
+    for (uint8 i = 0; i < MAX_STATS; ++i)
+        m_baseStatBonus[i] = 0;
+    for (uint8 i = 0; i < MAX_SPELL_SCHOOL; ++i)
+       m_baseResistanceBonus[i] = 0;
     // pets always have a charminfo, even if they are not actually charmed
     CharmInfo* charmInfo = InitCharmInfo(this);
 
@@ -204,9 +208,6 @@ bool Pet::LoadPetFromDB( Player* owner, uint32 petentry, uint32 petnumber, bool 
             SetUInt32Value(UNIT_FIELD_BYTES_0, 2048);
             SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);
                                                             // this enables popup window (pet dismiss, cancel)
-            // DK ghouls have energy
-            if (cinfo->family == CREATURE_FAMILY_GHOUL)
-                setPowerType(POWER_ENERGY);
             break;
         case HUNTER_PET:
             SetUInt32Value(UNIT_FIELD_BYTES_0, 0x02020100);
@@ -232,10 +233,12 @@ bool Pet::LoadPetFromDB( Player* owner, uint32 petentry, uint32 petnumber, bool 
     SetCanModifyStats(true);
     InitStatsForLevel(petlevel);
     InitTalentForLevel();                                   // set original talents points before spell loading
+    ApplyAllBonuses(false);
 
     SetUInt32Value(UNIT_FIELD_PET_NAME_TIMESTAMP, uint32(time(NULL)));
     SetUInt32Value(UNIT_FIELD_PETEXPERIENCE, fields[5].GetUInt32());
     SetCreatorGUID(owner->GetGUID());
+    SetOwnerGUID(owner->GetGUID());
 
     m_charmInfo->SetReactState(ReactStates(fields[6].GetUInt8()));
 
@@ -286,12 +289,12 @@ bool Pet::LoadPetFromDB( Player* owner, uint32 petentry, uint32 petnumber, bool 
     if (getPetType() == SUMMON_PET && !current)             //all (?) summon pets come with full health when called, but not when they are current
     {
         SetHealth(GetMaxHealth());
-        SetPower(POWER_MANA, GetMaxPower(POWER_MANA));
+        SetPower(getPowerType(), GetMaxPower(getPowerType()));
     }
     else
     {
         SetHealth(savedhealth > GetMaxHealth() ? GetMaxHealth() : savedhealth);
-        SetPower(POWER_MANA, savedmana > GetMaxPower(POWER_MANA) ? GetMaxPower(POWER_MANA) : savedmana);
+        SetPower(getPowerType(), savedmana > GetMaxPower(POWER_MANA) ? GetMaxPower(POWER_MANA) : savedmana);
     }
 
     UpdateWalkMode(owner);
@@ -592,43 +595,6 @@ void Pet::Update(uint32 diff)
     Creature::Update(diff);
 }
 
-void Pet::Regenerate(Powers power)
-{
-    uint32 curValue = GetPower(power);
-    uint32 maxValue = GetMaxPower(power);
-
-    if (curValue >= maxValue)
-        return;
-
-    float addvalue = 0.0f;
-
-    switch (power)
-    {
-        case POWER_FOCUS:
-        {
-            // For hunter pets.
-            addvalue = 24 * sWorld.getConfig(CONFIG_FLOAT_RATE_POWER_FOCUS);
-            break;
-        }
-        case POWER_ENERGY:
-        {
-            // For deathknight's ghoul.
-            addvalue = 20;
-            break;
-        }
-        default:
-            return;
-    }
-
-    // Apply modifiers (if any).
-    AuraList const& ModPowerRegenPCTAuras = GetAurasByType(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
-    for(AuraList::const_iterator i = ModPowerRegenPCTAuras.begin(); i != ModPowerRegenPCTAuras.end(); ++i)
-        if ((*i)->GetModifier()->m_miscvalue == power)
-            addvalue *= ((*i)->GetModifier()->m_amount + 100) / 100.0f;
-
-    ModifyPower(power, (int32)addvalue);
-}
-
 void Pet::LooseHappiness()
 {
     uint32 curValue = GetPower(POWER_HAPPINESS);
@@ -699,21 +665,6 @@ void Pet::Remove(PetSaveMode mode, bool returnreagent)
         {
             ((Player*)owner)->RemovePet(this,mode,returnreagent);
 
-            // replace pet by next in chain only in case of death
-            if (Pet *pet = GetPet())
-            {
-                // can't use isAlive because of dismiss and maybe other cases
-                // pet needs to be replaced with chained only if original was killed through DealDamage
-                if (pet->GetEntry() == GetEntry() && mode != PET_SAVE_AS_DELETED)
-                {
-                    pet->SetOwnerGUID(owner->GetGUID());
-                    owner->SetPet(pet);
-                    if (owner->GetTypeId()==TYPEID_PLAYER)
-                        ((Player*)owner)->PetSpellInitialize();
-
-                    SetPet(0);
-                }
-            }
             return;
         }
 
@@ -862,56 +813,64 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
 
     m_bonusdamage = 0;
 
-    float ArmorAdd              = 0.0f;
-    float BaseAttackTimeBonus   = 1.0f;
-    float OffAttackTimeBonus    = 1.0f;
-    float RangedAttackTimeBonus = 1.0f;
-    float SpellCastSpeedBonus   = 1.0f;
-    float RangedDamageMod       = 1.0f;
-
-    uint32 createStats[MAX_STATS+2] = {22,     // STAT_STRENGTH
+    int32 createStats[MAX_STATS+7] =  {22,     // STAT_STRENGTH
                                        22,     // STAT_AGILITY
                                        25,     // STAT_STAMINA
                                        28,     // STAT_INTELLECT
                                        27,     // STAT_SPIRIT
-                                       0,      // MAXHEALTH
-                                       0};     // MAXPOWER/MANA
+                                       42,     // Base HEALTH
+                                       20,     // Base POWER/MANA
+                                       10,     // Base AttackPower
+                                       5,      // Base MinDamage
+                                       10,     // Base MaxDamage
+                                       1,      // Base MinRangeDamage
+                                       3};     // Base MaxRangeDamage
 
-    uint32 ResistanceAdd[MAX_SPELL_SCHOOL] = {0,0,0,0,0,0,0};
+    uint32 createResistance[MAX_SPELL_SCHOOL] = {0,0,0,0,0,0,0};
 
-    if(cinfo)
+    if(cinfo) // Default create values (from creature_template)
     {
-        ResistanceAdd[SPELL_SCHOOL_HOLY]   = cinfo->resistance1;
-        ResistanceAdd[SPELL_SCHOOL_FIRE]   = cinfo->resistance2;
-        ResistanceAdd[SPELL_SCHOOL_NATURE] = cinfo->resistance3;
-        ResistanceAdd[SPELL_SCHOOL_FROST]  = cinfo->resistance4;
-        ResistanceAdd[SPELL_SCHOOL_SHADOW] = cinfo->resistance5;
-        ResistanceAdd[SPELL_SCHOOL_ARCANE] = cinfo->resistance6;
+        createResistance[SPELL_SCHOOL_HOLY]   = cinfo->resistance1;
+        createResistance[SPELL_SCHOOL_FIRE]   = cinfo->resistance2;
+        createResistance[SPELL_SCHOOL_NATURE] = cinfo->resistance3;
+        createResistance[SPELL_SCHOOL_FROST]  = cinfo->resistance4;
+        createResistance[SPELL_SCHOOL_SHADOW] = cinfo->resistance5;
+        createResistance[SPELL_SCHOOL_ARCANE] = cinfo->resistance6;
+        // Armor
+        createResistance[SPELL_SCHOOL_NORMAL] = int32(cinfo->armor  * petlevel / cinfo->maxlevel / (1 +  cinfo->rank));
 
-        createStats[MAX_STATS]    = (uint32)((float)cinfo->maxhealth / cinfo->maxlevel / (1 +  cinfo->rank) * petlevel);
-        createStats[MAX_STATS+1]  = (uint32)((float)cinfo->maxmana / cinfo->maxlevel / (1 +  cinfo->rank) * petlevel);
+        for (int i = 0; i < MAX_STATS; ++i)
+            createStats[i] *= petlevel/10;
+
+        createStats[MAX_STATS]    = int32(cinfo->maxhealth * petlevel / cinfo->maxlevel / (1 +  cinfo->rank));
+        createStats[MAX_STATS+1]  = int32(cinfo->maxmana * petlevel / cinfo->maxlevel / (1 +  cinfo->rank));
+        createStats[MAX_STATS+2]  = int32(cinfo->attackpower * petlevel / cinfo->maxlevel / (1 +  cinfo->rank));
+        createStats[MAX_STATS+3]  = int32( cinfo->mindmg * petlevel / cinfo->maxlevel / (1 + cinfo->rank));
+        createStats[MAX_STATS+4]  = int32( cinfo->maxdmg * petlevel / cinfo->maxlevel / (1 + cinfo->rank));
+        createStats[MAX_STATS+5]  = int32(cinfo->minrangedmg * petlevel / cinfo->maxlevel/ (1 + cinfo->rank));
+        createStats[MAX_STATS+6]  = int32(cinfo->maxrangedmg * petlevel / cinfo->maxlevel/ (1 + cinfo->rank));
+        SetFloatValue(UNIT_FIELD_MAXRANGEDDAMAGE, float(cinfo->maxrangedmg * petlevel / cinfo->maxlevel));
+        setPowerType(Powers(cinfo->powerType));
+        SetAttackTime(BASE_ATTACK, cinfo->baseattacktime);
+        SetAttackTime(RANGED_ATTACK, cinfo->rangeattacktime);
+    }
+    else
+    {
+        SetAttackTime(BASE_ATTACK, BASE_ATTACK_TIME);
+        SetAttackTime(RANGED_ATTACK, BASE_ATTACK_TIME);
+
+        for (int i = 0; i < MAX_STATS+7; ++i)
+            createStats[i] *= petlevel/10;
+        // Armor
+        createResistance[SPELL_SCHOOL_NORMAL] = petlevel*50;
     }
 
     switch(getPetType())
     {
         case SUMMON_PET:
         {
-            if(owner->GetTypeId() == TYPEID_PLAYER)
-            {
-                if(cinfo->Entry == 29264)     // Feral Spirit
-                {
-                    if (owner)
-                    {
-                        ArmorAdd = float(owner->GetArmor()) * 0.35f;                  //  Bonus Armor (35% of player armor)
-                        SetModifierValue(UNIT_MOD_STAT_STAMINA, TOTAL_VALUE, float(owner->GetStat(STAT_STAMINA)) * 0.3f);  //  Bonus Stamina (30% of player stamina)
-                    }
-                }
-            }
-
             if (cinfo->family == CREATURE_FAMILY_GHOUL)
                 setPowerType(POWER_ENERGY);
-            else
-                setPowerType(POWER_MANA);
             break;
         }
         case HUNTER_PET:
@@ -935,7 +894,7 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
             }
 
             SetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP, sObjectMgr.GetXPForPetLevel(petlevel));
-            setPowerType(POWER_MANA);
+            setPowerType(POWER_FOCUS);
             break;
         }
         case GUARDIAN_PET:
@@ -945,8 +904,6 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
             // DK ghouls have energy
             if (cinfo->family == CREATURE_FAMILY_GHOUL)
                 setPowerType(POWER_ENERGY);
-            else
-                setPowerType(POWER_MANA);
             break;
         }
         default:
@@ -972,88 +929,66 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
         if (pInfo->armor)
             SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE, float(pInfo->armor));
         else
-            SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE,  float(cinfo->armor  * petlevel / cinfo->maxlevel));
-
-        SetModifierValue(UNIT_MOD_ARMOR, TOTAL_VALUE, float(ArmorAdd));
+            SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE,  float(createResistance[SPELL_SCHOOL_NORMAL]));
 
         for( int i = STAT_STRENGTH; i < MAX_STATS; ++i)
-        {
             if (pInfo->stats[i])
                SetCreateStat(Stats(i), float(pInfo->stats[i]));
             else
                SetCreateStat(Stats(i), float(createStats[i]));
 
-            SetModifierValue(UnitMods(i), BASE_VALUE, 0.0f);
-            SetModifierValue(UnitMods(i), TOTAL_VALUE, 0.0f);
-            SetModifierValue(UnitMods(i), BASE_PCT, 1.0f);
-            SetModifierValue(UnitMods(i), TOTAL_PCT, 1.0f);
-        }
-
-        SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, float(pInfo->attackpower));
-
         if (pInfo->attackpower)
             SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, float(pInfo->attackpower));
         else
-            SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, float(cinfo->attackpower * petlevel / cinfo->maxlevel));
+            SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, float(createStats[MAX_STATS+2]));
 
         if (pInfo->mindmg)
             SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(pInfo->mindmg));
         else
-            SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(cinfo->mindmg * petlevel / cinfo->maxlevel));
+            SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(createStats[MAX_STATS+3]));
 
         if (pInfo->maxdmg)
-            SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(pInfo->maxdmg));
+            SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(pInfo->maxdmg));
         else
-            SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(cinfo->mindmg * petlevel / cinfo->maxlevel));
+            SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(createStats[MAX_STATS+4]));
 
-        SetFloatValue(UNIT_FIELD_MINRANGEDDAMAGE,float(cinfo->minrangedmg * RangedDamageMod));
-        SetFloatValue(UNIT_FIELD_MAXRANGEDDAMAGE,float(cinfo->maxrangedmg * RangedDamageMod));
+        SetFloatValue(UNIT_FIELD_MINRANGEDDAMAGE,float(createStats[MAX_STATS+5]));
+        SetFloatValue(UNIT_FIELD_MAXRANGEDDAMAGE,float(createStats[MAX_STATS+6]));
 
         DEBUG_LOG("Pet %u stats for level initialized (from pet_levelstat values)", cinfo->Entry);
-
     }
     else                                            // not exist in DB, use some default fake data
     {
         DEBUG_LOG("Summoned pet (Entry: %u) not have pet stats data in DB. Use hardcoded values.",cinfo->Entry);
         for (int i = STAT_STRENGTH; i < MAX_STATS; ++i)
-        {
             SetCreateStat(Stats(i),float(createStats[i]));
 
-            SetModifierValue(UnitMods(i), BASE_VALUE, 0.0f);
-            SetModifierValue(UnitMods(i), TOTAL_VALUE, 0.0f);
-            SetModifierValue(UnitMods(i), BASE_PCT, 1.0f);
-            SetModifierValue(UnitMods(i), TOTAL_PCT, 1.0f);
-        }
         SetCreateHealth(createStats[MAX_STATS]);
         SetCreateMana(createStats[MAX_STATS+1]);
-        SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE,  float(cinfo->armor  * petlevel / cinfo->maxlevel)  + ArmorAdd);
+        SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE,  float(createResistance[SPELL_SCHOOL_NORMAL]));
 
-        SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(cinfo->mindmg * petlevel / cinfo->maxlevel));
-        SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(cinfo->maxdmg * petlevel / cinfo->maxlevel));
+        SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, float(createStats[MAX_STATS+2]));
 
-        SetFloatValue(UNIT_FIELD_MINRANGEDDAMAGE, float(cinfo->minrangedmg * petlevel / cinfo->maxlevel));
-        SetFloatValue(UNIT_FIELD_MAXRANGEDDAMAGE, float(cinfo->maxrangedmg * petlevel / cinfo->maxlevel));
+        SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(createStats[MAX_STATS+3]));
+        SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(createStats[MAX_STATS+4]));
 
-        SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, float(cinfo->attackpower * petlevel / cinfo->maxlevel));
+        SetFloatValue(UNIT_FIELD_MINRANGEDDAMAGE, float(createStats[MAX_STATS+5]));
+        SetFloatValue(UNIT_FIELD_MAXRANGEDDAMAGE, float(createStats[MAX_STATS+6]));
 
         DEBUG_LOG("Pet %u stats for level initialized (from creature_template values)", cinfo->Entry);
     }
 
-    SetAttackTime(BASE_ATTACK, cinfo->baseattacktime);
-    SetAttackTime(OFF_ATTACK, cinfo->baseattacktime);
-    SetAttackTime(RANGED_ATTACK, cinfo->rangeattacktime);
-
-//    SetFloatValue(UNIT_MOD_CAST_SPEED, 1.0);
-
     for (int i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; ++i)
-        if (ResistanceAdd[i] > 0)
-            SetModifierValue(UnitMods(UNIT_MOD_RESISTANCE_START + i), BASE_VALUE, float(ResistanceAdd[i]));
-        else SetModifierValue(UnitMods(UNIT_MOD_RESISTANCE_START + i), BASE_VALUE, 0);
+            SetModifierValue(UnitMods(UNIT_MOD_RESISTANCE_START + i), BASE_VALUE, float(createResistance[i]));
+
+    SetAttackTime(OFF_ATTACK, BASE_ATTACK_TIME);
+    SetFloatValue(UNIT_MOD_CAST_SPEED, 1.0);
+
+
+    UpdateAllStats();
 
     SetHealth(GetMaxHealth());
     SetPower(getPowerType(), GetMaxPower(getPowerType()));
-
-    UpdateAllStats();
 
     return true;
 }
@@ -1294,6 +1229,8 @@ void Pet::_LoadAuras(uint32 timediff)
 
         delete result;
     }
+    else
+        LoadCreaturesAddon(true);
 }
 
 void Pet::_SaveAuras()
@@ -1470,7 +1407,10 @@ bool Pet::addSpell(uint32 spell_id,ActiveStates active /*= ACT_DECIDE*/, PetSpel
     m_spells[spell_id] = newspell;
 
     if (IsPassiveSpell(spellInfo))
-        CastSpell(this, spell_id, true);
+    {
+        // CastPetPassiveSpell(spell_id);
+        // Cast over CastPetPassiveSpells(true)
+    }
     else
         m_charmInfo->AddSpellToActionBar(spell_id, ActiveStates(newspell.active));
 
@@ -1864,11 +1804,6 @@ void Pet::ToggleAutocast(uint32 spellid, bool apply)
     if(IsPassiveSpell(spellid))
         return;
 
-    // chained pets
-    if (Pet *chainedPet = GetPet())
-        if (GetEntry() == chainedPet->GetEntry())
-            chainedPet->ToggleAutocast(spellid, apply);
-
     PetSpellMap::iterator itr = m_spells.find(spellid);
 
     uint32 i;
@@ -1935,7 +1870,7 @@ bool Pet::Create(uint32 guidlow, Map *map, uint32 phaseMask, uint32 Entry, uint3
     SetMap(map);
     SetPhaseMask(phaseMask,false);
 
-    Object::_Create(guidlow, pet_number, HIGHGUID_PET);
+    Object::_Create(ObjectGuid(HIGHGUID_PET, pet_number, guidlow));
 
     m_DBTableGuid = guidlow;
     m_originalEntry = Entry;
@@ -1974,16 +1909,63 @@ void Pet::LearnPetPassives()
         for(PetFamilySpellsSet::const_iterator petSet = petStore->second.begin(); petSet != petStore->second.end(); ++petSet)
             addSpell(*petSet, ACT_DECIDE, PETSPELL_NEW, PETSPELL_FAMILY);
     }
+
+    /// Override for not found way to learn pet scaling spells
+    Unit* owner = GetOwner();
+
+    if (!owner || owner->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    switch(getPetType())
+    {
+        case SUMMON_PET:
+        {
+            switch(owner->getClass())
+            {
+                case CLASS_WARLOCK:
+                    addSpell(34947, ACT_PASSIVE, PETSPELL_NEW, PETSPELL_FAMILY);
+                    addSpell(34956, ACT_PASSIVE, PETSPELL_NEW, PETSPELL_FAMILY);
+                    addSpell(34957, ACT_PASSIVE, PETSPELL_NEW, PETSPELL_FAMILY);
+                    addSpell(34958, ACT_PASSIVE, PETSPELL_NEW, PETSPELL_FAMILY);
+                    addSpell(61013, ACT_PASSIVE, PETSPELL_NEW, PETSPELL_FAMILY);
+                    break;
+                case CLASS_DEATH_KNIGHT:
+                    addSpell(51996, ACT_PASSIVE, PETSPELL_NEW, PETSPELL_FAMILY);
+                    addSpell(61697, ACT_PASSIVE, PETSPELL_NEW, PETSPELL_FAMILY);
+                    break;
+                case CLASS_SHAMAN:
+                    addSpell(34902, ACT_PASSIVE, PETSPELL_NEW, PETSPELL_FAMILY);
+                    addSpell(34903, ACT_PASSIVE, PETSPELL_NEW, PETSPELL_FAMILY);
+                    addSpell(34904, ACT_PASSIVE, PETSPELL_NEW, PETSPELL_FAMILY);
+                    addSpell(61783, ACT_PASSIVE, PETSPELL_NEW, PETSPELL_FAMILY);
+                    break;
+                case CLASS_MAGE:
+                    addSpell(34947, ACT_PASSIVE, PETSPELL_NEW, PETSPELL_FAMILY);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        }
+        case HUNTER_PET:
+        {
+            addSpell(34902, ACT_PASSIVE, PETSPELL_NEW, PETSPELL_FAMILY);
+            addSpell(34903, ACT_PASSIVE, PETSPELL_NEW, PETSPELL_FAMILY);
+            addSpell(34904, ACT_PASSIVE, PETSPELL_NEW, PETSPELL_FAMILY);
+            addSpell(61017, ACT_PASSIVE, PETSPELL_NEW, PETSPELL_FAMILY);
+            break;
+        }
+        default:
+            break;
+    }
+
 }
 
 void Pet::CastPetAuras(bool current)
 {
-    Unit* owner = GetOwner();
+    CastPetPassiveSpells(current);
 
-    // chained, use original owner instead
-    if (owner && owner->GetTypeId() == TYPEID_UNIT && ((Creature*)owner)->GetEntry() == GetEntry())
-        if (Unit *creator = GetCreator())
-            owner = creator;
+    Unit* owner = GetOwner();
 
     if(!owner || owner->GetTypeId()!=TYPEID_PLAYER)
         return;
@@ -2003,41 +1985,209 @@ void Pet::CastPetAuras(bool current)
 void Pet::CastPetAura(PetAura const* aura)
 {
     uint32 auraId = aura->GetAura(GetEntry());
+
     if(!auraId)
         return;
 
+    DEBUG_LOG("Cast pet aura %u", auraId);
+
+    CastPetPassiveSpell(auraId, aura->GetDamage());
+}
+
+void Pet::CastPetPassiveSpells(bool current)
+{
+    for (PetSpellMap::const_iterator itr = m_spells.begin(); itr != m_spells.end(); ++itr)
+    {
+        if(itr->second.state == PETSPELL_REMOVED
+           || itr->second.active !=ACT_PASSIVE ) continue;
+
+        if(!current && HasAura(itr->first))
+            RemoveAurasDueToSpell(itr->first);
+        else
+        {
+            CastPetPassiveSpell(itr->first);
+            DEBUG_LOG("Cast passive pet spell %u", itr->first);
+        }
+    }
+}
+
+void Pet::CastPetPassiveSpell(uint32 SpellID, int damage)
+{
     Unit* owner = GetOwner();
 
-    switch (auraId)
+    if(!owner || owner->GetTypeId() != TYPEID_PLAYER)
     {
-        case 35696: // Demonic Knowledge
+        CastSpell(this, SpellID, true);
+        return;
+    }
+
+    SpellEntry const *spellInfo = sSpellStore.LookupEntry(SpellID);
+
+    if (!spellInfo)
+        return;
+
+    int32 basePoints[MAX_EFFECT_INDEX];
+
+    for(int i = 0; i < MAX_EFFECT_INDEX; ++i)
+        basePoints[i] = spellInfo->CalculateSimpleValue(SpellEffectIndex(i));
+
+    switch (SpellID)
+    {
+        case 54566: // DK pet scaling 01
         {
-            int32 basePoints = int32(aura->GetDamage() * (GetStat(STAT_STAMINA) + GetStat(STAT_INTELLECT)) / 100);
-            CastCustomSpell(this, auraId, &basePoints, NULL, NULL, true);
+            basePoints[EFFECT_INDEX_0] = int32(m_baseStatBonus[STAT_STAMINA]*0.3f);
+            basePoints[EFFECT_INDEX_1] = int32(m_baseStatBonus[STAT_STRENGTH]*0.7f);
+            if (owner->HasSpell(48965))
+            {
+                basePoints[EFFECT_INDEX_0] += int32(m_baseStatBonus[STAT_STAMINA]*0.2f);
+                basePoints[EFFECT_INDEX_1] += int32(m_baseStatBonus[STAT_STRENGTH]*0.2f);
+            };
+            if (owner->HasSpell(49571))
+            {
+                basePoints[EFFECT_INDEX_0] += int32(m_baseStatBonus[STAT_STAMINA]*0.2f);
+                basePoints[EFFECT_INDEX_1] += int32(m_baseStatBonus[STAT_STRENGTH]*0.2f);
+            };
+            if (owner->HasSpell(49572))
+            {
+                basePoints[EFFECT_INDEX_0] += int32(m_baseStatBonus[STAT_STAMINA]*0.2f);
+                basePoints[EFFECT_INDEX_1] += int32(m_baseStatBonus[STAT_STRENGTH]*0.2f);
+            };
+            if (owner->HasSpell(58721))
+            {
+                basePoints[EFFECT_INDEX_0] += int32(m_baseStatBonus[STAT_STAMINA]*0.4f);
+                basePoints[EFFECT_INDEX_1] += int32(m_baseStatBonus[STAT_STRENGTH]*0.4f);
+            };
             break;
         }
-        case 54566: // Ravenous Dead
+        case 51996: // DK pet scaling 02
         {
-            if (owner)
+//            basePoints[EFFECT_INDEX_0] = 150; Need research
+            basePoints[EFFECT_INDEX_1] = int32(owner->GetAttackTime(BASE_ATTACK) / BASE_ATTACK_TIME * 100);
+//            basePoints[EFFECT_INDEX_2] = immunity mechanic, need research
+            break;
+        }
+        case 61697: // DK pet scaling 03
+        {
+            basePoints[EFFECT_INDEX_0] = int32(owner->m_modMeleeHitChance*100.0f);
+            basePoints[EFFECT_INDEX_1] = int32(owner->m_modSpellHitChance*100.0f);
+            break;
+        }
+        case 34902: // Hunter pet scaling 01
+        {
+            basePoints[EFFECT_INDEX_0] = int32(m_baseStatBonus[STAT_STAMINA]*0.3f);
+            basePoints[EFFECT_INDEX_1] = int32(m_baseAPBonus * 0.22f);
+            basePoints[EFFECT_INDEX_2] = int32(m_baseAPBonus * 0.1287f);
+            if (owner->HasSpell(62758)) // Hunter talents
             {
-                // We must give x% bonus to base bonus from owner's stamina to ghoul stamina
-                int32 basePoints0 =
-                    int32(owner->GetStat(STAT_STAMINA)*0.3f*(aura->GetDamage()+100.0f)/100.0f
-                    - (GetStat(STAT_STAMINA)-GetCreateStat(STAT_STAMINA)));
-                // We must give x% bonus to base bonus from owner's strength to ghoul strength
-                int32 basePoints1 =
-                    int32(owner->GetStat(STAT_STRENGTH)*0.3f*(aura->GetDamage()+100.0f)/100.0f
-                    - (GetStat(STAT_STRENGTH)-GetCreateStat(STAT_STRENGTH)));
-                CastCustomSpell(this, auraId, &basePoints0, &basePoints1, NULL, true);
+                basePoints[EFFECT_INDEX_0] += int32(basePoints[EFFECT_INDEX_0]*0.2f);
+                basePoints[EFFECT_INDEX_1] += int32(basePoints[EFFECT_INDEX_1]*0.15f);
+                basePoints[EFFECT_INDEX_2] += int32(basePoints[EFFECT_INDEX_2]*0.15f);
+            };
+            if (owner->HasSpell(62762))
+            {
+                basePoints[EFFECT_INDEX_0] += int32(basePoints[EFFECT_INDEX_0]*0.2f);
+                basePoints[EFFECT_INDEX_1] += int32(basePoints[EFFECT_INDEX_1]*0.15f);
+                basePoints[EFFECT_INDEX_2] += int32(basePoints[EFFECT_INDEX_2]*0.15f);
+            };
+            if (owner->HasAura(63271)) //Feral Spirit
+            {
+                basePoints[EFFECT_INDEX_0] += int32(m_baseStatBonus[STAT_STAMINA]*0.3f);
+            };
+            break;
+        }
+        case 34903: // Hunter pet scaling 02
+        {
+            basePoints[EFFECT_INDEX_0] = int32(m_baseResistanceBonus[SPELL_SCHOOL_FIRE] * 0.4f);
+            basePoints[EFFECT_INDEX_1] = int32(m_baseResistanceBonus[SPELL_SCHOOL_FROST] * 0.4f);
+            basePoints[EFFECT_INDEX_2] = int32(m_baseResistanceBonus[SPELL_SCHOOL_NATURE] * 0.4f);
+            break;
+        }
+        case 34904: // Hunter pet scaling 03
+        {
+            basePoints[EFFECT_INDEX_0] = int32(m_baseResistanceBonus[SPELL_SCHOOL_SHADOW] * 0.4f);
+            basePoints[EFFECT_INDEX_1] = int32(m_baseResistanceBonus[SPELL_SCHOOL_ARCANE] * 0.4f);
+            basePoints[EFFECT_INDEX_2] = int32(owner->GetArmor() * 0.35f);
+            break;
+        }
+        case 61017: // Hunter pet scaling 04
+        {
+        // Hit chance
+            basePoints[EFFECT_INDEX_0] = int32(owner->m_modMeleeHitChance*100.0f);
+        // Spell hit chance
+            basePoints[EFFECT_INDEX_1] = int32(owner->m_modSpellHitChance*100.0f);
+        // Expertize - pet currently not have expertize :(
+            break;
+        }
+        case 61783: // Feral spirit pet scaling 04
+        {
+            basePoints[EFFECT_INDEX_0] = int32(owner->m_modMeleeHitChance*100.0f);
+            basePoints[EFFECT_INDEX_1] = int32(owner->m_modSpellHitChance*100.0f);
+            basePoints[EFFECT_INDEX_2] = int32(owner->GetTotalAttackPowerValue(BASE_ATTACK) * 0.3f);
+            if (owner->HasAura(63271))
+                basePoints[EFFECT_INDEX_2] += int32(owner->GetTotalAttackPowerValue(BASE_ATTACK) * 0.3f);
+            break;
+        }
+        case 34947: // Warlock pet scaling 01
+        {
+            if (owner->getClass() == CLASS_WARLOCK)
+            {
+                basePoints[EFFECT_INDEX_0] = int32(m_baseStatBonus[STAT_STAMINA] * 0.75f);
+                basePoints[EFFECT_INDEX_1] = int32(m_baseAPBonus * 0.15f);
+                basePoints[EFFECT_INDEX_2] = int32(m_baseAPBonus * 0.57f);
             }
+            else if (owner->getClass() == CLASS_MAGE)
+            {
+                basePoints[EFFECT_INDEX_1] = int32(m_baseAPBonus * 0.4f);
+            };
+            if (owner->HasSpell(57277) && GetEntry() == 416)
+            {
+                basePoints[EFFECT_INDEX_0] = int32(basePoints[EFFECT_INDEX_0]*1.2f);
+            };
+            break;
+        }
+        case 34956: // Warlock pet scaling 02
+        {
+            basePoints[EFFECT_INDEX_0] = int32(m_baseStatBonus[STAT_INTELLECT] * 0.3f);
+            basePoints[EFFECT_INDEX_1] = int32(owner->GetArmor() * 0.35f);
+            basePoints[EFFECT_INDEX_2] = int32(m_baseResistanceBonus[SPELL_SCHOOL_FIRE] * 0.4f);
+            break;
+        }
+        case 34957: // Warlock pet scaling 03
+        {
+            basePoints[EFFECT_INDEX_0] = int32(m_baseResistanceBonus[SPELL_SCHOOL_FROST] * 0.4f);
+            basePoints[EFFECT_INDEX_1] = int32(m_baseResistanceBonus[SPELL_SCHOOL_ARCANE] * 0.4f);
+            basePoints[EFFECT_INDEX_2] = int32(m_baseResistanceBonus[SPELL_SCHOOL_NATURE] * 0.4f);
+            break;
+        }
+        case 34958: // Warlock pet scaling 04
+        {
+            basePoints[EFFECT_INDEX_0] = int32(m_baseResistanceBonus[SPELL_SCHOOL_SHADOW] * 0.4f);
+//            basePoints[EFFECT_INDEX_1] Power regen flat - need more research
+            basePoints[EFFECT_INDEX_2] = int32(owner->m_modSpellHitChance*100.0f);
+            break;
+        }
+        case 61013: // Warlock pet scaling 05
+        {
+        // Hit chance
+            basePoints[EFFECT_INDEX_0] = int32(owner->m_modMeleeHitChance*100.0f);
+        // Spell hit chance
+            basePoints[EFFECT_INDEX_1] = int32(owner->m_modSpellHitChance*100.0f);
+        // Expertize - pet currently not have expertize :(
+            break;
+        }
+        case 35696: // Demonic Knowledge
+        {
+            basePoints[EFFECT_INDEX_0] = int32(damage * (GetTotalStatValue(STAT_STAMINA) + GetTotalStatValue(STAT_INTELLECT)) / 100);
             break;
         }
         default:
-        {
-            CastSpell(this, auraId, true);
-            break;
-        }
+            CastSpell(this, SpellID, true);
+            return;
     }
+    if (HasAura(SpellID))
+        RemoveAurasDueToSpell(SpellID);
+    CastCustomSpell(this, SpellID, &basePoints[EFFECT_INDEX_0], &basePoints[EFFECT_INDEX_1], &basePoints[EFFECT_INDEX_2] , true);
+
 }
 
 struct DoPetLearnSpell
@@ -2104,27 +2254,229 @@ bool Pet::SetSummonPosition(float x, float y, float z)
     if (!owner)
         return false;
 
+    float px, py, pz;
+
     // Summon in dest location
     if (GetPetCounter() == 1)
-        SetPetFollowAngle(M_PI_F * 1.5f);
+        SetPetFollowAngle(PET_FOLLOW_ANGLE*3);
     else if (GetPetCounter() == 2)
-        SetPetFollowAngle(M_PI_F);
+        SetPetFollowAngle(PET_FOLLOW_ANGLE*2);
     else
         SetPetFollowAngle(PET_FOLLOW_ANGLE);
 
 
-    if (x != 0.0f && y != 0.0f && z != 0.0f)
-    {
-        Relocate(x, y, z, -owner->GetOrientation());
-        SetSummonPoint(x, y, z, -owner->GetOrientation());
-    }
-    else
-    {
+    if (x == 0.0f && y == 0.0f && z == 0.0f)
         owner->GetClosePoint(x, y, z, GetObjectBoundingRadius(), PET_FOLLOW_DIST, GetPetFollowAngle());
-        Relocate(x, y, z, -owner->GetOrientation());
-        SetSummonPoint(x, y, z, -owner->GetOrientation());
-    }
+
+    owner->GetRandomPoint(x, y, z, 1, px, py, pz);
+    Relocate(px, py, pz, -owner->GetOrientation());
+    SetSummonPoint(px, py, pz, -owner->GetOrientation());
 
     if (!IsPositionValid()) return false;
         else return true;
 }
+
+void Pet::ApplyStatBonus(Stats stat, bool apply)
+{
+    if(stat > STAT_SPIRIT || stat < STAT_STRENGTH )
+        return;
+
+    Unit* owner = GetOwner();
+
+    if (!owner)
+        return;
+
+    UnitMods unitMod = UnitMods(stat);
+
+//    int32 newStat  = int32((owner->GetModifierValue(unitMod, BASE_VALUE) + owner->GetCreateStat(stat)) * owner->GetModifierValue(unitMod, BASE_PCT));
+
+    int32 newStat  = owner->GetTotalStatValue(stat);
+
+    if (m_baseStatBonus[stat] == newStat)
+        return;
+
+    DEBUG_LOG("Update pet stat %u, old value = %u new value = %u",stat,m_baseStatBonus[stat], newStat);
+    m_baseStatBonus[stat] = newStat;
+
+    if (!apply)
+        return;
+
+    for (PetSpellMap::const_iterator itr = m_spells.begin(); itr != m_spells.end(); ++itr)
+    {
+        if(itr->second.state == PETSPELL_REMOVED
+           || itr->second.active !=ACT_PASSIVE ) continue;
+
+        SpellEntry const *spellproto = sSpellStore.LookupEntry(itr->first);
+
+        if (!spellproto) continue;
+
+        bool needReapply = false;
+
+        for(int i = 0; i < MAX_EFFECT_INDEX; ++i)
+            if (spellproto->EffectApplyAuraName[SpellEffectIndex(i)] == SPELL_AURA_MOD_STAT)
+                needReapply = true;
+
+        if(needReapply)
+        {
+            SetCanModifyStats(false);
+            CastPetPassiveSpell(itr->first);
+            SetCanModifyStats(true);
+        }
+    }
+}
+
+void Pet::ApplyResistanceBonus(uint32 school, bool apply)
+{
+    if(school < SPELL_SCHOOL_NORMAL || school > SPELL_SCHOOL_ARCANE)
+        return;
+
+    Unit* owner = GetOwner();
+
+    if (!owner)
+        return;
+
+    int32 newResistance;
+
+    if (school == SPELL_SCHOOL_NORMAL)
+        newResistance = owner->GetArmor();
+    else
+        newResistance = owner->GetResistance(SpellSchools(school));
+
+    if (m_baseResistanceBonus[school] == newResistance)
+        return;
+
+    DEBUG_LOG("Update pet resistance %u, old value = %u new value = %u",school,m_baseResistanceBonus[school], newResistance);
+    m_baseResistanceBonus[school] = newResistance;
+
+    if (!apply)
+        return;
+
+    for (PetSpellMap::const_iterator itr = m_spells.begin(); itr != m_spells.end(); ++itr)
+    {
+        if(itr->second.state == PETSPELL_REMOVED
+           || itr->second.active !=ACT_PASSIVE ) continue;
+
+        SpellEntry const *spellproto = sSpellStore.LookupEntry(itr->first);
+
+        if (!spellproto) continue;
+
+        bool needReapply = false;
+
+        for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
+            if (spellproto->EffectApplyAuraName[SpellEffectIndex(i)] == SPELL_AURA_MOD_RESISTANCE)
+                needReapply = true;
+
+        if(needReapply)
+        {
+            SetCanModifyStats(false);
+            CastPetPassiveSpell(itr->first);
+            SetCanModifyStats(true);
+        }
+    }
+}
+
+void Pet::ApplyAttackPowerBonus(bool apply)
+{
+    Unit* owner = GetOwner();
+
+    if (!owner)
+        return;
+
+    int32 newAPBonus;
+
+    switch(getPetType())
+    {
+        case SUMMON_PET:
+        {
+            switch(owner->getClass())
+            {
+                case CLASS_WARLOCK:
+                {
+                   int32 fire  = int32(owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SPELL_SCHOOL_FIRE)) - owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_NEG + SPELL_SCHOOL_FIRE);
+                   int32 shadow = int32(owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SPELL_SCHOOL_SHADOW)) - owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_NEG + SPELL_SCHOOL_SHADOW);
+                   newAPBonus  = (fire > shadow) ? fire : shadow;
+                   if(newAPBonus < 0)
+                       newAPBonus = 0;
+                    break;
+                }
+                case CLASS_DEATH_KNIGHT:
+                    newAPBonus = owner->GetTotalAttackPowerValue(BASE_ATTACK);
+                    break;
+                case CLASS_SHAMAN:
+                    newAPBonus = owner->GetTotalAttackPowerValue(BASE_ATTACK);
+                    break;
+                case CLASS_MAGE:
+                {
+                   newAPBonus = int32(owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SPELL_SCHOOL_FROST)) - owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_NEG + SPELL_SCHOOL_FROST);
+                   if(newAPBonus < 0)
+                       newAPBonus = 0;
+                   break;
+                }
+                default:
+                    break;
+            }
+            break;
+        }
+        case HUNTER_PET:
+            newAPBonus = owner->GetTotalAttackPowerValue(RANGED_ATTACK);
+            break;
+        default:
+            break;
+    }
+
+    if (m_baseAPBonus == newAPBonus)
+        return;
+
+    DEBUG_LOG("Update pet attack power, old value = %u new value = %u",m_baseAPBonus, newAPBonus);
+    m_baseAPBonus = newAPBonus;
+
+    if (!apply)
+        return;
+
+    for (PetSpellMap::const_iterator itr = m_spells.begin(); itr != m_spells.end(); ++itr)
+    {
+        if(itr->second.state == PETSPELL_REMOVED
+           || itr->second.active !=ACT_PASSIVE ) continue;
+
+        SpellEntry const *spellproto = sSpellStore.LookupEntry(itr->first);
+
+        if (!spellproto) continue;
+
+        bool needReapply = false;
+
+        for(int i = 0; i < MAX_EFFECT_INDEX; ++i)
+            if (spellproto->EffectApplyAuraName[SpellEffectIndex(i)] == SPELL_AURA_MOD_ATTACK_POWER)
+                needReapply = true;
+
+        if(needReapply)
+        {
+            SetCanModifyStats(false);
+            CastPetPassiveSpell(itr->first);
+            SetCanModifyStats(true);
+        }
+    }
+}
+
+void Pet::ApplyAllBonuses(bool apply)
+{
+    for (int i = STAT_STRENGTH; i < MAX_STATS; ++i)
+        ApplyStatBonus(Stats(i),apply);
+
+    for (int i = SPELL_SCHOOL_NORMAL; i < MAX_SPELL_SCHOOL; ++i)
+        ApplyResistanceBonus(SpellSchools(i), apply);
+
+    ApplyAttackPowerBonus(apply);
+
+    ApplyOtherBonuses(apply);
+}
+
+void Pet::ApplyOtherBonuses(bool apply)
+{
+}
+
+/*
+void Player::ApplySpellPowerBonus(int32 amount, bool apply)
+{
+    m_baseSpellPower += apply ? amount : -amount;
+}
+*/

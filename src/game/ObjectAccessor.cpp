@@ -62,8 +62,8 @@ ObjectAccessor::GetAnyTypeCreature(WorldObject const &u, ObjectGuid guid)
     if(guid.IsPet())
         return u.GetMap()->GetPet(guid);
  
-    if(guid.IsVehicle())
-        return u.GetMap()->GetVehicle(guid);
+    // if(guid.IsVehicle())
+        //return u.GetMap()->GetVehicle(guid);
  
     return u.GetMap()->GetCreature(guid);
 }
@@ -76,6 +76,9 @@ ObjectAccessor::GetUnit(WorldObject const &u, ObjectGuid guid)
 
     if(guid.IsPlayer())
         return FindPlayer(guid);
+
+    if (!u.IsInWorld())
+        return NULL;
 
     return GetAnyTypeCreature(u, guid);
 }

@@ -115,7 +115,7 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map *map, uint32 phaseMa
         return false;
     }
 
-    Object::_Create(guidlow, goinfo->id, HIGHGUID_GAMEOBJECT);
+    Object::_Create(ObjectGuid(HIGHGUID_GAMEOBJECT, goinfo->id, guidlow));
 
     m_goInfo = goinfo;
 
@@ -1498,7 +1498,7 @@ void GameObject::TakenDamage(uint32 damage, Unit* pKiller)
     if(pKiller && pKiller->GetTypeId() == TYPEID_PLAYER)
       pwho = (Player*)pKiller;
 
-    if(pKiller && ((Creature*)pKiller)->isVehicle())
+    if(pKiller && ((Creature*)pKiller)->GetVehicleKit())
       pwho = (Player*)pKiller->GetCharmerOrOwner();
 			
     if(m_health > damage)

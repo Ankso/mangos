@@ -2699,60 +2699,6 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 m_caster->CastCustomSpell(m_caster, 45470, &bp, NULL, NULL, true);
                 return;
             }
-            // Obliterate
-            else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0002000000000000))
-            {
-                // search for Annihilation
-                Unit::AuraList const& dummyList = m_caster->GetAurasByType(SPELL_AURA_DUMMY);
-                for (Unit::AuraList::const_iterator itr = dummyList.begin(); itr != dummyList.end(); ++itr)
-                {
-                    if ((*itr)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT && (*itr)->GetSpellProto()->SpellIconID == 2710)
-                        if (roll_chance_i((*itr)->GetModifier()->m_amount)) // don't consume if found
-                            return;
-                }
- 
-                // consume diseases
-                Unit::SpellAuraHolderMap& Auras = unitTarget->GetSpellAuraHolderMap();
-                for(Unit::SpellAuraHolderMap::iterator iter = Auras.begin(); iter != Auras.end();)
-                {
-                    // Remove diseases from target
-                    if (iter->second->GetCasterGUID() == m_caster->GetGUID() && 
-                       (iter->second->GetSpellProto()->Id == 55095      // Frost Fever
-                        || iter->second->GetSpellProto()->Id == 55078   // Blood Plague
-                        || iter->second->GetSpellProto()->Id == 51735   // Ebon Plague (Rank 3)
-                        || iter->second->GetSpellProto()->Id == 51734   // Ebon Plague (Rank 2)
-                        || iter->second->GetSpellProto()->Id == 51726   // Ebon Plague (Rank 1)
-                        || iter->second->GetSpellProto()->Id == 50510   // Crypt Fever (Rank 3)
-                        || iter->second->GetSpellProto()->Id == 50509   // Crypt Fever (Rank 2)
-                        || iter->second->GetSpellProto()->Id == 50508)) // Crypt Fever (Rank 1)
-                    {
-                        unitTarget->RemoveAurasDueToSpell(iter->second->GetSpellProto()->Id);
-                        iter = Auras.begin();
-                    }
-                    else
-                        ++iter;
-                }
-                return;
-            }
-            // Death Grip
-            else if (m_spellInfo->Id == 49576)
-            {
-                if (!unitTarget)
-                   return;
-
-                m_caster->CastSpell(unitTarget, 49560, true);
-                return;
-            }
-            else if (m_spellInfo->Id == 49560)
-            {
-                if (!unitTarget)
-                    return;
-
-                // uint32 spellId = m_spellInfo->CalculateSimpleValue(EFFECT_INDEX_0);
-                // unitTarget->CastSpell(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ(), spellId, true);
-                unitTarget->SendMonsterMove(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ() + 3.0f, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 2);
-                return;
-            }
             // Raise dead effect
             else if(m_spellInfo->Id == 46584) 
             {
@@ -2794,6 +2740,44 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     SendCastResult(SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW);
                 }
                 return;
+            }
+            // Death Grip
+            else if (m_spellInfo->Id == 49576)
+            {
+                if (!unitTarget)
+                    return;
+
+                m_caster->CastSpell(unitTarget, 49560, true);
+                return;
+            }
+            else if (m_spellInfo->Id == 49560)
+            {
+                if (!unitTarget)
+                    return;
+
+                uint32 spellId = m_spellInfo->CalculateSimpleValue(EFFECT_INDEX_0);
+                unitTarget->CastSpell(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ(), spellId, true);
+                // unitTarget->SendMonsterMove(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ() + 3.0f, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 2); ==> Alternative way
+                return;
+            }
+            // Obliterate
+            else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0002000000000000))
+            {
+                // search for Annihilation
+                Unit::AuraList const& dummyList = m_caster->GetAurasByType(SPELL_AURA_DUMMY);
+                for (Unit::AuraList::const_iterator itr = dummyList.begin(); itr != dummyList.end(); ++itr)
+                {
+                    if ((*itr)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT && (*itr)->GetSpellProto()->SpellIconID == 2710)
+                    {
+                        if (roll_chance_i((*itr)->GetModifier()->m_amount)) // don't consume if found
+                            return;
+                        else
+                            break;
+                    }
+                }
+
+                // consume diseases
+                unitTarget->RemoveAurasWithDispelType(DISPEL_DISEASE, m_caster->GetGUID());
             }
             break;
         }
@@ -4283,7 +4267,7 @@ void Spell::DoSummonGroupPets(SpellEffectIndex eff_idx)
 
     uint8 petindex = 0;
 
-    if (summoner->GetTypeId()==TYPEID_PLAYER) // Temporary disabled
+    if (summoner->GetTypeId()==TYPEID_PLAYER)
     {
         QueryResult* result = CharacterDatabase.PQuery("SELECT id FROM character_pet WHERE owner = '%u' AND entry = '%u'",
             summoner->GetGUIDLow(), pet_entry);
@@ -4335,8 +4319,10 @@ void Spell::DoSummonGroupPets(SpellEffectIndex eff_idx)
                          --amount;
                         // set timer for unsummon
                         if (duration > 0)
+                        {
                             creature->SetDuration(duration);
-                        creature->LoadCreaturesAddon(true);
+                            creature->GetCharmInfo()->SetReactState( REACT_AGGRESSIVE );
+                        }
                         DEBUG_LOG("Pet (guidlow %d, entry %d) summoned. Counter is %d ",
                                      creature->GetGUIDLow(), creature->GetEntry(), creature->GetPetCounter());
                     }
@@ -4353,7 +4339,7 @@ void Spell::DoSummonGroupPets(SpellEffectIndex eff_idx)
         Pet* creature = new Pet(SUMMON_PET);
         creature->SetPetCounter(amount - count - 1);
 
-        Map *map = summoner->GetMap();
+        Map* map = summoner->GetMap();
         uint32 pet_number = sObjectMgr.GeneratePetNumber();
         if (!creature->Create(map->GenerateLocalLowGuid(HIGHGUID_PET), map, summoner->GetPhaseMask(),
             m_spellInfo->EffectMiscValue[eff_idx], pet_number))
@@ -4366,6 +4352,7 @@ void Spell::DoSummonGroupPets(SpellEffectIndex eff_idx)
         creature->SetOwnerGUID(summoner->GetGUID());
         creature->SetCreatorGUID(m_caster->GetGUID());
         creature->setFaction(m_caster->getFaction());
+        summoner->SetPet(creature);
 
         if (m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
         {
@@ -4387,7 +4374,12 @@ void Spell::DoSummonGroupPets(SpellEffectIndex eff_idx)
 
         // set timer for unsummon
         if (duration > 0)
+        {
             creature->SetDuration(duration);
+            creature->GetCharmInfo()->SetReactState( REACT_AGGRESSIVE );
+        }
+        else
+            creature->GetCharmInfo()->SetReactState( REACT_DEFENSIVE );
 
         creature->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
         creature->SetUInt32Value(UNIT_FIELD_FLAGS, 0);
@@ -4415,12 +4407,7 @@ void Spell::DoSummonGroupPets(SpellEffectIndex eff_idx)
         creature->SetName( name );
 
         map->Add((Creature*)creature);
-        creature->LoadCreaturesAddon(true);
 
-        // re-init stats because of GetOwner returning null before adding to map
-//        creature->InitStatsForLevel(level, m_caster);
-
-        summoner->SetPet(creature);
         creature->GetCharmInfo()->SetReactState( REACT_DEFENSIVE );
 
         if (m_caster->GetTypeId() == TYPEID_PLAYER && creature->getPetType() == SUMMON_PET)
@@ -5372,11 +5359,6 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
             else
                 ++itr;
         }
-
-        // Summoned creature is ghoul.
-        if (NewSummon->GetEntry() == 26125)
-            // He must have energy bar instead of mana
-            NewSummon->setPowerType(POWER_ENERGY);
 
         // generate new name for summon pet
         std::string new_name = sObjectMgr.GeneratePetName(petentry);
@@ -7224,29 +7206,6 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         m_caster->CastSpell(unitTarget, 55095, true);
 
                     break;
-                }
-                case 46584:           // Raise dead
-                {
-                    // We will get here ONLY when we have a corpse of humanoid that gives honor or XP.
-                    // If we have active pet, then we should not cast the spell again.
-                    if(m_caster->GetPet())
-                    {
-                        if (m_caster->GetTypeId()==TYPEID_PLAYER)
-                            ((Player*)m_caster)->RemoveSpellCooldown(m_spellInfo->Id,true);
-                        SendCastResult(SPELL_FAILED_ALREADY_HAVE_SUMMON);
-                        return;
-                    }
-                    // Do we have talent Master of Ghouls?
-                    if(m_caster->HasSpell(52143))
-                        // Summon ghoul as a pet
-                        m_caster->CastSpell(unitTarget->GetPositionX(),unitTarget->GetPositionY(),unitTarget->GetPositionZ(),52150,true);
-                    else
-                        // Summon ghoul as a guardian
-                     m_caster->CastSpell(unitTarget->GetPositionX(),unitTarget->GetPositionY(),unitTarget->GetPositionZ(),46585,true);
-                        ((Creature*)unitTarget)->setDeathState(ALIVE);
-                    // Used to prevent further EffectDummy execution
-                    finish();
-                    return;            //break;
                 }
             }
             break;

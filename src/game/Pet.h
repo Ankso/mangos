@@ -169,7 +169,6 @@ class Pet : public Creature
                 return m_autospells[pos];
         }
 
-        void Regenerate(Powers power);
         void LooseHappiness();
         HappinessState GetHappinessState();
         void GivePetXP(uint32 xp);
@@ -203,6 +202,14 @@ class Pet : public Creature
         void LearnPetPassives();
         void CastPetAuras(bool current);
         void CastPetAura(PetAura const* aura);
+        void CastPetPassiveSpells(bool current = true);
+        void CastPetPassiveSpell(uint32 SpellID, int damage = 0);
+        void ApplyStatBonus(Stats stat, bool apply);
+        void ApplyResistanceBonus(uint32 school, bool apply);
+        void ApplyAttackPowerBonus(bool apply);
+        void ApplySpellPowerBonus(int32 amount, bool apply);
+        void ApplyOtherBonuses(bool apply);
+        void ApplyAllBonuses(bool apply);
 
         void _LoadSpellCooldowns();
         void _SaveSpellCooldowns();
@@ -264,9 +271,15 @@ class Pet : public Creature
         int32   m_bonusdamage;
         uint64  m_auraUpdateMask;
         bool    m_loading;
-        bool    m_needSave;                                 // is pet needed to be saved in DB (for chained - only originally first in chain)
+        bool    m_needSave;                                 // is pet needed to be saved in DB
         float   m_petFollowAngle;                           // follow angle for the pet
         uint8   m_petCounter;
+        int16   m_baseStatBonus[MAX_STATS];
+        int16   m_baseResistanceBonus[MAX_SPELL_SCHOOL];
+        int16   m_baseAPBonus;
+        int16   m_baseRatingValue[MAX_COMBAT_RATING];
+        uint16  m_baseSpellPower;
+        uint16  m_basePowerRegen;
 
         DeclinedName *m_declinedname;
 

@@ -7916,43 +7916,26 @@ void Aura::HandleAuraControlVehicle(bool apply, bool Real)
     if(!Real)
         return;
 
+    Unit *caster = GetCaster();
     Unit* target = GetTarget();
-    if (target->GetTypeId() != TYPEID_UNIT || !((Creature*)target)->isVehicle())
-        return;
-    Vehicle* vehicle = (Vehicle*)target;
+    VehicleKit* pVehicle = target->GetVehicleKit();
 
-    Unit *player = GetCaster();
-    if(!player || player->GetTypeId() != TYPEID_PLAYER)
+    if (!caster || target->GetTypeId() != TYPEID_UNIT || !pVehicle)
         return;
 
     if (apply)
     {
-        if(Pet *pet = player->GetPet())
-            pet->Remove(PET_SAVE_AS_CURRENT);
-        //((Player*)player)->EnterVehicle(vehicle);
+        // Maybe seat number stored somewhere
+        caster->EnterVehicle(pVehicle);
     }
     else
     {
-        SpellEntry const *spell = GetSpellProto();
-
         // some SPELL_AURA_CONTROL_VEHICLE auras have a dummy effect on the player - remove them
-        player->RemoveAurasDueToSpell(spell->Id);
+        caster->RemoveAurasDueToSpell(GetId());
 
-        //((Player*)player)->ExitVehicle(vehicle);
+        if (caster->GetVehicle() == pVehicle)
+            caster->ExitVehicle();
     }
-}
-
-void Aura::HandleAuraOpenStable(bool apply, bool Real)
-{
-    if(!Real || GetTarget()->GetTypeId() != TYPEID_PLAYER || !GetTarget()->IsInWorld())
-        return;
-
-    Player* player = (Player*)GetTarget();
-
-    if (apply)
-        player->GetSession()->SendStablePet(player->GetObjectGuid());
-
-    // client auto close stable dialog at !apply aura
 }
 
 void Aura::HandleAuraLinked(bool apply, bool Real)
@@ -7972,6 +7955,19 @@ void Aura::HandleAuraLinked(bool apply, bool Real)
         GetTarget()->CastSpell(GetTarget(), linkedSpell, true, NULL, this);
     else
         GetTarget()->RemoveAurasByCasterSpell(linkedSpell, GetCasterGUID());
+}
+
+void Aura::HandleAuraOpenStable(bool apply, bool Real)
+{
+    if(!Real || GetTarget()->GetTypeId() != TYPEID_PLAYER || !GetTarget()->IsInWorld())
+        return;
+
+    Player* player = (Player*)GetTarget();
+
+    if (apply)
+        player->GetSession()->SendStablePet(player->GetObjectGuid());
+
+    // client auto close stable dialog at !apply aura
 }
 
 void Aura::HandleIgnoreUnitState(bool apply, bool Real)
