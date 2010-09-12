@@ -11,28 +11,13 @@ INSERT INTO `gameobject_template` (`entry`, `type`, `displayId`, `name`, `IconNa
 (194086, 22, 8582, 'Seaforium Barrel', '', '', '', 29, 0, 2, 0, 0, 0, 0, 0, 0, 52415, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '');
 -- Demolisher
 UPDATE `creature_template` SET `npcflag` = '1', minhealth = '80000', maxhealth = '80000', `ScriptName` = 'npc_sa_demolisher' WHERE `entry` = '28781';
-DELETE FROM `vehicle_seat_data` WHERE seat in (2021,2023,2024);
-INSERT INTO `vehicle_seat_data` VALUES ('2021', '7');
-INSERT INTO `vehicle_seat_data` VALUES ('2023', '6');
-INSERT INTO `vehicle_seat_data` VALUES ('2024', '6');
 DeleTe From `npc_spellclick_spells` WHERE npc_entry in (28781);
 INSERT INTO `npc_spellclick_spells` VALUES ('28781', '60968', '0', '0', '0', '0');
 
 -- AP Cannon
 UPDATE `creature_template` SET `npcflag` = '1', unit_flags = 8, minhealth = '60000', maxhealth = '60000', `faction_A` = '35', `faction_H` = '35', `ScriptName` = 'npc_sa_cannon' WHERE entry = '27894';
-DELETE FROM `vehicle_seat_data` WHERE seat in (2029);
-INSERT INTO `vehicle_seat_data` VALUES ('2029', '5');
 DeleTe From `npc_spellclick_spells` WHERE npc_entry in (27894);
 INSERT INTO `npc_spellclick_spells` VALUES ('27894', '60968', '0', '0', '0', '0');
-
-/* Battleground Demolisher */
-DELETE FROM creature_template_addon where entry = 28781;
-INSERT INTO creature_template_addon VALUES (28781, 0, 0, 0, 0, 0, 158, NULL, NULL);
-REPLACE INTO vehicle_data VALUES (158, 4, 52338, 60206, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-/* Antipersonnel Cannon */
-DELETE FROM creature_template_addon where entry = 27894;
-INSERT INTO creature_template_addon VALUES (27894, 0, 0, 0, 0, 0, 160, NULL, NULL);
-REPLACE INTO vehicle_data VALUES (160, 5, 49872, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 DELETE FROM `gameobject` WHERE `guid` in (200001,200002,200003,200004,200005,200006,200007);
 INSERT INTO `gameobject` (`guid` ,`id` ,`map` ,`spawnMask` ,`phaseMask` ,`position_x` ,`position_y` ,`position_z` ,`orientation` ,`rotation0` ,`rotation1` ,`rotation2` ,`rotation3` ,`spawntimesecs` ,`animprogress` ,`state` ) VALUES
