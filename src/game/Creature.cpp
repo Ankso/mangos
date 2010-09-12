@@ -617,6 +617,10 @@ void Creature::Regenerate(Powers power)
 
 void Creature::RegenerateHealth()
 {
+    // Creatures in Sota (vehicles) shouldn't regenerate health
+    if (GetMapId() == 607 && GetMap()->IsBattleGround())
+        return;
+
     if (!isRegeneratingHealth())
         return;
 
