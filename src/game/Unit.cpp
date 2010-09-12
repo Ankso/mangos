@@ -6725,6 +6725,13 @@ uint32 Unit::SpellDamageBonusTaken(Unit *pCaster, SpellEntry const *spellProto, 
         AuraList const& avoidAuras = GetAurasByType(SPELL_AURA_MOD_AOE_DAMAGE_AVOIDANCE);
         for(AuraList::const_iterator itr = avoidAuras.begin(); itr != avoidAuras.end(); ++itr)
             TakenTotalMod *= ((*itr)->GetModifier()->m_amount + 100.0f) / 100.0f;
+
+        if (GetTypeId() == TYPEID_UNIT)
+        {
+            AuraList const& avoidPetAuras = GetAurasByType(SPELL_AURA_MOD_PET_AOE_DAMAGE_AVOIDANCE);
+            for(AuraList::const_iterator itr2 = avoidPetAuras.begin(); itr2 != avoidPetAuras.end(); ++itr2)
+                TakenTotalMod *= ((*itr2)->GetModifier()->m_amount + 100.0f) / 100.0f;
+        }
     }
 
     // Ebon Plague
@@ -7690,7 +7697,11 @@ uint32 Unit::MeleeDamageBonusTaken(Unit *pCaster, uint32 pdamage,WeaponAttackTyp
 
     // ..taken pct (aoe avoidance)
     if(spellProto && IsAreaOfEffectSpell(spellProto))
+    {
         TakenPercent *= GetTotalAuraMultiplier(SPELL_AURA_MOD_AOE_DAMAGE_AVOIDANCE);
+        if (GetTypeId() == TYPEID_UNIT)
+            TakenPercent *= GetTotalAuraMultiplier(SPELL_AURA_MOD_PET_AOE_DAMAGE_AVOIDANCE);
+    }
 
     // ..taken (SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN)
     AuraList const& mModDamagePercentTaken = GetAurasByType(SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN);
@@ -11255,7 +11266,10 @@ void Unit::EnterVehicle(VehicleKit *vehicle, int8 seatId)
         if (BattleGround *bg = player->GetBattleGround())
             bg->EventPlayerDroppedFlag(player);
 
-        WorldPacket data(SMSG_BREAK_TARGET, 8);
+        WorldPacket data(SMSG_ON_CANCEL_EXPECTED_RIDE_VEHICLE_AURA);
+        player->GetSession()->SendPacket(&data);
+
+        data.Initialize(SMSG_BREAK_TARGET, 8);
         data << vehicle->GetBase()->GetPackGUID();
         player->GetSession()->SendPacket(&data);
 

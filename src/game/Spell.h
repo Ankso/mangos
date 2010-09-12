@@ -307,6 +307,7 @@ class Spell
         void EffectCharge(SpellEffectIndex eff_idx);
         void EffectCharge2(SpellEffectIndex eff_idx);
         void EffectProspecting(SpellEffectIndex eff_idx);
+        void EffectRedirectThreat(SpellEffectIndex eff_idx);
         void EffectMilling(SpellEffectIndex eff_idx);
         void EffectRenamePet(SpellEffectIndex eff_idx);
         void EffectSendTaxi(SpellEffectIndex eff_idx);
@@ -343,7 +344,6 @@ class Spell
         void EffectTitanGrip(SpellEffectIndex eff_idx);
         void EffectEnchantItemPrismatic(SpellEffectIndex eff_idx);
         void EffectPlayMusic(SpellEffectIndex eff_idx);
-        void EffectRedirectThreat(SpellEffectIndex eff_idx);
         void EffectSpecCount(SpellEffectIndex eff_idx);
         void EffectActivateSpec(SpellEffectIndex eff_idx);
 

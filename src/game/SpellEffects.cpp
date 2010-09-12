@@ -4796,21 +4796,29 @@ void Spell::DoSummonGuardian(SpellEffectIndex eff_idx, uint32 forceFaction)
             spawnCreature->SetDuration(duration);
 
         spawnCreature->SetOwnerGUID(m_caster->GetGUID());
-        spawnCreature->setPowerType(POWER_MANA);
+        spawnCreature->SetCreatorGUID(m_caster->GetGUID());
         spawnCreature->SetUInt32Value(UNIT_NPC_FLAGS, spawnCreature->GetCreatureInfo()->npcflag);
         spawnCreature->setFaction(forceFaction ? forceFaction : m_caster->getFaction());
         spawnCreature->SetUInt32Value(UNIT_FIELD_FLAGS, 0);
         spawnCreature->SetUInt32Value(UNIT_FIELD_BYTES_1, 0);
         spawnCreature->SetUInt32Value(UNIT_FIELD_PET_NAME_TIMESTAMP, 0);
-        spawnCreature->SetCreatorGUID(m_caster->GetGUID());
         spawnCreature->SetUInt32Value(UNIT_CREATED_BY_SPELL, m_spellInfo->Id);
 
+        spawnCreature->SetCanModifyStats(true);
+        spawnCreature->ApplyAllBonuses(false);
+        spawnCreature->InitPetCreateSpells();
         spawnCreature->InitStatsForLevel(level, m_caster);
         spawnCreature->GetCharmInfo()->SetPetNumber(pet_number, false);
 
         spawnCreature->AIM_Initialize();
 
         m_caster->AddGuardian(spawnCreature);
+
+        spawnCreature->LearnPetPassives();
+        spawnCreature->CastPetAuras(true);
+
+        spawnCreature->SetHealth(spawnCreature->GetMaxHealth());
+        spawnCreature->SetPower(spawnCreature->getPowerType(), spawnCreature->GetMaxPower(spawnCreature->getPowerType()));
 
         map->Add((Creature*)spawnCreature);
 
@@ -7402,7 +7410,7 @@ void Spell::DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc)
     if (slot < MAX_TOTEM_SLOT)
         m_caster->_AddTotem(TotemSlot(slot),pTotem);
 
-    pTotem->SetOwner(m_caster->GetGUID());
+    pTotem->SetOwner(m_caster);
     pTotem->SetTypeBySummonSpell(m_spellInfo);              // must be after Create call where m_spells initialized
 
     int32 duration=GetSpellDuration(m_spellInfo);
@@ -8636,15 +8644,10 @@ void Spell::EffectRestoreItemCharges( SpellEffectIndex eff_idx )
 
 void Spell::EffectRedirectThreat(SpellEffectIndex eff_idx)
 {
-    if(unitTarget)
-    {
-        m_caster->SetThreatRedirectionTarget(unitTarget->GetGUID(), (uint32)damage);
-
-        // Tricks of trade hacky buff applying (15% damage increase)
-        if( m_spellInfo->Id == 57934 )
-            unitTarget->CastSpell(unitTarget, 57933, true);
-    }
+    if (unitTarget)
+        m_caster->getHostileRefManager().SetThreatRedirection(unitTarget->GetObjectGuid(), uint32(damage));
 }
+
 void Spell::EffectTeachTaxiNode( SpellEffectIndex eff_idx )
 {
     if (unitTarget->GetTypeId() != TYPEID_PLAYER)
