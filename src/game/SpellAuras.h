@@ -53,6 +53,7 @@ class MANGOS_DLL_SPEC SpellAuraHolder
         void _RemoveSpellAuraHolder();
         void SendAuraUpdate(bool remove);
         void HandleSpellSpecificBoosts(bool apply);
+               void HandleIgnoreUnitState(bool Apply, bool Real);
         void CleanupTriggeredSpells();
         void SendFakeAuraUpdate(uint32 auraId, bool remove);
 
@@ -360,7 +361,6 @@ class MANGOS_DLL_SPEC Aura
         void HandleAuraIncreaseBaseHealthPercent(bool Apply, bool Real);
         void HandleNoReagentUseAura(bool Apply, bool Real);
         void HandlePhase(bool Apply, bool Real);
-        void HandleIgnoreUnitState(bool Apply, bool Real);
         void HandleModTargetArmorPct(bool Apply, bool Real);
         void HandleAuraModAllCritChance(bool Apply, bool Real);
         void HandleAuraMirrorImage(bool Apply, bool Real);

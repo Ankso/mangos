@@ -312,7 +312,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS]=
     &Aura::HandleNULL,                                      //259 corrupt healing over time spell
     &Aura::HandleNoImmediateEffect,                         //260 SPELL_AURA_SCREEN_EFFECT (miscvalue = id in ScreenEffect.dbc) not required any code
     &Aura::HandlePhase,                                     //261 SPELL_AURA_PHASE undetectable invisibility?     implemented in Unit::isVisibleForOrDetect
-    &Aura::HandleIgnoreUnitState,                           //262 SPELL_AURA_IGNORE_UNIT_STATE Allows some abilities which are avaible only in some cases.... implemented in Unit::isIgnoreUnitState & Spell::CheckCast
+    &Aura::HandleNULL,                                      //262 ignore combat/aura state?
     &Aura::HandleAllowOnlyAbility,                          //263 SPELL_AURA_ALLOW_ONLY_ABILITY player can use only abilities set in SpellClassMask
     &Aura::HandleUnused,                                    //264 unused (3.0.8a-3.2.2a)
     &Aura::HandleUnused,                                    //265 unused (3.0.8a-3.2.2a)
@@ -2163,10 +2163,10 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                 // hack for Fingers of Frost stacks
                 if (GetId() == 74396)
                 {
-                    if (SpellAuraHolder* holder = target->GetSpellAuraHolder(74396))
+                    if (Aura *aur = target->GetAura(74396, EFFECT_INDEX_0))
                     {
-                        if (holder->GetStackAmount() < 3)
-                            holder->SetAuraCharges(3);
+                        if (aur->GetStackAmount() < 3)
+                                                       aur->GetHolder()->SetAuraCharges(3);
                     }
                 }
                 break;
@@ -2377,12 +2377,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             case 68839:                                     // Corrupt Soul
                 target->CastSpell(target, 68846, true, NULL, this);
                 return;
-            case 74396:                                     // Fingers of Frost effect remove
-            {
-                if (GetHolder()->GetAuraCharges() <= 0)
-                    target->RemoveAurasDueToSpell(44544);
-                return;
-            }
         }
         // Living Bomb
         if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_MAGE && (GetSpellProto()->SpellFamilyFlags & UI64LIT(0x2000000000000)))
@@ -8036,18 +8030,6 @@ void Aura::HandleAuraOpenStable(bool apply, bool Real)
     // client auto close stable dialog at !apply aura
 }
 
-void Aura::HandleIgnoreUnitState(bool apply, bool Real)
-{
-    Unit* target = GetTarget();
-
-    if(target->GetTypeId() != TYPEID_PLAYER || !Real)
-        return;
-
-    // for alowing charge/intercept/intervene in different stances
-    if (GetId() == 57499 && apply)
-        GetHolder()->SetAuraFlags(19);
-}
-
 void Aura::HandleAuraConvertRune(bool apply, bool Real)
 {
     if(!Real)
@@ -9540,6 +9522,12 @@ bool SpellAuraHolder::IsEmptyHolder() const
         if (Aura *aur = m_auras[i])
             return false;
     return true;
+}
+
+void SpellAuraHolder::HandleIgnoreUnitState(bool apply, bool Real)
+{
+    if(m_target->GetTypeId() != TYPEID_PLAYER || !Real)
+        return;
 }
 
 void SpellAuraHolder::UnregisterSingleCastHolder()

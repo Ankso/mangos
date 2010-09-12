@@ -2990,11 +2990,7 @@ void Spell::cast(bool skipCheck)
                 AddPrecastSpell(41425);                     // Hypothermia
             // Fingers of Frost
             else if (m_spellInfo->Id == 44544)
-            {
-                int chance = urand(0, 100);
-                if (chance <= 15)
-                    AddTriggeredSpell(74396);
-            }
+                AddPrecastSpell(74396);
             break;
         }
         case SPELLFAMILY_WARRIOR:
@@ -3572,13 +3568,14 @@ void Spell::finish(bool ok)
         m_caster->AttackStop();
 
     // hack for Fingers of Frost stacks remove
-    if(m_spellInfo->SpellFamilyName == SPELLFAMILY_MAGE && !m_IsTriggeredSpell && m_caster->HasAura(74396))
-        if (SpellAuraHolder* holder = m_caster->GetSpellAuraHolder(74396))
-            if(holder->DropAuraCharge())
-                m_caster->RemoveSpellAuraHolder(holder);
+    if(m_caster->HasAura(74396) && !m_IsTriggeredSpell && m_spellInfo->SpellFamilyName == SPELLFAMILY_MAGE)
+        if (Aura *aur = m_caster->GetAura(74396, EFFECT_INDEX_0))
+               if(aur->GetHolder()->GetAuraCharges() <= 1)
+                               m_caster->RemoveAurasDueToSpell(74396);
+            else if(aur->GetHolder()->DropAuraCharge())
+                               m_caster->RemoveAura(aur);
 
-    // For SPELL_AURA_IGNORE_UNIT_STATE charges
-    // TODO: find way without this hack
+    // hack for SPELL_AURA_IGNORE_UNIT_STATE charges
     bool break_for = false;
     Unit::AuraList const& stateAuras = m_caster->GetAurasByType(SPELL_AURA_IGNORE_UNIT_STATE);
     for(Unit::AuraList::const_iterator j = stateAuras.begin();j != stateAuras.end(); ++j)
@@ -3588,26 +3585,20 @@ void Spell::finish(bool ok)
             case 52437:                        //Sudden death should disappear after execute
                 if (m_spellInfo->SpellIconID == 1648)
                 {
-                   if((*j)->GetHolder()->GetAuraCharges() <= 1)
-                       m_caster->RemoveAurasDueToSpell(52437);
-                   else
-                       m_caster->RemoveAura((*j));
-                    
-                   break_for = true;
+                                       if((*j)->GetHolder()->GetAuraCharges() <= 1)
+                                               m_caster->RemoveAurasDueToSpell(52437);                  
+                                               break_for = true;
                 }
                 break;
-            case 60503:        // Taste for blood 
+            case 60503:        // Taste for blood
             case 68051:        // Glyph of overpower - Both should disappear after overpower
                 if(m_spellInfo->Id == 7384)
                 {
-                    if((*j)->GetHolder()->GetAuraCharges() <= 1)
-                    {
-                        m_caster->RemoveAurasDueToSpell(60503);
-                        m_caster->RemoveAurasDueToSpell(68051);
-                    }
-                    else
-                        m_caster->RemoveAura((*j));
-
+                                       if((*j)->GetHolder()->GetAuraCharges() <= 1)
+                                       {
+                                               m_caster->RemoveAurasDueToSpell(60503);
+                                               m_caster->RemoveAurasDueToSpell(68051);
+                                       }
                     break_for = true;
                 }
                 break;
@@ -4581,11 +4572,6 @@ SpellCastResult Spell::CheckCast(bool strict)
         else if(m_caster->HasAura(m_spellInfo->excludeCasterAuraSpell))
             return SPELL_FAILED_CASTER_AURASTATE;
     }
-    
-    //Check Caster for combat
-    if(m_caster->isInCombat() && IsNonCombatSpell(m_spellInfo) &&
-        !m_IsTriggeredSpell && !m_caster->isIgnoreUnitState(m_spellInfo)) 
-        return SPELL_FAILED_AFFECTING_COMBAT;
 
     // cancel autorepeat spells if cast start when moving
     // (not wand currently autorepeat cast delayed to moving stop anyway in spell update code)
