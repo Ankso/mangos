@@ -1270,9 +1270,6 @@ void BattleGround::AddPlayer(Player *plr)
     if (plr->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_AFK))
         plr->ToggleAFK();
 
-    if (plr->IsMounted())
-        plr->Unmount();
-
     // score struct must be created in inherited class
 
     ObjectGuid guid = plr->GetObjectGuid();
