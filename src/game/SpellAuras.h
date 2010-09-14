@@ -233,6 +233,8 @@ class MANGOS_DLL_SPEC Aura
         void HandleModTaunt(bool Apply, bool Real);
         void HandleFeignDeath(bool Apply, bool Real);
         void HandleAuraModDisarm(bool Apply, bool Real);
+        void HandleAuraModDisarmOffhand(bool Apply, bool Real);
+        void HandleAuraModDisarmRanged(bool Apply, bool Real);
         void HandleAuraModStalked(bool Apply, bool Real);
         void HandleAuraWaterWalk(bool Apply, bool Real);
         void HandleAuraFeatherFall(bool Apply, bool Real);
