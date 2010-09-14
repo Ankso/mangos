@@ -1135,6 +1135,12 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                     }
                     break;
                 }
+                // Purified Lunar Dust (ICC 60 emblems trinket)
+                case 71585:
+                {
+                        triggered_spell_id = 71584;
+                        break;
+                }
             }
             break;
         }
