@@ -101,7 +101,6 @@ void BattleGroundSA::EndBattleGround(uint32 winner)
 	uint32 win = 0;
 	if(alliance_sc == 0 && horde_sc == 0)
 	{
-		// Ничья товарищи)
 		RewardHonorToTeam(50, ALLIANCE);
 		RewardHonorToTeam(50, HORDE);
 	}
@@ -118,6 +117,12 @@ void BattleGroundSA::EndBattleGround(uint32 winner)
 		win = HORDE;
 	}
 
+    if (win)
+    {
+        RewardXpToTeam(0, 0.8, win);
+        RewardXpToTeam(0, 0.8, ALLIANCE);
+        RewardXpToTeam(0, 0.8, HORDE);
+    }
     BattleGround::EndBattleGround(win);
 }
 
@@ -173,6 +178,7 @@ void BattleGroundSA::Update(uint32 diff)
 					_GydOccupied(gyd,(teamIndex == 0) ? ALLIANCE:HORDE);
                     // Message to chatlog
 					RewardHonorToTeam(85, (teamIndex == 0) ? ALLIANCE:HORDE);
+                    RewardXpToTeam(0, 0.6, (teamIndex == 0) ? ALLIANCE:HORDE);
 					RewardReputationToTeam((teamIndex == 0) ? 1050:1085, 65, (teamIndex == 0) ? ALLIANCE:HORDE);
 					switch(gyd)
 					{
