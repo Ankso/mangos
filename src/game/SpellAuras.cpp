@@ -6985,6 +6985,7 @@ void Aura::PeriodicTick()
             // Set trigger flag
             uint32 procAttacker = PROC_FLAG_ON_DO_PERIODIC; //  | PROC_FLAG_SUCCESSFUL_HARMFUL_SPELL_HIT;
             uint32 procVictim   = PROC_FLAG_ON_TAKE_PERIODIC;// | PROC_FLAG_TAKEN_HARMFUL_SPELL_HIT;
+            uint32 procEx       = isCrit ? PROC_EX_CRITICAL_HIT : PROC_EX_NORMAL_HIT;
             pdamage = (pdamage <= absorb + resist) ? 0 : (pdamage - absorb - resist);
 
             SpellPeriodicAuraLogInfo pInfo(this, pdamage, 0, absorb, resist, 0.0f, isCrit);
@@ -6993,7 +6994,7 @@ void Aura::PeriodicTick()
             if (pdamage)
                 procVictim|=PROC_FLAG_TAKEN_ANY_DAMAGE;
 
-            pCaster->ProcDamageAndSpell(target, procAttacker, procVictim, PROC_EX_NORMAL_HIT, pdamage, BASE_ATTACK, spellProto);
+            pCaster->ProcDamageAndSpell(target, procAttacker, procVictim, procEx, pdamage, BASE_ATTACK, spellProto);
 
             pCaster->DealDamage(target, pdamage, &cleanDamage, DOT, GetSpellSchoolMask(spellProto), spellProto, true);
 
