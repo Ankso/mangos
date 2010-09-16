@@ -2004,6 +2004,11 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 if (IsSealSpell(spellInfo_1) && IsSealSpell(spellInfo_2))
                     return true;
 
+                //Blood Corruption, Holy Vengeance, Righteous Vengeance
+                if ((spellInfo_1->SpellIconID == 2292 && spellInfo_2->SpellIconID == 3025) ||
+                    (spellInfo_2->SpellIconID == 2292 && spellInfo_1->SpellIconID == 3025))
+                    return false;
+
                 // Repentance removes Righteous Vengeance
                 if (spellInfo_1->Id == 20066 && spellInfo_2->Id == 61840)
                     return true;
