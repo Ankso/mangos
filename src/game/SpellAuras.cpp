@@ -1213,13 +1213,52 @@ void Aura::TriggerSpell()
 //                    case 27819: break;
 //                    // Controller Timer
 //                    case 28095: break;
-//                    // Stalagg Chain
-//                    case 28096: break;
-//                    // Stalagg Tesla Passive
-//                    case 28097: break;
-//                    // Feugen Tesla Passive
-//                    case 28109: break;
-//                    // Feugen Chain
+                    /* **
+                    ** Feugen & Stalagg Chain Spells
+                    ** X-Chain is Casted by Tesla to X, applies aura on X, so Caster = Tesla, target = X
+                    ** X-Tesla-Passive is Casted by Tesla on Tesla
+                    ** The Chain Spells are reapplied in Script, in here problems with removing combat mode
+                    ** */
+                    // Stalagg and Feugen Chain
+                    case 28096:
+                    case 28111:
+                    {
+                        Unit* pCaster = GetCaster();
+                        if (pCaster && pCaster->GetDistance(target) > 60.0f)
+                        {
+                            pCaster->InterruptNonMeleeSpells(true);
+                            target->RemoveAura(auraId, EFFECT_INDEX_0);
+
+                            // Used to 'notify' the AI to play the emote
+                            if (pCaster->GetTypeId() == TYPEID_UNIT)
+                            {
+                                ((Creature*)pCaster)->SetInCombatWithZone();
+                                pCaster->CastSpell(pCaster, auraId == 28096 ? 28097 : 28109, true, NULL, NULL, target->GetObjectGuid());
+                            }
+                        }
+                        return;
+                    }
+                    // Stalagg and Feugen Tesla Passive
+                    case 28097:
+                    case 28109:
+                    {
+                        if (Unit* pCaster = GetCaster())
+                        {
+                            if (target->getVictim() && target->GetDistance(pCaster) >= 60.0f)
+                            {
+                                // Remark: This spell seems to be not cast triggered (SMSG_SPELL_START)
+                                target->CastSpell(target->getVictim(), 28099, false);
+                                return;
+                            }
+
+                            if (target->GetTypeId() == TYPEID_UNIT)
+                            {
+                                ((Creature*) target)->AI()->EnterEvadeMode();
+                                target->CastSpell(pCaster, auraId == 28097 ? 28096 : 28111, false);
+                            }
+                        }
+                        return;
+                    }
 //                    case 28111: break;
 //                    // Mark of Didier
 //                    case 28114: break;
