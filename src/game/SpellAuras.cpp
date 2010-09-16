@@ -5336,14 +5336,8 @@ void Aura::HandleAuraModResistance(bool apply, bool /*Real*/)
 
 void Aura::HandleAuraModBaseResistancePCT(bool apply, bool /*Real*/)
 {
-    // only players have base stats
-    if(GetTarget()->GetTypeId() != TYPEID_PLAYER)
-    {
-        //pets only have base armor
-        if(((Creature*)GetTarget())->isPet() && (m_modifier.m_miscvalue & SPELL_SCHOOL_MASK_NORMAL))
-            GetTarget()->HandleStatModifier(UNIT_MOD_ARMOR, BASE_PCT, float(m_modifier.m_amount), apply);
-    }
-    else
+    // only players and pets have base stats
+    if (GetTarget()->GetTypeId() == TYPEID_PLAYER || ((Creature*)GetTarget())->isPet())
     {
         for(int8 x = SPELL_SCHOOL_NORMAL; x < MAX_SPELL_SCHOOL;x++)
         {
@@ -8913,30 +8907,39 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                         return;
                     break;
                 }
+                case 69674:
+                {
+                    if (!apply)
+                    {
+                        if (m_removeMode == AURA_REMOVE_BY_DISPEL)
+                        {
+                            cast_at_remove = true;
+                            spellId1 = 69706;
+                        }
+                    }
+                    break;
+                }
+                case 69260:
+                {
+                    if (!apply)
+                    {
+                        if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
+                        {
+                             cast_at_remove = true;
+                             spellId1 = 69291;
+                             // Cast unknown spell - spore explode (override)
+                             float radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(GetSpellProto()->EffectRadiusIndex[EFFECT_INDEX_0]));
+                             Map::PlayerList const& pList = m_target->GetMap()->GetPlayers();
+                             for (Map::PlayerList::const_iterator itr = pList.begin(); itr != pList.end(); ++itr)
+                                 if (itr->getSource() && itr->getSource()->IsWithinDistInMap(m_target,radius))
+                                     itr->getSource()->CastSpell(itr->getSource(), spellId1, true);
+                        }
+                    }
+                    break;
+                }
                 default:
                     return;
             }
-            // SPELL_MUTATED_INFECTION - ICC boss Rotface
-            if (GetId() == 69674 && !apply && m_removeMode == AURA_REMOVE_BY_DISPEL)
-            {
-                cast_at_remove = true;
-                spellId1 = 69706;
-            }
-            else
-            // SPELL_GAS_SPORE - ICC boss Festergut
-            if (GetId() == 69290 && !apply && m_removeMode == AURA_REMOVE_BY_EXPIRE)
-            {
-                cast_at_remove = true;
-                spellId1 = 69291;
-                // Cast unknown spell - spore explode (override)
-                float radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(GetSpellProto()->EffectRadiusIndex[EFFECT_INDEX_0]));
-                Map::PlayerList const& pList = m_target->GetMap()->GetPlayers();
-                for (Map::PlayerList::const_iterator itr = pList.begin(); itr != pList.end(); ++itr)
-                    if (itr->getSource() && itr->getSource()->IsWithinDistInMap(m_target,radius))
-                       itr->getSource()->CastSpell(itr->getSource(), spellId1, true);
-            }
-            else
-                return;
             break;
         }
         case SPELLFAMILY_MAGE:
