@@ -4261,9 +4261,6 @@ void Spell::DoSummonGroupPets(SpellEffectIndex eff_idx)
     if (m_caster->GetPetGUID())
         return;
 
-    if (m_caster->GetTypeId() != TYPEID_PLAYER)
-        return;
-
     if (!unitTarget)
         return;
 
@@ -4277,14 +4274,14 @@ void Spell::DoSummonGroupPets(SpellEffectIndex eff_idx)
     int32 duration = GetSpellDuration(m_spellInfo);
 
     if (pet_entry == 37994)    // Mage: Water Elemental from Glyph
-        duration = 4294967294; // infinity
+        duration = 0;
 
     if(Player* modOwner = m_caster->GetSpellModOwner())
         modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_DURATION, duration);
 
     uint32 amount = damage;
 
-    if (amount > 3)
+    if (amount > 5)
         amount = 1;  // Don't find any cast, summons over 3 pet.
 
     Unit* summoner = m_caster;
