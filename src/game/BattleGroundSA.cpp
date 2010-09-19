@@ -1082,7 +1082,7 @@ void BattleGroundSA::TeleportPlayers()
                     plr->TeleportTo(607, 1803.71f, 118.601f, 59.824f, 3.563f);
             }
             else
-                plr->TeleportTo(607, 1209.7f, -65.16f, 70.1f, 0.0f, 0);
+                plr->TeleportTo(607, 1209.7f, -65.16f, 70.1f, 0.0f);
 
             plr->CastSpell(plr, 44521, true);   // Preparation
         }
