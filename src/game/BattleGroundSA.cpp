@@ -265,74 +265,8 @@ void BattleGroundSA::AddPlayer(Player *plr)
 {
     BattleGround::AddPlayer(plr);
 
-    if (GetStatus() != STATUS_IN_PROGRESS)
-    {
-	    if (plr->GetTeam()== ALLIANCE)
-	    {
-		    if (GetController() == HORDE)
-		    {
-			    switch(urand(1,2))
-			    {
-				    case 1: plr->TeleportTo(607, 1804.093f, -168.457f, 60.549f, 2.65f);break;
-				    case 2: plr->TeleportTo(607, 1803.71f, 118.601f, 59.824f, 3.563f);break;
-			    }
-		    }
-		    else
-		    {
-			    plr->TeleportTo(607, 1200.67f, -67.87f, 70.08f, 0.06f);
-		    }
-	    }
-	    else if (plr->GetTeam()== HORDE)
-	    {
-		    if (GetController() == ALLIANCE)
-		    {
-			    switch(urand(1,2))
-			    {
-				    case 1: plr->TeleportTo(607, 1804.093f, -168.457f, 60.549f, 2.65f);break;
-				    case 2: plr->TeleportTo(607, 1803.71f, 118.601f, 59.824f, 3.563f);break;
-			    }
-		    }
-		    else
-		    {
-			    plr->TeleportTo(607, 1200.67f, -67.87f, 70.08f, 0.06f);
-		    }
-	    }
-    }
-    else
-    {
-        if (plr->GetTeam()== ALLIANCE)
-	    {
-		    if (GetController() == HORDE)
-		    {
-			    switch(urand(1,2))
-			    {
-				    case 1: plr->TeleportTo(607, 1597.637f, -106.348f, 8.888f, 4.1263f); break;
-				    case 2: plr->TeleportTo(607, 1606.608f, 50.1236f, 7.58f, 2.3898f); break;
-			    }
-		    }
-		    else
-		    {
-			    plr->TeleportTo(607, 1200.67f, -67.87f, 70.08f, 0.06f);
-		    }
-	    }
-	    else if (plr->GetTeam()== HORDE)
-	    {
-		    if (GetController() == ALLIANCE)
-		    {
-			    switch(urand(1,2))
-			    {
-				    case 1: plr->TeleportTo(607, 1597.637f, -106.348f, 8.888f, 4.1263f); break;
-				    case 2: plr->TeleportTo(607, 1606.608f, 50.1236f, 7.58f, 2.3898f); break;
-			    }
-		    }
-		    else
-		    {
-			    plr->TeleportTo(607, 1200.67f, -67.87f, 70.08f, 0.06f);
-		    }
-	    }
-    }
+    TeleportPlayerToCorrectLoc(plr);
 
-    
     BattleGroundSAScore* sc = new BattleGroundSAScore;
 
     m_PlayerScores[plr->GetGUID()] = sc;
@@ -402,7 +336,11 @@ void BattleGroundSA::ResetBattle(uint32 vinner)
 	controller = ALLIANCE;
 	ToggleTimer();
 
-    TeleportPlayers();
+    for (BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
+    {
+        if (Player *plr = sObjectMgr.GetPlayer(itr->first))
+            TeleportPlayerToCorrectLoc(plr, true);
+    }
 
 	UpdatePhase();
 }
@@ -1056,6 +994,50 @@ void BattleGroundSA::SendWarningToAllSA(uint8 gyd, int status, Team team, bool i
     }
 }
 
+void BattleGroundSA::TeleportPlayerToCorrectLoc(Player *plr, bool resetBattle)
+{
+    if (!plr)
+        return;
+
+    if (resetBattle)
+    {
+        if (!plr->isAlive())
+        {
+            plr->ResurrectPlayer(1.0f);
+            plr->SpawnCorpseBones();
+        }
+
+        plr->SetHealth(plr->GetMaxHealth());
+        plr->SetPower(POWER_MANA, plr->GetMaxPower(POWER_MANA));
+        plr->CombatStopWithPets(true);
+    }
+    
+    if (GetStatus() != STATUS_IN_PROGRESS)
+    {
+        if (plr->GetTeam() != GetController())
+        {
+            if (urand(0,1))
+                plr->TeleportTo(607, BG_SA_TELEPORT_COORDS[1][1], BG_SA_TELEPORT_COORDS[1][2], BG_SA_TELEPORT_COORDS[1][3], BG_SA_TELEPORT_COORDS[1][4]);
+            else
+                plr->TeleportTo(607, BG_SA_TELEPORT_COORDS[2][1], BG_SA_TELEPORT_COORDS[2][2], BG_SA_TELEPORT_COORDS[2][3], BG_SA_TELEPORT_COORDS[2][4]);
+        }
+        else
+            plr->TeleportTo(607, BG_SA_TELEPORT_COORDS[3][1], BG_SA_TELEPORT_COORDS[3][2], BG_SA_TELEPORT_COORDS[3][3], BG_SA_TELEPORT_COORDS[3][4]);
+    }
+    else
+    {
+        if (plr->GetTeam() != GetController())
+        {
+            if (urand(0,1))
+                plr->TeleportTo(607, BG_SA_TELEPORT_COORDS[4][1], BG_SA_TELEPORT_COORDS[4][2], BG_SA_TELEPORT_COORDS[4][3], BG_SA_TELEPORT_COORDS[4][4]);
+            else
+                plr->TeleportTo(607, BG_SA_TELEPORT_COORDS[5][1], BG_SA_TELEPORT_COORDS[5][2], BG_SA_TELEPORT_COORDS[5][3], BG_SA_TELEPORT_COORDS[5][4]);
+        }
+        else
+            plr->TeleportTo(607, BG_SA_TELEPORT_COORDS[3][1], BG_SA_TELEPORT_COORDS[3][2], BG_SA_TELEPORT_COORDS[3][3], BG_SA_TELEPORT_COORDS[3][4]);
+    }
+}
+
 void BattleGroundSA::TeleportPlayers()
 {
     for (BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
@@ -1083,8 +1065,6 @@ void BattleGroundSA::TeleportPlayers()
             }
             else
                 plr->TeleportTo(607, 1209.7f, -65.16f, 70.1f, 0.0f);
-
-            plr->CastSpell(plr, 44521, true);   // Preparation
         }
     }
 }
@@ -1103,10 +1083,8 @@ void BattleGroundSA::LetsFly()
                 // This is custom, I haven't implemented boats yet, so, fly!
                 player->CastSpell(player, 54168, true); // Parachute :)
                 if (player->GetPositionY() < 0)
-                    //player->TeleportTo(607, 1597.637f, -106.348f, 8.888f, 4.1263f);
                     player->SendMonsterMove(1597.637f, -106.348f, 8.888f, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 10000);
                 else
-                    //player->TeleportTo(607, 1606.608f, 50.1236f, 7.58f, 2.3898f);
                     player->SendMonsterMove(1606.608f, 50.1236f, 7.58f, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 10000);
             }
         }

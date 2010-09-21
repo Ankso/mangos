@@ -457,6 +457,9 @@
       <Filter>References</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\pchdef.cpp" />
+    <ClCompile Include="..\..\src\game\VehicleHandler.cpp">
+      <Filter>World/Handlers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">

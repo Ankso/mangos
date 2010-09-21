@@ -155,10 +155,13 @@ enum BG_SA_type_gyd_attack
     STATUS_CONQUESTED       = 1
 };
 
-static float BG_SA_DOCK_COORDS[2][4] =
-{
-    {1597.637f, -106.348f, 8.888f, 4.1263f},
-    {1606.608f, 50.1236f, 7.58f, 2.3898f}
+const float BG_SA_TELEPORT_COORDS[5][4] = {
+
+    {1804.093f, -168.457f, 60.549f, 2.65f},  // Pillar 1
+    {1803.71f, 118.601f, 59.824f, 3.563f},   // Pillar 2
+    {1597.637f, -106.348f, 8.888f, 4.1263f}, // Dock 1
+    {1606.608f, 50.1236f, 7.58f, 2.3898f},   // Dock 2
+    {1209.7f, -65.16f, 70.1f, 0.0f}          // Defenders start loc
 };
 
 class BattleGroundSAScore : public BattleGroundScore
@@ -216,6 +219,7 @@ class BattleGroundSA : public BattleGround
         /* For SendWarningToAll */
         void SendWarningToAllSA(uint8 gyd, int status, Team team, bool isDoor = false, int door = NULL, bool destroyed = false);
         
+        void TeleportPlayerToCorrectLoc(Player *player, bool resetBattle = false);
         void TeleportPlayers();
         void LetsFly();
     private:
