@@ -383,19 +383,6 @@ bool Unit::IsTriggeredAtSpellProcEvent(Unit *pVictim, SpellAuraHolder* holder, S
         if (!allow)
             return false;
     }
-    
-    if (EventProcFlag & PROC_FLAG_ON_TAKE_PERIODIC && GetTypeId() == TYPEID_PLAYER && procSpell && IsPositiveSpell(procSpell->Id))
-    {
-        bool allow = true;
-        for(int i = 0; i < 3; ++i)
-            if(Aura * pAur = holder->GetAuraByEffectIndex(SpellEffectIndex(i)))
-                if(pAur->GetModifier()->m_auraname == SPELL_AURA_MOD_STEALTH)
-                    allow = false;
-
-        if (!allow)
-            return false;
-    }
-
 
     // Aura added by spell can`t trogger from self (prevent drop charges/do triggers)
     // But except periodic triggers (can triggered from self)
