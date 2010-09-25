@@ -1776,6 +1776,11 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     (spellInfo_2->Id == 52441 && spellInfo_1->Id == 52443))
                     return false;
 
+                // Blood Oath and Blood Oath
+                    if ((spellInfo_1->Id == 50141 && spellInfo_2->Id == 50001) ||
+                        (spellInfo_2->Id == 50141 && spellInfo_1->Id == 50001))
+                        return false;
+
                 // See Chapel Invisibility and See Noth Invisibility
                 if( (spellInfo_1->Id == 52950 && spellInfo_2->Id == 52707) ||
                     (spellInfo_2->Id == 52950 && spellInfo_1->Id == 52707) )
