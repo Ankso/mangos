@@ -193,6 +193,9 @@ struct ScriptInfo
         {
             uint32 creatureEntry;                           // datalong
             uint32 despawnDelay;                            // datalong2
+            uint32 unused1;                                 // datalong3
+            uint32 unused2;                                 // datalong4
+            uint32 flags;                                   // data_flags
         } summonCreature;
 
         struct                                              // SCRIPT_COMMAND_OPEN_DOOR (11)
@@ -459,9 +462,8 @@ struct PetScalingData
 {
     PetScalingData() : creatureID(0), requiredAura(0),
     healthBasepoint(0), healthScale(0), powerBasepoint(0), powerScale(0),
-    APBasepoint(0), APBaseScale(0),
-    attackpowerScale(0), damageScale(0), spellpowerScale(0),
-    hitScale(0), expertizeScale(0), attackspeedScale(0), critScale(0)
+    APBasepoint(0), APBaseScale(0), attackpowerScale(0), damageScale(0), spellHitScale(0),
+    meleeHitScale(0), expertizeScale(0), attackspeedScale(0), critScale(0), powerregenScale(0)
     {
         for(int i=0; i < MAX_STATS; ++i ) statScale[i] = 0;
         for(int i=0; i < MAX_SPELL_SCHOOL; ++i ) resistanceScale[i] = 0;
@@ -479,11 +481,12 @@ struct PetScalingData
     int32  resistanceScale[MAX_SPELL_SCHOOL];
     int32  attackpowerScale;
     int32  damageScale;
-    int32  spellpowerScale;
-    int32  hitScale;
+    int32  spellHitScale;
+    int32  meleeHitScale;
     int32  expertizeScale;
     int32  attackspeedScale;
     int32  critScale;
+    int32  powerregenScale;
 };
 
 typedef std::vector<PetScalingData*> PetScalingDataList;
@@ -504,9 +507,9 @@ typedef UNORDERED_MAP<uint8,MailLevelRewardList> MailLevelRewardMap;
 // We assume the rate is in general the same for all three types below, but chose to keep three for scalability and customization
 struct RepRewardRate
 {
-    float quest_rate;                                       // We allow rate = 0.0 in database. For this case, it means that
-    float creature_rate;                                    // no reputation are given at all for this faction/rate type.
-    float spell_rate;                                       // not implemented yet (SPELL_EFFECT_REPUTATION)
+    float quest_rate;                                       // We allow rate = 0.0 in database. For this case,
+    float creature_rate;                                    // it means that no reputation are given at all
+    float spell_rate;                                       // for this faction/rate type.
 };
 
 struct ReputationOnKillEntry
@@ -643,9 +646,10 @@ enum ConditionType
     CONDITION_QUESTAVAILABLE        = 19,                   // quest_id     0       for case when loot/gossip possible only if player can start quest
     CONDITION_ACHIEVEMENT           = 20,                   // ach_id       0, 1 (0: has achievement, 1: hasn't achievement) for player
     CONDITION_ACHIEVEMENT_REALM     = 21,                   // ach_id       0, 1 (0: has achievement, 1: hasn't achievement) for server
+    CONDITION_QUEST_NONE            = 22                    // quest_id     0 (quest did not take and not rewarded)
 };
 
-#define MAX_CONDITION                 22                    // maximum value in ConditionType enum
+#define MAX_CONDITION                 23                    // maximum value in ConditionType enum
 
 struct PlayerCondition
 {

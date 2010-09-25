@@ -279,6 +279,11 @@ void Spell::EffectInstaKill(SpellEffectIndex /*eff_idx*/)
     if(m_caster == unitTarget)                              // prevent interrupt message
         finish();
 
+    WorldPacket data(SMSG_SPELLINSTAKILLLOG, (8+8+4));
+    data << uint64(m_caster->GetTypeId() != TYPEID_GAMEOBJECT ? m_caster->GetGUID() : 0); //Caster GUID
+    data << uint64(unitTarget->GetGUID());  //Victim GUID
+    data << uint32(m_spellInfo->Id);
+    m_caster->SendMessageToSet(&data, true);
     m_caster->DealDamage(unitTarget, unitTarget->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
 }
 
@@ -1440,6 +1445,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 case 51961:                                 // Captured Chicken Cover
                 case 55364:                                 // Create Ghoul Drool Cover
                 case 61832:                                 // Rifle the Bodies: Create Magehunter Personal Effects Cover
+                case 74904:                                 // Pickup Sen'jin Frog
                 {
                     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_UNIT || m_caster->GetTypeId() != TYPEID_PLAYER)
                         return;
@@ -1455,6 +1461,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         case 51961: spellId = 51037; break;
                         case 55364: spellId = 55363; break;
                         case 61832: spellId = 47096; break;
+                        case 74904: spellId = 74905; break;
                     }
 
                     if (const SpellEntry *pSpell = sSpellStore.LookupEntry(spellId))
@@ -1660,6 +1667,14 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     ((Creature*)unitTarget)->ForcedDespawn(5000);
                     return;
                 }
+                case 51858:                                 // Siphon of Acherus - Complete Quest
+                {
+                    if (!m_caster || !m_caster->isAlive())
+                        return;
+
+                    ((Player*)m_originalCaster->GetCharmer())->KilledMonsterCredit(m_caster->GetEntry(), m_caster->GetGUID());
+                        return;
+                }
                 case 51866:                                 // Kick Nass
                 {
                     // It is possible that Nass Heartbeat (spell id 61438) is involved in this
@@ -1682,7 +1697,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     float fRange = GetSpellMaxRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
 
                     MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck u_check(*m_caster, 28523, true, fRange*2);
-                    MaNGOS::CreatureLastSearcher<MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck> searcher(m_caster, pTargetDummy, u_check);
+                    MaNGOS::CreatureLastSearcher<MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck> searcher(pTargetDummy, u_check);
 
                     Cell::VisitGridObjects(m_caster, searcher, fRange*2);
 
@@ -2762,6 +2777,12 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 if (!unitTarget)
                     return;
 
+                if (unitTarget->GetVehicle()) // Don't allow do this to players on vehicles.
+                {
+                    SendCastResult(SPELL_FAILED_BAD_TARGETS);
+                    return;
+                }
+
                 m_caster->CastSpell(unitTarget, 49560, true);
                 return;
             }
@@ -3112,6 +3133,7 @@ void Spell::EffectTeleportUnits(SpellEffectIndex eff_idx)
         }
         case TARGET_AREAEFFECT_INSTANT:                     // in all cases first TARGET_TABLE_X_Y_Z_COORDINATES
         case TARGET_TABLE_X_Y_Z_COORDINATES:
+        case TARGET_SELF2:
         {
             SpellTargetPosition const* st = sSpellMgr.GetSpellTargetPosition(m_spellInfo->Id);
             if(!st)
@@ -4239,9 +4261,16 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
         }
         case SUMMON_PROP_GROUP_CONTROLLABLE:
         {
-            // no type here
-            // maybe wrong - but thats the handler currently used for those
-            DoSummonGuardian(eff_idx, summon_prop->FactionId);
+            switch(prop_id)
+            {
+                case 65:
+                case 428:
+                    EffectSummonPossessed(eff_idx);
+                    break;
+                default:
+                    DoSummonGuardian(eff_idx, summon_prop->FactionId);
+                break;
+            }
             break;
         }
         case SUMMON_PROP_GROUP_VEHICLE:
@@ -4399,6 +4428,54 @@ void Spell::DoSummonGroupPets(SpellEffectIndex eff_idx)
         ++petindex;
     }
 
+}
+
+void Spell::EffectSummonPossessed(SpellEffectIndex eff_idx)
+{
+    uint32 creature_entry = m_spellInfo->EffectMiscValue[eff_idx];
+    if(!creature_entry)
+        return;
+
+    int32 duration = GetSpellDuration(m_spellInfo);
+
+        float px, py, pz;
+    // If dest location if present
+    if (m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+    {
+        // Summon 1 unit in dest location
+        px = m_targets.m_destX;
+        py = m_targets.m_destY;
+        pz = m_targets.m_destZ;
+    }
+    // Summon if dest location not present near caster
+    else
+        m_caster->GetClosePoint(px,py,pz,1.0f);
+
+    TempSummonType summonType = (duration == 0) ? TEMPSUMMON_DEAD_DESPAWN : TEMPSUMMON_TIMED_OR_DEAD_DESPAWN;
+    Creature *summon = m_caster->SummonCreature(creature_entry,px,py,pz,m_caster->GetOrientation(),summonType,duration);
+
+    summon->addUnitState(UNIT_STAT_CONTROLLED);
+    summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
+    summon->SetCharmerGUID(m_caster->GetGUID());
+    summon->setFaction(m_caster->getFaction());
+
+    ((Player*)m_caster)->GetCamera().SetView(summon);
+
+    m_caster->SetCharm(summon);
+    ((Player*)m_caster)->SetClientControl(summon, 1);
+    ((Player*)m_caster)->SetMover(summon);
+
+    summon->CombatStop(true);
+    summon->DeleteThreatList();
+
+    if(CharmInfo *charmInfo = summon->InitCharmInfo(summon))
+    {
+        charmInfo->InitPossessCreateSpells();
+        charmInfo->SetReactState(REACT_PASSIVE);
+        charmInfo->SetCommandState(COMMAND_STAY);
+    }
+
+    ((Player*)m_caster)->PossessSpellInitialize();
 }
 
 void Spell::EffectLearnSpell(SpellEffectIndex eff_idx)
@@ -5892,6 +5969,41 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->RemoveSpellsCausingAura(SPELL_AURA_MOD_DECREASE_SPEED);
                     return;
                 }
+                case 24194:                                 // Uther's Tribute
+                case 24195:                                 // Grom's Tribute
+                {
+                    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+                        return;
+
+                    uint8 race = unitTarget->getRace();
+                    uint32 spellId = 0;
+                    switch(m_spellInfo->Id)
+                    {
+                        case 24194:
+                            switch(race)
+                            {
+                                case RACE_HUMAN:            spellId = 24105; break;
+                                case RACE_DWARF:            spellId = 24107; break;
+                                case RACE_NIGHTELF:         spellId = 24108; break;
+                                case RACE_GNOME:            spellId = 24106; break;
+                                case RACE_DRAENEI:          spellId = 69533; break;
+                            }
+                            break;
+                        case 24195:
+                            switch(race)
+                            {
+                                case RACE_ORC:              spellId = 24104; break;
+                                case RACE_UNDEAD_PLAYER:    spellId = 24103; break;
+                                case RACE_TAUREN:           spellId = 24102; break;
+                                case RACE_TROLL:            spellId = 24101; break;
+                                case RACE_BLOODELF:         spellId = 69530; break;
+                            }
+                            break;
+                    }
+                    if (spellId)
+                        unitTarget->CastSpell(unitTarget, spellId, true);
+                    return;
+                }
                 case 24590:                                 // Brittle Armor - need remove one 24575 Brittle Armor aura
                     unitTarget->RemoveAuraHolderFromStack(24575);
                     return;
@@ -6100,7 +6212,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                     // search for a reef cow nearby
                     MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck u_check(*m_caster, 24797, true, range);
-                    MaNGOS::CreatureLastSearcher<MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck> searcher(m_caster, pQuestCow, u_check);
+                    MaNGOS::CreatureLastSearcher<MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck> searcher(pQuestCow, u_check);
 
                     Cell::VisitGridObjects(m_caster, searcher, range);
 
@@ -6403,6 +6515,36 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                             ((Player*)m_caster)->RemovePet(pPet, PET_SAVE_NOT_IN_SLOT);
                     }
                     return;
+                }
+                case 51904:                                 // Summon Ghouls Of Scarlet Crusade
+                {
+                    if(!unitTarget)
+                        return;
+
+                    unitTarget->CastSpell(unitTarget, 54522, true);
+                    break;
+                }
+                case 52694:                                 // Recall Eye of Acherus
+                {
+                    if(!m_caster || m_caster->GetTypeId() != TYPEID_UNIT)
+                        return;
+
+                    Unit *target = m_caster->GetCharmer();
+
+                    if(!target || target->GetTypeId() != TYPEID_PLAYER)
+                        return;
+
+                    m_caster->SetCharmerGUID(0);
+                    target->RemoveAurasDueToSpell(51852);
+                    target->SetCharm(NULL);
+
+                    ((Player*)target)->GetCamera().ResetView();
+                    ((Player*)target)->SetClientControl(m_caster,0);
+                    ((Player*)target)->SetMover(NULL);
+
+                    m_caster->CleanupsBeforeDelete();
+                    m_caster->AddObjectToRemoveList();
+                        return;
                 }
                 case 52751:                                 // Death Gate
                 {
