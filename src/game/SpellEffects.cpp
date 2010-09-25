@@ -2777,11 +2777,8 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 if (!unitTarget)
                     return;
 
-                if (unitTarget->GetVehicle()) // Don't allow do this to players on vehicles.
-                {
-                    SendCastResult(SPELL_FAILED_BAD_TARGETS);
+                if (unitTarget->GetVehicle() || unitTarget->GetVehicleKit()) // Don't allow do this to players on vehicles or to vehicles.
                     return;
-                }
 
                 m_caster->CastSpell(unitTarget, 49560, true);
                 return;

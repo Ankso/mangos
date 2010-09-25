@@ -1012,7 +1012,7 @@ void BattleGroundSA::TeleportPlayerToCorrectLoc(Player *plr, bool resetBattle)
         plr->CombatStopWithPets(true);
     }
     
-    if (GetStatus() != STATUS_IN_PROGRESS)
+    if (GetStatus() != STATUS_IN_PROGRESS || resetBattle)
     {
         if (plr->GetTeam() != GetController())
         {
