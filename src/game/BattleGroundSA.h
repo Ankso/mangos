@@ -155,13 +155,12 @@ enum BG_SA_type_gyd_attack
     STATUS_CONQUESTED       = 1
 };
 
-const float BG_SA_TELEPORT_COORDS[5][4] = {
-
-    {1804.093f, -168.457f, 60.549f, 2.65f},  // Pillar 1
-    {1803.71f, 118.601f, 59.824f, 3.563f},   // Pillar 2
-    {1597.637f, -106.348f, 8.888f, 4.1263f}, // Dock 1
-    {1606.608f, 50.1236f, 7.58f, 2.3898f},   // Dock 2
-    {1209.7f, -65.16f, 70.1f, 0.0f}          // Defenders start loc
+static float BG_SA_START_LOCATIONS[5][4] = {
+    {1804.10f, -168.46f, 60.55f, 2.65f},  // Pillar 1
+    {1803.71f, 118.61f, 59.83f, 3.56f},   // Pillar 2
+    {1597.64f, -106.35f, 8.89f, 4.13f},   // Dock 1
+    {1606.61f, 50.13f, 7.58f, 2.39f},     // Dock 2
+    {1209.70f, -65.16f, 70.10f, 0.00f}    // Defenders start loc
 };
 
 class BattleGroundSAScore : public BattleGroundScore
@@ -218,9 +217,8 @@ class BattleGroundSA : public BattleGround
         void UpdatePlayerScore(Player *Source, uint32 type, uint32 value);
         /* For SendWarningToAll */
         void SendWarningToAllSA(uint8 gyd, int status, Team team, bool isDoor = false, int door = NULL, bool destroyed = false);
-        
+        /* Custom */
         void TeleportPlayerToCorrectLoc(Player *player, bool resetBattle = false);
-        void TeleportPlayers();
         void LetsFly();
     private:
         uint8               m_Gyd[BG_SA_GRY_MAX];

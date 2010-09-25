@@ -1017,55 +1017,24 @@ void BattleGroundSA::TeleportPlayerToCorrectLoc(Player *plr, bool resetBattle)
         if (plr->GetTeam() != GetController())
         {
             if (urand(0,1))
-                plr->TeleportTo(607, BG_SA_TELEPORT_COORDS[1][1], BG_SA_TELEPORT_COORDS[1][2], BG_SA_TELEPORT_COORDS[1][3], BG_SA_TELEPORT_COORDS[1][4]);
+                plr->TeleportTo(607, 1804.093f, -168.457f, 60.549f, 2.65f);
             else
-                plr->TeleportTo(607, BG_SA_TELEPORT_COORDS[2][1], BG_SA_TELEPORT_COORDS[2][2], BG_SA_TELEPORT_COORDS[2][3], BG_SA_TELEPORT_COORDS[2][4]);
+                plr->TeleportTo(607, 1803.71f, 118.601f, 59.824f, 3.563f);
         }
         else
-            plr->TeleportTo(607, BG_SA_TELEPORT_COORDS[3][1], BG_SA_TELEPORT_COORDS[3][2], BG_SA_TELEPORT_COORDS[3][3], BG_SA_TELEPORT_COORDS[3][4]);
+            plr->TeleportTo(607, 1209.7f, -65.16f, 70.1f, 0.0f);
     }
     else
     {
         if (plr->GetTeam() != GetController())
         {
             if (urand(0,1))
-                plr->TeleportTo(607, BG_SA_TELEPORT_COORDS[4][1], BG_SA_TELEPORT_COORDS[4][2], BG_SA_TELEPORT_COORDS[4][3], BG_SA_TELEPORT_COORDS[4][4]);
+                plr->TeleportTo(607, 1597.64f, -106.35f, 8.89f, 4.13f);
             else
-                plr->TeleportTo(607, BG_SA_TELEPORT_COORDS[5][1], BG_SA_TELEPORT_COORDS[5][2], BG_SA_TELEPORT_COORDS[5][3], BG_SA_TELEPORT_COORDS[5][4]);
+                plr->TeleportTo(607, 1606.61f, 50.13f, 7.58f, 2.39f);
         }
         else
-            plr->TeleportTo(607, BG_SA_TELEPORT_COORDS[3][1], BG_SA_TELEPORT_COORDS[3][2], BG_SA_TELEPORT_COORDS[3][3], BG_SA_TELEPORT_COORDS[3][4]);
-    }
-}
-
-void BattleGroundSA::TeleportPlayers()
-{
-    for (BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
-    {
-        if (Player *plr = sObjectMgr.GetPlayer(itr->first))
-        {
-            if (!plr->isAlive())
-            {
-                plr->ResurrectPlayer(1.0f);
-                plr->SpawnCorpseBones();
-            }
-
-            plr->SetHealth(plr->GetMaxHealth());
-            plr->SetPower(POWER_MANA, plr->GetMaxPower(POWER_MANA));
-            plr->CombatStopWithPets(true);
-            if (plr->IsMounted())
-                plr->Unmount();
-
-            if (plr->GetTeam() != GetController())
-            {
-                if (urand(0,1))
-                    plr->TeleportTo(607, 1804.093f, -168.457f, 60.549f, 2.65f);
-                else
-                    plr->TeleportTo(607, 1803.71f, 118.601f, 59.824f, 3.563f);
-            }
-            else
-                plr->TeleportTo(607, 1209.7f, -65.16f, 70.1f, 0.0f);
-        }
+            plr->TeleportTo(607, 1209.7f, -65.16f, 70.1f, 0.0f);
     }
 }
 
