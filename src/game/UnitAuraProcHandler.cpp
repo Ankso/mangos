@@ -4465,7 +4465,7 @@ SpellAuraProcResult Unit::HandlePeriodicDummyAuraProc(Unit* /*pVictim*/, uint32 
                             for(uint32 j = 0; j < MAX_RUNES; ++j)
                             {
                                 // convert only valid runes
-                                if (RuneType(i) != plr->GetCurrentRune(j) &&
+                                if (RuneType(i) != plr->GetCurrentRune(j) && 
                                     RuneType(i) != plr->GetBaseRune(j))
                                     continue;
 
@@ -4492,4 +4492,4 @@ SpellAuraProcResult Unit::HandlePeriodicDummyAuraProc(Unit* /*pVictim*/, uint32 
             break;
     }
     return SPELL_AURA_PROC_OK;
- }
+}
