@@ -278,6 +278,11 @@ Unit::Unit()
 
     m_pVehicle = NULL;
     m_pVehicleKit = NULL;
+
+    // Frozen Mod
+    m_spoofSamePlayerFaction = false;
+    // Frozen Mod
+
 }
 
 Unit::~Unit()
@@ -1342,8 +1347,16 @@ void Unit::CastCustomSpell(Unit* Victim, SpellEntry const *spellInfo, int32 cons
     if (castItem)
         DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "WORLD: cast Item spellId - %i", spellInfo->Id);
 
-    if(originalCaster.IsEmpty() && triggeredByAura)
-        originalCaster = triggeredByAura->GetCasterGUID();
+    if (originalCaster.IsEmpty() && triggeredByAura)
+    {
+        if (triggeredByAura->GetCasterGUID())
+            originalCaster = triggeredByAura->GetCaster()->GetObjectGuid();
+        else
+        {
+            sLog.outError("CastCustomSpell: spell %i triggered by aura %u (eff %u), but OriginalCaster is NULL.",spellInfo->Id, triggeredByAura->GetId(), triggeredByAura->GetEffIndex());
+            return;
+        }
+    }
 
     Spell *spell = new Spell(this, spellInfo, triggered, originalCaster);
 
@@ -6201,8 +6214,10 @@ void Unit::SetPet(Pet* pet)
         if(GetTypeId() == TYPEID_PLAYER)
             ((Player*)this)->SendPetGUIDs();
     }
-    else
+    else if (m_groupPets.empty())
         SetPetGUID(0);
+    else
+        SetPetGUID(*m_groupPets.begin());
 }
 
 void Unit::SetCharm(Unit* pet)
@@ -7495,6 +7510,12 @@ uint32 Unit::MeleeDamageBonusDone(Unit *pVictim, uint32 pdamage,WeaponAttackType
     Item*  pWeapon          = GetTypeId() == TYPEID_PLAYER ? ((Player*)this)->GetWeaponForAttack(attType,true,false) : NULL;
     uint32 creatureTypeMask = pVictim->GetCreatureTypeMask();
     uint32 schoolMask       = spellProto ? spellProto->SchoolMask : GetMeleeDamageSchoolMask();
+
+    uint32 mechanicMask     = spellProto ? GetAllSpellMechanicMask(spellProto) : 0;
+
+    // Shred and Maul also have bonus as MECHANIC_BLEED damages
+    if (spellProto && spellProto->SpellFamilyName==SPELLFAMILY_DRUID && spellProto->SpellFamilyFlags & UI64LIT(0x00008800))
+        mechanicMask |= (1 << (MECHANIC_BLEED-1));
 
     // FLAT damage bonus auras
     // =======================

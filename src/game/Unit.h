@@ -677,8 +677,8 @@ MovementFlags const movementOrTurningFlagsMask = MovementFlags(
 enum MovementFlags2
 {
     MOVEFLAG2_NONE              = 0x0000,
-    MOVEFLAG2_UNK1              = 0x0001,
-    MOVEFLAG2_UNK2              = 0x0002,
+    MOVEFLAG2_NO_STRAFE         = 0x0001,
+    MOVEFLAG2_NO_JUMPING        = 0x0002,
     MOVEFLAG2_UNK3              = 0x0004,
     MOVEFLAG2_FULLSPEEDTURNING  = 0x0008,
     MOVEFLAG2_FULLSPEEDPITCHING = 0x0010,
@@ -1964,6 +1964,11 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void AddPetAura(PetAura const* petSpell);
         void RemovePetAura(PetAura const* petSpell);
 
+        // Frozen Mod
+        inline void SetSpoofSamePlayerFaction(bool b) { m_spoofSamePlayerFaction = b; }
+        inline bool IsSpoofSamePlayerFaction(void)    { return m_spoofSamePlayerFaction; }
+        // Frozen Mod
+
         void SetThreatRedirectionTarget(uint64 guid, uint32 pct)
         {
             m_misdirectionTargetGUID = guid;
@@ -2047,11 +2052,16 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         uint32 m_lastManaUseTimer;
                float m_lastAuraProcRoll;
 
+        // Frozen Mod
+        bool m_spoofSamePlayerFaction : 1;
+        // Frozen Mod
+
         // Transports
         Transport* m_transport;
 
         VehicleKit* m_pVehicle;
         VehicleKit* m_pVehicleKit;
+
     private:
         void CleanupDeletedAuras();
 
@@ -2087,6 +2097,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         uint64 m_misdirectionTargetGUID;
 
         uint64 m_TotemSlot[MAX_TOTEM_SLOT];
+
 };
 
 template<typename Func>
