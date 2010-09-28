@@ -6848,15 +6848,6 @@ uint32 Unit::SpellDamageBonusTaken(Unit *pCaster, SpellEntry const *spellProto, 
         if (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->isPet())
             TakenTotalMod *= GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_PET_AOE_DAMAGE_AVOIDANCE, schoolMask);
     }
-
-    // Ebon Plague
-    if (pCaster->getClass() == CLASS_DEATH_KNIGHT)
-        if (HasAura(51735))
-            TakenTotalMod = TakenTotalMod * 1.13f;
-        else if (HasAura(51734))
-            TakenTotalMod = TakenTotalMod * 1.09f;
-        else if (HasAura(51726))
-            TakenTotalMod = TakenTotalMod * 1.04f;
         
     // Taken fixed damage bonus auras
     int32 TakenAdvertisedBenefit = SpellBaseDamageBonusTaken(GetSpellSchoolMask(spellProto));
