@@ -42,6 +42,7 @@
 #include "GridNotifiers.h"
 #include "GridNotifiersImpl.h"
 #include "CellImpl.h"
+#include "TemporarySummon.h"
 
 // apply implementation of the singletons
 #include "Policies/SingletonImp.h"
@@ -550,9 +551,11 @@ void Creature::Update(uint32 diff)
             if (!isInCombat() || IsPolymorphed())
                 RegenerateHealth();
 
-            Regenerate(getPowerType());
-
-            m_regenTimer = REGEN_TIME_FULL;
+            if (!isPet())                           // Regenerated before
+            {
+                Regenerate(getPowerType());
+                m_regenTimer = REGEN_TIME_FULL;
+            }
             break;
         }
         case DEAD_FALLING:
@@ -1477,6 +1480,12 @@ void Creature::ForcedDespawn(uint32 timeMSToDespawn)
 
         m_Events.AddEvent(pEvent, m_Events.CalculateTime(timeMSToDespawn));
         return;
+    }
+
+    if (isTemporarySummon())
+    {
+        ((TemporarySummon*)this)->UnSummon();
+            return;
     }
 
     if (isAlive())
