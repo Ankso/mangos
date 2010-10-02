@@ -63,6 +63,25 @@ void BattleGroundDS::Update(uint32 diff)
         else
             m_uiKnockback -= diff;
     }
+    if (getWaterFallTimer() < diff)
+    {
+        if (isWaterFallActive())
+        {
+            setWaterFallTimer(urand(BG_DS_WATERFALL_TIMER_MIN, BG_DS_WATERFALL_TIMER_MAX));
+            ActivateObjectEvent(253, 0, false);
+            setWaterFallActive(false);
+        }
+        else
+        {
+            setWaterFallTimer(BG_DS_WATERFALL_DURATION);
+            ActivateObjectEvent(253, 0, true);
+            setWaterFallActive(true);
+        }
+    }
+    else
+    {
+        setWaterFallTimer(getWaterFallTimer() - diff);
+    }
 }
 
 void BattleGroundDS::StartingEventCloseDoors()
@@ -72,6 +91,10 @@ void BattleGroundDS::StartingEventCloseDoors()
 void BattleGroundDS::StartingEventOpenDoors()
 {
     OpenDoorEvent(BG_EVENT_DOOR);
+    if (isWaterFallActive())
+        ActivateObjectEvent(253, 0, false);
+    setWaterFallTimer(urand(BG_DS_WATERFALL_TIMER_MIN, BG_DS_WATERFALL_TIMER_MAX));
+    setWaterFallActive(false);
 }
 
 void BattleGroundDS::AddPlayer(Player *plr)

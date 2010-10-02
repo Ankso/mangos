@@ -1606,6 +1606,40 @@ void BattleGround::DoorOpen(uint64 const& guid)
     }
 }
 
+void BattleGround::ActivateGameObject(uint64 const& guid)
+{
+    GameObject *obj = GetBgMap()->GetGameObject(guid);
+    if (obj)
+    {
+        //if doors are open, close it
+        if (obj->getLootState() == GO_ACTIVATED && obj->GetGoState() != GO_STATE_READY)
+        {
+            //change state to allow door to be closed
+            obj->SetLootState(GO_READY);
+            obj->UseDoorOrButton(RESPAWN_ONE_DAY);
+        }
+    }
+    else
+    {
+        sLog.outError("BattleGround:GameObject not found! - it won't be disabled.");
+    }
+}
+
+void BattleGround::DeactivateGameObject(uint64 const& guid)
+{
+    GameObject *obj = GetBgMap()->GetGameObject(guid);
+    if (obj)
+    {
+        //change state to be sure they will be opened
+        obj->SetLootState(GO_READY);
+        obj->UseDoorOrButton(RESPAWN_ONE_DAY);
+    }
+    else
+    {
+        sLog.outError("BattleGround:GameObject not found! - it won't be activated.");
+    }
+}
+
 void BattleGround::OnObjectDBLoad(Creature* creature)
 {
     const BattleGroundEventIdx eventId = sBattleGroundMgr.GetCreatureEventIndex(creature->GetDBTableGUIDLow());
@@ -1696,6 +1730,28 @@ void BattleGround::SpawnEvent(uint8 event1, uint8 event2, bool spawn)
     BGObjects::const_iterator itr2 = m_EventObjects[MAKE_PAIR32(event1, event2)].gameobjects.begin();
     for(; itr2 != m_EventObjects[MAKE_PAIR32(event1, event2)].gameobjects.end(); ++itr2)
         SpawnBGObject(*itr2, (spawn) ? RESPAWN_IMMEDIATELY : RESPAWN_ONE_DAY);
+}
+
+void BattleGround::ActivateObjectEvent(uint8 event1, uint8 event2, bool spawn)
+{
+    if (!(event1 == BG_EVENT_ACTIVATE_GAMEOBJECT || !event2 == 0))
+    {
+        sLog.outError("BattleGround:ActivateObjectEvent this is not an activation event (event1:%u event2:%u)", event1, event2);
+        return;
+    }
+    m_ActiveEvents[event1] = event2;
+    if (spawn)
+    {
+        BGObjects::const_iterator itr = m_EventObjects[MAKE_PAIR32(event1, event2)].gameobjects.begin();
+        for(; itr != m_EventObjects[MAKE_PAIR32(event1, event2)].gameobjects.end(); ++itr)
+            ActivateGameObject(*itr);
+    }
+    else
+    {
+        BGObjects::const_iterator itr = m_EventObjects[MAKE_PAIR32(event1, event2)].gameobjects.begin();
+        for(; itr != m_EventObjects[MAKE_PAIR32(event1, event2)].gameobjects.end(); ++itr)
+            DeactivateGameObject(*itr);
+    }
 }
 
 void BattleGround::SpawnBGObject(uint64 const& guid, uint32 respawntime)
