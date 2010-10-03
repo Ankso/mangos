@@ -8916,10 +8916,6 @@ bool Unit::CanHaveThreatList() const
     if (creature->isTotem())
         return false;
 
-    // vehicles can not have threat list
-    if (creature->GetObjectGuid().IsVehicle())
-        return false;
-
     // pets can not have a threat list, unless they are controlled by a creature
     if (creature->isPet() && IS_PLAYER_GUID(((Pet const*)creature)->GetOwnerGUID()))
         return false;
