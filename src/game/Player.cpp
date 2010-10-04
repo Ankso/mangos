@@ -19923,7 +19923,7 @@ void Player::UpdateVisibilityOf(WorldObject const* viewPoint, WorldObject* targe
             {
                 SendAurasForTarget((Unit*)target);
                 WorldPacket data;
-                ((Unit*)target)->BuildHeartBeatMsg(&data);
+                ((Unit*)target)->BuildHeartBeatMsg(data);
                 GetSession()->SendPacket(&data);
             }
 
@@ -22121,6 +22121,12 @@ void Player::UpdateFallInformationIfNeed( MovementInfo const& minfo,uint16 opcod
 
 void Player::UnsummonPetTemporaryIfAny()
 {
+
+    Pet* minipet = GetMiniPet();
+
+    if (minipet)
+        RemovePet(minipet, PET_SAVE_AS_DELETED);
+
     Pet* pet = GetPet();
     if(!pet)
         return;

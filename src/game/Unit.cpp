@@ -575,22 +575,11 @@ void Unit::SendMonsterMoveTransport(WorldObject *transport, SplineType type, Spl
     SendMessageToSet(&data, true);
 }
 
-void Unit::BuildHeartBeatMsg(WorldPacket *data) const
+void Unit::BuildHeartBeatMsg(WorldPacket& data) const
 {
-    MovementFlags move_flags = GetTypeId()==TYPEID_PLAYER
-        ? ((Player const*)this)->m_movementInfo.GetMovementFlags()
-        : MOVEFLAG_NONE;
-
-    data->Initialize(MSG_MOVE_HEARTBEAT, 32);
-    *data << GetPackGUID();
-    *data << uint32(move_flags);                            // movement flags
-    *data << uint16(0);                                     // 2.3.0
-    *data << uint32(getMSTime());                           // time
-    *data << float(GetPositionX());
-    *data << float(GetPositionY());
-    *data << float(GetPositionZ());
-    *data << float(GetOrientation());
-    *data << uint32(0);
+    data.Initialize(MSG_MOVE_HEARTBEAT);
+    data << GetPackGUID();
+    m_movementInfo.Write(data);
 }
 
 void Unit::resetAttackTimer(WeaponAttackType type)
@@ -3975,7 +3964,7 @@ void Unit::SetFacingTo(float ori, bool bToSelf /*= false*/)
 
     // and client
     WorldPacket data;
-    BuildHeartBeatMsg(&data);
+    BuildHeartBeatMsg(data);
     SendMessageToSet(&data, bToSelf);
 }
 
@@ -10121,19 +10110,6 @@ void CharmInfo::SetSpellAutocast( uint32 spell_id, bool state )
     }
 }
 
-struct DoPetActionWithHelper
-{
-    explicit DoPetActionWithHelper( Player* _owner, uint8 _flag, uint32 _spellid, ObjectGuid _petGuid, ObjectGuid _targetGuid) :
-             owner(_owner), flag(_flag), spellid(_spellid), petGuid(_petGuid), targetGuid(_targetGuid)
-    {}
-    void operator()(Unit* unit) const { unit->DoPetAction(owner, flag, spellid, petGuid, targetGuid); }
-    Player* owner;
-    uint8 flag;
-    uint32 spellid;
-    ObjectGuid petGuid;
-    ObjectGuid targetGuid;
-};
-
 void Unit::DoPetAction( Player* owner, uint8 flag, uint32 spellid, ObjectGuid petGuid, ObjectGuid targetGuid)
 {
     switch(flag)
@@ -10333,7 +10309,7 @@ void Unit::DoPetAction( Player* owner, uint8 flag, uint32 spellid, ObjectGuid pe
 
 }
 
-void Unit::DoPetCastSpell( Player *owner, uint8 cast_count, SpellCastTargets targets, SpellEntry const* spellInfo )
+void Unit::DoPetCastSpell( Player *owner, uint8 cast_count, SpellCastTargets* targets, SpellEntry const* spellInfo )
 {
     Creature* pet = dynamic_cast<Creature*>(this);
 
@@ -10341,7 +10317,7 @@ void Unit::DoPetCastSpell( Player *owner, uint8 cast_count, SpellCastTargets tar
 
     Spell *spell = new Spell(pet, spellInfo, false);
     spell->m_cast_count = cast_count;                       // probably pending spell cast
-    spell->m_targets = targets;
+    spell->m_targets = *targets;
 
     SpellCastResult result = spell->CheckPetCast(NULL);
     if (result == SPELL_CAST_OK)
@@ -10684,7 +10660,7 @@ void Unit::StopMoving()
 
     // update position and orientation for near players
     WorldPacket data;
-    BuildHeartBeatMsg(&data);
+    BuildHeartBeatMsg(data);
     SendMessageToSet(&data, false);
 }
 
@@ -11257,7 +11233,7 @@ void Unit::NearTeleportTo( float x, float y, float z, float orientation, bool ca
         SetPosition(x, y, z, orientation, true);
 
         WorldPacket data;
-        BuildHeartBeatMsg(&data);
+        BuildHeartBeatMsg(data);
         SendMessageToSet(&data, false);
         // finished relocation, movegen can different from top before creature relocation,
         // but apply Reset expected to be safe in any case
