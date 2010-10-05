@@ -508,14 +508,7 @@ void WorldSession::HandlePetCastSpellOpcode( WorldPacket& recvPacket )
     if (!GetPlayer()->GetPet() && !GetPlayer()->GetCharm())
         return;
 
-<<<<<<< HEAD
-    if (GUID_HIPART(guid) == HIGHGUID_PLAYER)
-        return;
-
-    Creature* pet = ObjectAccessor::GetAnyTypeCreature(*_player,guid);
-=======
     Creature* pet = GetPlayer()->GetMap()->GetAnyTypeCreature(guid);
->>>>>>> 10b31ebd879a7316660d7befbe7e756f2536e5d4
 
     if (!pet || (pet != GetPlayer()->GetPet() && pet != GetPlayer()->GetCharm()))
     {

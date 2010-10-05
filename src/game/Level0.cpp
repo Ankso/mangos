@@ -29,6 +29,7 @@
 #include "revision.h"
 #include "revision_nr.h"
 #include "Util.h"
+#include "ObjectMgr.h"
 
 #define MAX_ALLOWED_QUESTS 13
 
