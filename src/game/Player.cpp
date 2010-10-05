@@ -22125,7 +22125,7 @@ void Player::UnsummonPetTemporaryIfAny()
     Pet* minipet = GetMiniPet();
 
     if (minipet)
-        RemovePet(minipet, PET_SAVE_AS_DELETED);
+        minipet->Remove(PET_SAVE_AS_DELETED);
 
     Pet* pet = GetPet();
     if(!pet)
