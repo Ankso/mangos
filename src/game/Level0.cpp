@@ -30,6 +30,8 @@
 #include "revision_nr.h"
 #include "Util.h"
 
+#define MAX_ALLOWED_QUESTS 13
+
 bool ChatHandler::HandleHelpCommand(char* args)
 {
     if(!*args)
@@ -115,6 +117,123 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
     PSendSysMessage(LANG_CONNECTED_USERS, activeClientsNum, maxActiveClientsNum, queuedClientsNum, maxQueuedClientsNum);
     PSendSysMessage(LANG_UPTIME, str.c_str());
 
+    return true;
+}
+
+bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
+{
+    uint32 ALLOWED_QUESTS[MAX_ALLOWED_QUESTS] = {
+        12779,  // A End to All Things... (DKs)
+        13680,  // The Aspirant's Challenge (H)
+        13679,  // The Aspirant's Challenge (A)
+        13724,
+        13725,
+        13726,
+        13727,
+        13728,
+        13729,
+        13731,
+        13699,
+        13713,  // The Valiant's Challenge (A/H)
+        12983   // The Last of Her Kind (Hodir)
+    };
+
+    Player* player = getSelectedPlayer();
+    if (!player)
+    {
+        SendSysMessage(LANG_NO_CHAR_SELECTED);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    // .quest complete #entry
+    // number or [name] Shift-click form |color|Hquest:quest_id:quest_level|h[name]|h|r
+    uint32 entry;
+    if (!ExtractUint32KeyFromLink(&args, "Hquest", entry))
+        return false;
+
+    bool allowed = false;
+    for (int i = 0; i < MAX_ALLOWED_QUESTS; ++i)
+    {
+        if (ALLOWED_QUESTS[i] == entry)
+        {
+            allowed = true;
+            break;
+        }
+    }
+
+    if (!allowed)
+        return false;
+
+    Quest const* pQuest = sObjectMgr.GetQuestTemplate(entry);
+
+    // If player doesn't have the quest
+    if (!pQuest || player->GetQuestStatus(entry) == QUEST_STATUS_NONE)
+    {
+        PSendSysMessage(LANG_COMMAND_QUEST_NOTFOUND, entry);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    // Add quest items for quests that require items
+    for(uint8 x = 0; x < QUEST_ITEM_OBJECTIVES_COUNT; ++x)
+    {
+        uint32 id = pQuest->ReqItemId[x];
+        uint32 count = pQuest->ReqItemCount[x];
+        if (!id || !count)
+            continue;
+
+        uint32 curItemCount = player->GetItemCount(id,true);
+
+        ItemPosCountVec dest;
+        uint8 msg = player->CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, id, count - curItemCount );
+        if (msg == EQUIP_ERR_OK)
+        {
+            Item* item = player->StoreNewItem( dest, id, true);
+            player->SendNewItem(item,count-curItemCount, true, false);
+        }
+    }
+
+    // All creature/GO slain/casted (not required, but otherwise it will display "Creature slain 0/10")
+    for(uint8 i = 0; i < QUEST_OBJECTIVES_COUNT; ++i)
+    {
+        int32 creature = pQuest->ReqCreatureOrGOId[i];
+        uint32 creaturecount = pQuest->ReqCreatureOrGOCount[i];
+
+        if (uint32 spell_id = pQuest->ReqSpell[i])
+        {
+            for(uint16 z = 0; z < creaturecount; ++z)
+                player->CastedCreatureOrGO(creature, ObjectGuid(), spell_id);
+        }
+        else if (creature > 0)
+        {
+            if (CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(creature))
+                for(uint16 z = 0; z < creaturecount; ++z)
+                    player->KilledMonster(cInfo, ObjectGuid());
+        }
+        else if (creature < 0)
+        {
+            for(uint16 z = 0; z < creaturecount; ++z)
+                player->CastedCreatureOrGO(-creature, ObjectGuid(), 0);
+        }
+    }
+
+    // If the quest requires reputation to complete
+    if(uint32 repFaction = pQuest->GetRepObjectiveFaction())
+    {
+        uint32 repValue = pQuest->GetRepObjectiveValue();
+        uint32 curRep = player->GetReputationMgr().GetReputation(repFaction);
+        if (curRep < repValue)
+            if (FactionEntry const *factionEntry = sFactionStore.LookupEntry(repFaction))
+                player->GetReputationMgr().SetReputation(factionEntry,repValue);
+    }
+
+    // If the quest requires money
+    int32 ReqOrRewMoney = pQuest->GetRewOrReqMoney();
+    if (ReqOrRewMoney < 0)
+        player->ModifyMoney(-ReqOrRewMoney);
+
+    player->CompleteQuest(entry);
     return true;
 }
 

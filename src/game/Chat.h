@@ -471,6 +471,7 @@ class ChatHandler
         bool HandleServerIdleRestartCommand(char* args);
         bool HandleServerIdleShutDownCommand(char* args);
         bool HandleServerInfoCommand(char* args);
+        bool HandleQuestAutoCompleteCommand(char* args);  // CUSTOM!
         bool HandleServerLogFilterCommand(char* args);
         bool HandleServerLogLevelCommand(char* args);
         bool HandleServerMotdCommand(char* args);
