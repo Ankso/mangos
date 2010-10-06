@@ -429,6 +429,7 @@ ChatCommand * ChatHandler::getCommandTable()
     static ChatCommand questCommandTable[] =
     {
         { "add",            SEC_ADMINISTRATOR,  false, &ChatHandler::HandleQuestAddCommand,            "", NULL },
+        { "autocomplete",   SEC_PLAYER,         false, &ChatHandler::HandleQuestAutoCompleteCommand,   "", NULL },
         { "complete",       SEC_ADMINISTRATOR,  false, &ChatHandler::HandleQuestCompleteCommand,       "", NULL },
         { "remove",         SEC_ADMINISTRATOR,  false, &ChatHandler::HandleQuestRemoveCommand,         "", NULL },
         { NULL,             0,                  false, NULL,                                           "", NULL }
