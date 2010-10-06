@@ -10199,7 +10199,8 @@ void Unit::DoPetAction( Player* owner, uint8 flag, uint32 spellid, ObjectGuid pe
                 case REACT_PASSIVE:                         //passive
                 case REACT_DEFENSIVE:                       //recovery
                 case REACT_AGGRESSIVE:                      //activete
-                    GetCharmInfo()->SetReactState( ReactStates(spellid) );
+                    if (GetCharmInfo())
+                        GetCharmInfo()->SetReactState( ReactStates(spellid) );
                     break;
             }
             break;
