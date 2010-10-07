@@ -27,6 +27,7 @@
 #include "BattleGroundMgr.h"
 #include "Util.h"
 #include "MapManager.h"
+#include "ObjectMgr.h"
 
 /*
 * Strand of the Ancients by Rage Hunter, with modifications and bug fixes by me.
@@ -1017,24 +1018,24 @@ void BattleGroundSA::TeleportPlayerToCorrectLoc(Player *plr, bool resetBattle)
         if (plr->GetTeam() != GetController())
         {
             if (urand(0,1))
-                plr->TeleportTo(607, 1804.093f, -168.457f, 60.549f, 2.65f);
+                plr->TeleportTo(607, BG_SA_START_LOCATIONS[0][0], BG_SA_START_LOCATIONS[0][1], BG_SA_START_LOCATIONS[0][2], BG_SA_START_LOCATIONS[0][3]);
             else
-                plr->TeleportTo(607, 1803.71f, 118.601f, 59.824f, 3.563f);
+                plr->TeleportTo(607, BG_SA_START_LOCATIONS[1][0], BG_SA_START_LOCATIONS[1][1], BG_SA_START_LOCATIONS[1][2], BG_SA_START_LOCATIONS[1][3]);
         }
         else
-            plr->TeleportTo(607, 1209.7f, -65.16f, 70.1f, 0.0f);
+            plr->TeleportTo(607, BG_SA_START_LOCATIONS[4][0], BG_SA_START_LOCATIONS[4][1], BG_SA_START_LOCATIONS[4][2], BG_SA_START_LOCATIONS[4][3]);
     }
     else
     {
         if (plr->GetTeam() != GetController())
         {
             if (urand(0,1))
-                plr->TeleportTo(607, 1597.64f, -106.35f, 8.89f, 4.13f);
+                plr->TeleportTo(607, BG_SA_START_LOCATIONS[2][0], BG_SA_START_LOCATIONS[2][1], BG_SA_START_LOCATIONS[2][2], BG_SA_START_LOCATIONS[2][3]);
             else
-                plr->TeleportTo(607, 1606.61f, 50.13f, 7.58f, 2.39f);
+                plr->TeleportTo(607, BG_SA_START_LOCATIONS[3][0], BG_SA_START_LOCATIONS[3][1], BG_SA_START_LOCATIONS[3][2], BG_SA_START_LOCATIONS[3][3]);
         }
         else
-            plr->TeleportTo(607, 1209.7f, -65.16f, 70.1f, 0.0f);
+            plr->TeleportTo(607, BG_SA_START_LOCATIONS[4][0], BG_SA_START_LOCATIONS[4][1], BG_SA_START_LOCATIONS[4][2], BG_SA_START_LOCATIONS[4][3]);
     }
 }
 
