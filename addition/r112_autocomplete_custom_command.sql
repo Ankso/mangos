@@ -1,0 +1,2 @@
+REPLACE INTO `command` (`name`, `security`, `help`) VALUES ('quest autocomplete', '0', 'Sintaxis: .quest autocomplete #idmision/ingame link:
+Completa todos los objetivos de la misión (al jugador seleccionado) automáticamente. Sólo funciona si la misión está en una lista aprobada por el Staff. Visita la web para más información.');
