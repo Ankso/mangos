@@ -67,7 +67,7 @@ RandomMovementGenerator<Creature>::_setRandomLocation(Creature &creature)
     //else if (is_water_ok)                                 // 3D system under water and above ground (swimming mode)
     else                                                    // 2D only
     {
-        destZ = Z;
+        destZ = respZ;
         if(!map->IsNextZcoordOK(destX, destY, destZ, travelDistZ))
             return;                                         // let's forget this bad coords where a z cannot be find and retry at next tick
         creature.UpdateGroundPositionZ(destX, destY, destZ, travelDistZ);
