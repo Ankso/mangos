@@ -27,56 +27,56 @@ template<>
 void
 RandomMovementGenerator<Creature>::_setRandomLocation(Creature &creature)
 {
-    float X,Y,Z,z,nx,ny,nz,wander_distance,ori,dist;
+    float respX, respY, respZ, respO, currZ, destX, destY, destZ, wander_distance, travelDistZ;
 
-    creature.GetRespawnCoord(X, Y, Z, &ori, &wander_distance);
+    creature.GetRespawnCoord(respX, respY, respZ, &respO, &wander_distance);
 
-    z = creature.GetPositionZ();
+    currZ = creature.GetPositionZ();
     Map const* map = creature.GetBaseMap();
 
     // For 2D/3D system selection
     //bool is_land_ok  = creature.canWalk();                // not used?
     //bool is_water_ok = creature.canSwim();                // not used?
-    bool is_air_ok   = creature.canFly();
+    bool is_air_ok = creature.canFly();
 
-    const float angle = rand_norm_f()*(M_PI_F*2.0f);
-    const float range = rand_norm_f()*wander_distance;
+    const float angle = rand_norm_f() * (M_PI_F*2.0f);
+    const float range = rand_norm_f() * wander_distance;
     const float distanceX = range * cos(angle);
     const float distanceY = range * sin(angle);
 
-    nx = X + distanceX;
-    ny = Y + distanceY;
+    destX = respX + distanceX;
+    destY = respY + distanceY;
 
     // prevent invalid coordinates generation
-    MaNGOS::NormalizeMapCoord(nx);
-    MaNGOS::NormalizeMapCoord(ny);
+    MaNGOS::NormalizeMapCoord(destX);
+    MaNGOS::NormalizeMapCoord(destY);
 
-    dist = distanceX*distanceX + distanceY*distanceY;
+    travelDistZ = distanceX*distanceX + distanceY*distanceY;
 
     if (is_air_ok)                                          // 3D system above ground and above water (flying mode)
     {
         // Limit height change
-        const float distanceZ = rand_norm_f() * sqrtf(dist)/2.0f;
-        nz = Z + distanceZ;
-        float tz = map->GetWaterOrGroundLevel(nx, ny, nz-2.0f);
+        const float distanceZ = rand_norm_f() * sqrtf(travelDistZ)/2.0f;
+        destZ = respZ + distanceZ;
+        float levelZ = map->GetWaterOrGroundLevel(destX, destY, destZ-2.0f);
 
         // Problem here, we must fly above the ground and water, not under. Let's try on next tick
-        if (tz >= nz)
+        if (levelZ >= destZ)
             return;
     }
     //else if (is_water_ok)                                 // 3D system under water and above ground (swimming mode)
     else                                                    // 2D only
     {
-        nz = Z;
-        if(!map->IsNextZcoordOK(nx, ny, nz, dist))
+        destZ = Z;
+        if(!map->IsNextZcoordOK(destX, destY, destZ, travelDistZ))
             return;                                         // let's forget this bad coords where a z cannot be find and retry at next tick
-        creature.UpdateGroundPositionZ(nx, ny, nz, dist);
+        creature.UpdateGroundPositionZ(destX, destY, destZ, travelDistZ);
     }
 
     Traveller<Creature> traveller(creature);
 
-    creature.SetOrientation(creature.GetAngle(nx, ny));
-    i_destinationHolder.SetDestination(traveller, nx, ny, nz);
+    creature.SetOrientation(creature.GetAngle(destX, destY));
+    i_destinationHolder.SetDestination(traveller, destX, destY, destZ);
     creature.addUnitState(UNIT_STAT_ROAMING_MOVE);
 
     if (is_air_ok)
