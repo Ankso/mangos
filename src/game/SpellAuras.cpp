@@ -4133,7 +4133,7 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
         {
             GameObject* pObj = new GameObject;
             if(pObj->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_GAMEOBJECT), 185584, target->GetMap(), target->GetPhaseMask(),
-                target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), target->GetOrientation(), 0.0f, 0.0f, 0.0f, 0.0f, 100, GO_STATE_READY))
+                target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), target->GetOrientation(), 0.0f, 0.0f, 0.0f, 0.0f, GO_ANIMPROGRESS_DEFAULT, GO_STATE_READY))
             {
                 pObj->SetRespawnTime(GetAuraDuration()/IN_MILLISECONDS);
                 pObj->SetSpellId(GetId());
@@ -8112,11 +8112,19 @@ void Aura::HandleAuraControlVehicle(bool apply, bool Real)
     if(!Real)
         return;
 
-    Unit *caster = GetCaster();
+    Unit* caster = GetCaster();
+
+    if (!caster)
+        return;
+
     Unit* target = GetTarget();
+
+    if (!target)
+        return;
+
     VehicleKit* pVehicle = target->GetVehicleKit();
 
-    if (!caster || target->GetTypeId() != TYPEID_UNIT || !pVehicle)
+    if (target->GetTypeId() != TYPEID_UNIT || !pVehicle)
         return;
 
     if (apply)
@@ -8964,7 +8972,7 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                     }
                     break;
                 }
-                case 69260:
+                case 69290:
                 {
                     if (!apply)
                     {
