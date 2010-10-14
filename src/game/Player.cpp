@@ -6520,31 +6520,22 @@ void Player::RewardReputation(Unit *pVictim, float rate)
     if(!Rep)
         return;
 
-     uint32 Repfaction1 = Rep->repfaction1;
-     uint32 Repfaction2 = Rep->repfaction2;
-     uint32 tabardFactionID = 0;
-     
-     // Championning tabard reputation system
-     // aura 57818 is a hidden aura common to northrend tabards allowing championning.
-     if(HasAura(57818))
-     {
-         InstanceTemplate const* mInstance = sObjectMgr.GetInstanceTemplate(pVictim->GetMapId());
-         MapEntry const* StoredMap = sMapStore.LookupEntry(pVictim->GetMapId());
-
-         // only for expansion 2 map (wotlk), and : min level >= lv75 or dungeon only heroic mod
-         // entering a lv80 designed instance require a min level>=75. note : min level != suggested level
-         if ( StoredMap->Expansion() == 2 && ( mInstance->levelMin >= 75 || pVictim->GetMap()->GetDifficulty() == DUNGEON_DIFFICULTY_HEROIC ) )
-         {             
-             if( Item* pItem = GetItemByPos( INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_TABARD ) )
-             {                 
-                 if ( tabardFactionID = pItem->GetProto()->RequiredReputationFaction ) 
-                 {
-                      Repfaction1 = tabardFactionID;
-                      Repfaction2 = tabardFactionID;
-                 }
-             }
-         }
-     }
+    uint32 Repfaction1 = Rep->repfaction1;
+    uint32 Repfaction2 = Rep->repfaction2;
+    uint32 tabardFactionID = 0;
+    
+    // Championning tabard reputation system
+    if(HasAura(Rep->championingAura))
+    {
+        if( Item* pItem = GetItemByPos( INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_TABARD ) )
+        {                 
+            if ( tabardFactionID = pItem->GetProto()->RequiredReputationFaction ) 
+            {
+                Repfaction1 = tabardFactionID;
+                Repfaction2 = tabardFactionID;
+            }
+        }
+    }
 
     if(Rep->repfaction1 && (!Rep->team_dependent || GetTeam()==ALLIANCE))
     {
