@@ -31,7 +31,7 @@
 #include "Util.h"
 #include "ObjectMgr.h"
 
-#define MAX_ALLOWED_QUESTS 13
+#define MAX_ALLOWED_QUESTS 17
 
 bool ChatHandler::HandleHelpCommand(char* args)
 {
@@ -136,7 +136,11 @@ bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
         13731,
         13699,
         13713,  // The Valiant's Challenge (A/H)
-        12983   // The Last of Her Kind (Hodir)
+        12983,  
+        12997,
+        12886,
+        12856,  // Hodir chain bugged quests (A/H)
+        24451   // An Audience With The Arcanist (A/H) (For Quel'delar)
     };
 
     Player* player = getSelectedPlayer();
