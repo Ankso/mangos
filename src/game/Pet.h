@@ -181,7 +181,7 @@ class Pet : public Creature
         void Remove(PetSaveMode mode, bool returnreagent = false);
         static void DeleteFromDB(uint32 guidlow);
 
-        void setDeathState(DeathState s);                   // overwrite virtual Creature::setDeathState and Unit::setDeathState
+        void SetDeathState(DeathState s);                   // overwrite virtual Creature::SetDeathState and Unit::SetDeathState
         void Update(uint32 diff);                           // overwrite virtual Creature::Update and Unit::Update
 
         uint8 GetPetAutoSpellSize() const { return m_autospells.size(); }
@@ -193,7 +193,6 @@ class Pet : public Creature
                 return m_autospells[pos];
         }
 
-        void LooseHappiness();
         HappinessState GetHappinessState();
         void GivePetXP(uint32 xp);
         void GivePetLevel(uint32 level);
@@ -227,6 +226,9 @@ class Pet : public Creature
         void CastPetAura(PetAura const* aura);
 
         void Regenerate(Powers power, uint32 diff);
+        void RegenerateHealth(uint32 diff);
+        float OCTRegenHPPerSpirit();
+        float OCTRegenMPPerSpirit();
         void CastPetPassiveAuras(bool current);
         void ApplyScalingBonus(ScalingAction* action);
         void ApplyAllScalingBonuses(bool apply);

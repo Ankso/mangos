@@ -151,7 +151,7 @@ bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
         return false;
     }
 
-    // .quest complete #entry
+    // .quest autocomplete #entry
     // number or [name] Shift-click form |color|Hquest:quest_id:quest_level|h[name]|h|r
     uint32 entry;
     if (!ExtractUint32KeyFromLink(&args, "Hquest", entry))

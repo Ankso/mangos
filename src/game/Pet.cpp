@@ -277,11 +277,13 @@ bool Pet::LoadPetFromDB( Player* owner, uint32 petentry, uint32 petnumber, bool 
     CastPetPassiveAuras(true);
     ApplyAllScalingBonuses(true);
 
-    if (getPetType() != HUNTER_PET)             //all (?) summon pets come with full health when called, but not when they are current
+    if (getPetType() != HUNTER_PET
+        && (owner->GetTypeId() == TYPEID_PLAYER && owner->GetTemporaryUnsummonedPetNumber() != pet_number))
+     //all (?) summon pets come with full health when called, but not when they are current
     {
         SetHealth(GetMaxHealth());
         SetPower(getPowerType(), GetMaxPower(getPowerType()));
-        LoadCreaturesAddon(true);
+        LoadCreatureAddon(true);
     }
     else
     {
@@ -443,9 +445,9 @@ void Pet::DeleteFromDB(uint32 guidlow)
     CharacterDatabase.PExecute("DELETE FROM pet_spell_cooldown WHERE guid = '%u'", guidlow);
 }
 
-void Pet::setDeathState(DeathState s)                       // overwrite virtual Creature::setDeathState and Unit::setDeathState
+void Pet::SetDeathState(DeathState s)                       // overwrite virtual Creature::SetDeathState and Unit::SetDeathState
 {
-    Creature::setDeathState(s);
+    Creature::SetDeathState(s);
     if(getDeathState()==CORPSE)
     {
         //remove summoned pet (no corpse)
@@ -551,23 +553,17 @@ void Pet::Update(uint32 diff)
             //regenerate focus for hunter pets or energy for deathknight's ghoul
             if(m_regenTimer <= diff)
             {
-                Regenerate(getPowerType(), diff);
-                m_regenTimer = 2000;
+                Regenerate(getPowerType(), REGEN_TIME_FULL);
+                m_regenTimer = REGEN_TIME_FULL;
+
+                if(getPetType() == HUNTER_PET)
+                    Regenerate(POWER_HAPPINESS, REGEN_TIME_FULL);
+
+                if (!isInCombat() || IsPolymorphed())
+                    RegenerateHealth(REGEN_TIME_FULL);
             }
             else
                 m_regenTimer -= diff;
-
-            if(getPetType() != HUNTER_PET)
-                break;
-
-            if(m_happinessTimer <= diff)
-            {
-                LooseHappiness();
-                m_happinessTimer = 7500;
-                ApplyHappinessBonus(true);
-            }
-            else
-                m_happinessTimer -= diff;
 
             break;
         }
@@ -584,17 +580,6 @@ void Pet::Update(uint32 diff)
 
     if (IsInWorld())
         Creature::Update(diff);
-}
-
-void Pet::LooseHappiness()
-{
-    uint32 curValue = GetPower(POWER_HAPPINESS);
-    if (curValue <= 0)
-        return;
-    int32 addvalue = 670;                                   //value is 70/35/17/8/4 (per min) * 1000 / 8 (timer 7.5 secs)
-    if(isInCombat())                                        //we know in combat happiness fades faster, multiplier guess
-        addvalue = int32(addvalue * 1.5);
-    ModifyPower(POWER_HAPPINESS, -addvalue);
 }
 
 HappinessState Pet::GetHappinessState()
@@ -2222,30 +2207,28 @@ void Pet::ApplyAttackPowerScalingBonus(bool apply)
 
     switch(getPetType())
     {
+        case GUARDIAN_PET:
         case SUMMON_PET:
         {
             switch(owner->getClass())
             {
                 case CLASS_WARLOCK:
                 {
-                   int32 fire  = int32(owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SPELL_SCHOOL_FIRE)) - owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_NEG + SPELL_SCHOOL_FIRE);
-                   int32 shadow = int32(owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SPELL_SCHOOL_SHADOW)) - owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_NEG + SPELL_SCHOOL_SHADOW);
-                   newAPBonus  = (fire > shadow) ? fire : shadow;
-                   if(newAPBonus < 0)
-                       newAPBonus = 0;
+                    newAPBonus = std::max(owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_SHADOW),owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_FIRE));
                     break;
                 }
                 case CLASS_DEATH_KNIGHT:
                     newAPBonus = owner->GetTotalAttackPowerValue(BASE_ATTACK);
+                    break;
+                case CLASS_PRIEST:
+                    newAPBonus = owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_SHADOW);
                     break;
                 case CLASS_SHAMAN:
                     newAPBonus = owner->GetTotalAttackPowerValue(BASE_ATTACK);
                     break;
                 case CLASS_MAGE:
                 {
-                   newAPBonus = int32(owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SPELL_SCHOOL_FROST)) - owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_NEG + SPELL_SCHOOL_FROST);
-                   if(newAPBonus < 0)
-                       newAPBonus = 0;
+                   newAPBonus = std::max(owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_FROST),owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_FIRE));
                    break;
                 }
                 default:
@@ -2261,6 +2244,9 @@ void Pet::ApplyAttackPowerScalingBonus(bool apply)
             newAPBonus = 0;
             break;
     }
+
+    if(newAPBonus < 0)
+        newAPBonus = 0;
 
     if (m_baseBonusData->attackpowerScale == newAPBonus && !apply)
         return;
@@ -2333,6 +2319,9 @@ void Pet::ApplyDamageScalingBonus(bool apply)
             {
                 case CLASS_DEATH_KNIGHT:
                     newDamageBonus = owner->GetTotalAttackPowerValue(BASE_ATTACK);
+                    break;
+                case CLASS_PRIEST:
+                    newDamageBonus = owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_SHADOW);
                     break;
                 default:
                     newDamageBonus = 0;
@@ -2747,7 +2736,7 @@ bool Pet::Summon()
     if (GetCreateSpellID())
         SetUInt32Value(UNIT_CREATED_BY_SPELL, GetCreateSpellID());
 
-    if ( isTemporarySummoned() || (owner->GetTypeId() == TYPEID_UNIT && ((Creature*)owner)->isTotem()))
+    if ( isTemporarySummoned() || (owner->GetTypeId() == TYPEID_UNIT && ((Creature*)owner)->IsTotem()))
         GetCharmInfo()->SetReactState(REACT_AGGRESSIVE);
     else
         GetCharmInfo()->SetReactState(REACT_DEFENSIVE);
@@ -2838,7 +2827,7 @@ bool Pet::Summon()
     LearnPetPassives();
     CastPetAuras(true);
     if (getPetType() != HUNTER_PET)
-        LoadCreaturesAddon(true);
+        LoadCreatureAddon(true);
 
     if (owner->GetTypeId() == TYPEID_PLAYER)
     {
@@ -2906,11 +2895,17 @@ bool Pet::ReapplyScalingAura(SpellAuraHolder* holder, SpellEntry const *spellpro
         return false;
 
     holder->SetInUse(true);
-    RemoveSingleAuraFromSpellAuraHolder(holder, index);
+
+    Aura* oldaura = holder->GetAuraByEffectIndex(index);
+
+    if (oldaura)
+    {
+//    RemoveSingleAuraFromSpellAuraHolder(holder, index, AURA_REMOVE_BY_STACK);
+        RemoveAura(oldaura, AURA_REMOVE_BY_STACK);
+    }
 
     Aura* aura = CreateAura(spellproto, index, &basePoints, holder, this, this, NULL);
     aura->SetAuraDuration(aura->GetAuraMaxDuration());
-
     holder->AddAura(aura, index);
     AddAuraToModList(aura);
     aura->ApplyModifier(true,true);
@@ -3037,7 +3032,7 @@ PetScalingData* Pet::CalculateScalingData(bool recalculate)
 // diff contains the time in milliseconds since last regen.
 void Pet::Regenerate(Powers power, uint32 diff)
 {
-    uint32 curValue = GetPower(power);
+    int32 curValue = GetPower(power);
     uint32 maxValue = GetMaxPower(power);
 
     float addvalue = 0.0f;
@@ -3056,11 +3051,13 @@ void Pet::Regenerate(Powers power, uint32 diff)
             {
                 addvalue = GetFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER) * ManaIncreaseRate * 2.00f;
             }
-        }   break;
+            break;
+        }
         case POWER_RAGE:                                    // Regenerate rage ?
         {
-            addvalue = 20 * sWorld.getConfig(CONFIG_FLOAT_RATE_POWER_RAGE_LOSS);
-        }   break;
+            addvalue = -20 * sWorld.getConfig(CONFIG_FLOAT_RATE_POWER_RAGE_LOSS);
+            break;
+        }
         case POWER_ENERGY:                                  // Regenerate energy (ghoul)
         {
             addvalue = 20 * sWorld.getConfig(CONFIG_FLOAT_RATE_POWER_ENERGY);
@@ -3068,12 +3065,20 @@ void Pet::Regenerate(Powers power, uint32 diff)
         }
         case POWER_FOCUS:                                   // Hunter pets
         {
-            addvalue = 24 * sWorld.getConfig(CONFIG_FLOAT_RATE_POWER_FOCUS);
+            addvalue = 10 * sWorld.getConfig(CONFIG_FLOAT_RATE_POWER_FOCUS);
+            break;
+        }
+
+        case POWER_HAPPINESS:
+        {
+            addvalue = -178.0f;                                   //value is 70/35/17/8/4 (per min) * 1000 / 8 (timer 2 secs)
+            if(isInCombat())                                     //we know in combat happiness fades faster, multiplier guess
+                addvalue = addvalue * 1.5f;
+            ApplyHappinessBonus(true);
             break;
         }
         case POWER_RUNIC_POWER:
         case POWER_RUNE:
-        case POWER_HAPPINESS:
         case POWER_HEALTH:
         default:
             addvalue = 0.0f;
@@ -3098,20 +3103,52 @@ void Pet::Regenerate(Powers power, uint32 diff)
     // addvalue computed on a 2sec basis. => update to diff time
     addvalue *= float(diff) / REGEN_TIME_FULL;
 
-    if (power != POWER_RAGE )
-    {
-        curValue += uint32(addvalue);
-        if (curValue > maxValue)
+    curValue += int32(addvalue);
+
+    if (curValue > maxValue)
             curValue = maxValue;
-    }
-    else
-    {
-        if(curValue <= uint32(addvalue))
-            curValue = 0;
-        else
-            curValue -= uint32(addvalue);
-    }
+    else if (curValue < 0)
+        curValue = 0;
+
     SetPower(power, curValue);
+}
+
+void Pet::RegenerateHealth(uint32 diff)
+{
+    uint32 curValue = GetHealth();
+    uint32 maxValue = GetMaxHealth();
+
+    if (curValue >= maxValue)
+        return;
+
+    float addvalue = 0.0f;
+    float HealthIncreaseRate = sWorld.getConfig(CONFIG_FLOAT_RATE_HEALTH);
+
+    // polymorphed case
+    if ( IsPolymorphed() )
+        addvalue = (float)GetMaxHealth() / 3.0f;
+    // normal regen case (maybe partly in combat case)
+    else if (!isInCombat() || HasAuraType(SPELL_AURA_MOD_REGEN_DURING_COMBAT) )
+    {
+        addvalue = OCTRegenHPPerSpirit() * HealthIncreaseRate;
+        if (!isInCombat())
+        {
+            AuraList const& mModHealthRegenPct = GetAurasByType(SPELL_AURA_MOD_HEALTH_REGEN_PERCENT);
+            for(AuraList::const_iterator i = mModHealthRegenPct.begin(); i != mModHealthRegenPct.end(); ++i)
+                addvalue *= (100.0f + (*i)->GetModifier()->m_amount) / 100.0f;
+        }
+        else if(HasAuraType(SPELL_AURA_MOD_REGEN_DURING_COMBAT))
+            addvalue *= GetTotalAuraModifier(SPELL_AURA_MOD_REGEN_DURING_COMBAT) / 100.0f;
+    }
+    // always regeneration bonus (including combat)
+    addvalue += GetTotalAuraModifier(SPELL_AURA_MOD_HEALTH_REGEN_IN_COMBAT);
+
+    if(addvalue < 0)
+        addvalue = 0;
+
+    addvalue *= (float)diff / REGEN_TIME_FULL;
+
+    ModifyHealth(int32(addvalue));
 }
 
 void Pet::ApplyScalingBonus(ScalingAction* action)
@@ -3203,4 +3240,53 @@ void Pet::ApplyHappinessBonus(bool apply)
         UpdateDamagePhysical(RANGED_ATTACK);
         UpdateSpellPower();
     }
+}
+
+float Pet::OCTRegenHPPerSpirit()
+{
+    Unit* owner = GetOwner();
+    if (!owner || owner->GetTypeId() != TYPEID_PLAYER)
+        return ( GetPower(POWER_MANA) > 0 ) ? (GetStat(STAT_SPIRIT) * 0.25f) : (GetStat(STAT_SPIRIT) * 0.80f);
+
+    uint32 level = ((Player*)owner)->getLevel();
+    uint32 pclass = ((Player*)owner)->getClass();
+
+    if (level > GT_MAX_LEVEL) level = GT_MAX_LEVEL;
+
+    GtOCTRegenHPEntry     const *baseRatio = sGtOCTRegenHPStore.LookupEntry((pclass-1)*GT_MAX_LEVEL + level-1);
+    GtRegenHPPerSptEntry  const *moreRatio = sGtRegenHPPerSptStore.LookupEntry((pclass-1)*GT_MAX_LEVEL + level-1);
+
+    if (baseRatio == NULL || moreRatio == NULL)
+        return 0.0f;
+
+    // Formula from PaperDollFrame script
+    float spirit = GetStat(STAT_SPIRIT);
+    float baseSpirit = spirit;
+    if (baseSpirit > 50) baseSpirit = 50;
+    float moreSpirit = spirit - baseSpirit;
+    float regen = baseSpirit * baseRatio->ratio + moreSpirit * moreRatio->ratio;
+    return regen;
+}
+
+float Pet::OCTRegenMPPerSpirit()
+{
+    Unit* owner = GetOwner();
+
+    if (!owner || owner->GetTypeId() != TYPEID_PLAYER)
+        return (GetStat(STAT_SPIRIT) / 5.0f + 17.0f);
+
+    uint32 level = ((Player*)owner)->getLevel();
+    uint32 pclass = ((Player*)owner)->getClass();
+
+    if (level > GT_MAX_LEVEL) level = GT_MAX_LEVEL;
+
+    GtRegenMPPerSptEntry  const *moreRatio = sGtRegenMPPerSptStore.LookupEntry((pclass-1)*GT_MAX_LEVEL + level-1);
+
+    if (moreRatio == NULL)
+        return 0.0f;
+
+    // Formula get from PaperDollFrame script
+    float spirit    = GetStat(STAT_SPIRIT);
+    float regen     = spirit * moreRatio->ratio;
+    return regen;
 }

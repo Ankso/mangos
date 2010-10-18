@@ -1106,7 +1106,7 @@ void BattleGround::QuestComplete(Player *plr)
 			else if (plr->GetTeam() == HORDE)
 				questId = QUEST_IC_REWARD_HORDE;
 
-			if (questId != 0 && plr->hasQuest(questId) && (plr->GetQuestStatus(questId) == QUEST_STATUS_INCOMPLETE))
+			if (questId != 0 && plr->HasQuest(questId) && (plr->GetQuestStatus(questId) == QUEST_STATUS_INCOMPLETE))
 				plr->CompleteQuest(questId);
             break;
 		}
@@ -1796,7 +1796,7 @@ void BattleGround::SpawnBGCreature(uint64 const& guid, uint32 respawntime)
     else
     {
         map->Add(obj);
-        obj->setDeathState(JUST_DIED);
+        obj->SetDeathState(JUST_DIED);
         obj->SetRespawnDelay(respawntime);
         obj->RemoveCorpse();
     }

@@ -55,7 +55,7 @@ ConfusedMovementGenerator<T>::Initialize(T &unit)
 
         // if generated wrong path just ignore
         if ((is_water && !is_water_ok) || (!is_water && !is_land_ok) ||
-            !map->IsNextZcoordOK(i_waypoints[idx][0], i_waypoints[idx][1], z))  // check if not under map)
+            !map->IsNextZcoordOK(i_waypoints[idx][0], i_waypoints[idx][1], z))  // check if not under map
         {
             i_waypoints[idx][0] = idx > 0 ? i_waypoints[idx-1][0] : x;
             i_waypoints[idx][1] = idx > 0 ? i_waypoints[idx-1][1] : y;
@@ -75,8 +75,8 @@ ConfusedMovementGenerator<Creature>::_InitSpecific(Creature &creature, bool &is_
 {
     creature.RemoveSplineFlag(SPLINEFLAG_WALKMODE);
 
-    is_water_ok = creature.canSwim();
-    is_land_ok  = creature.canWalk();
+    is_water_ok = creature.CanSwim();
+    is_land_ok  = creature.CanWalk();
 }
 
 template<>
