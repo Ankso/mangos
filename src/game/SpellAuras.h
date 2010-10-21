@@ -20,6 +20,7 @@
 
 #include "SpellAuraDefines.h"
 #include "DBCEnums.h"
+#include "ObjectGuid.h"
 
 struct Modifier
 {
@@ -380,7 +381,8 @@ class MANGOS_DLL_SPEC Aura
         SpellEntry const* GetSpellProto() const { return GetHolder()->GetSpellProto(); }
         uint32 GetId() const{ return GetHolder()->GetSpellProto()->Id; }
         uint64 GetCastItemGUID() const { return GetHolder()->GetCastItemGUID(); }
-        uint64 const& GetCasterGUID() const { return GetHolder()->GetCasterGUID(); }
+        uint64 const& GetCasterGUID() const { return GetHolder()->GetCasterGUID(); }//can't be easy replaced by GetCasterGuid until AuraHolders backporting ig we don't want create additional problems for this.
+        ObjectGuid GetCasterGuid() const { return GetHolder()->GetCasterGUID(); }
         Unit* GetCaster() const { return GetHolder()->GetCaster(); }
         Unit* GetTarget() const { return GetHolder()->GetTarget(); }
 
@@ -503,6 +505,19 @@ class MANGOS_DLL_SPEC PersistentAreaAura : public Aura
         ~PersistentAreaAura();
     protected:
         void Update(uint32 diff);
+};
+
+class MANGOS_DLL_SPEC SingleEnemyTargetAura : public Aura
+{
+    MANGOS_DLL_SPEC friend Aura* CreateAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBasePoints, SpellAuraHolder *holder, Unit *target, Unit *caster, Item* castItem);
+
+    public:
+        ~SingleEnemyTargetAura();
+        Unit* GetTriggerTarget() const;
+
+    protected:
+        SingleEnemyTargetAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBasePoints, SpellAuraHolder *holder, Unit *target, Unit *caster  = NULL, Item* castItem = NULL);
+        ObjectGuid m_castersTargetGuid;
 };
 
 MANGOS_DLL_SPEC Aura* CreateAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBasePoints, SpellAuraHolder *holder, Unit *target, Unit *caster = NULL, Item* castItem = NULL);
