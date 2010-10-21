@@ -1115,7 +1115,7 @@ void Aura::HandleAddModifier(bool apply, bool Real)
 void Aura::TriggerSpell()
 {
     ObjectGuid casterGUID = GetCasterGuid();
-    Unit* triggerTarget = GetTriggerTarget();
+    Unit* triggerTarget = GetTarget();                     // correct target will be set in Spell::SetTargetMap
 
     if (casterGUID.IsEmpty() || !triggerTarget)
         return;
@@ -2000,7 +2000,7 @@ void Aura::TriggerSpell()
 void Aura::TriggerSpellWithValue()
 {
     const uint64& casterGUID = GetCasterGUID();
-    Unit* target = GetTriggerTarget();
+    Unit* target = GetTarget();                     // correct target will be set in Spell::SetTargetMap
 
     if(!casterGUID || !target)
         return;
