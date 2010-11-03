@@ -460,6 +460,9 @@
     <ClCompile Include="..\..\src\game\VehicleHandler.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\game\LFGMgr.cpp">
+      <Filter>World/Handlers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">
@@ -862,5 +865,11 @@
       <Filter>References</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\pchdef.h" />
+    <ClInclude Include="..\..\src\game\LFG.h">
+      <Filter>World/Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\LFGMgr.h">
+      <Filter>World/Handlers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
