@@ -500,8 +500,9 @@ class World
         void LoadConfigSettings(bool reload = false);
 
         void SendWorldText(int32 string_id, ...);
+        void SendWorldTextWithSecurity(AccountTypes security, int32 string_id, ...);
         void SendGlobalText(const char* text, WorldSession *self);
-        void SendGlobalMessage(WorldPacket *packet, WorldSession *self = 0, uint32 team = 0);
+        void SendGlobalMessage(WorldPacket *packet, WorldSession *self = 0, uint32 team = 0, AccountTypes security = SEC_PLAYER);
         void SendZoneMessage(uint32 zone, WorldPacket *packet, WorldSession *self = 0, uint32 team = 0);
         void SendZoneText(uint32 zone, const char *text, WorldSession *self = 0, uint32 team = 0);
         void SendServerMessage(ServerMessageType type, const char *text = "", Player* player = NULL);
@@ -515,7 +516,7 @@ class World
         static void StopNow(uint8 exitcode) { m_stopEvent = true; m_ExitCode = exitcode; }
         static bool IsStopped() { return m_stopEvent; }
 
-        void Update(uint32 diff);
+        void Update(uint32 time_, uint32 diff);
 
         void UpdateSessions( uint32 diff );
 
@@ -611,10 +612,15 @@ class World
 
         void InitDailyQuestResetTime();
         void InitWeeklyQuestResetTime();
-        void InitRandomBGResetTime();
+
+        void SetMonthlyQuestResetTime(bool initialize = true);
         void ResetDailyQuests();
         void ResetWeeklyQuests();
+        void ResetMonthlyQuests();
+
+        void InitRandomBGResetTime();
         void ResetRandomBG();
+
     private:
         void setConfig(eConfigUInt32Values index, char const* fieldname, uint32 defvalue);
         void setConfig(eConfigInt32Values index, char const* fieldname, int32 defvalue);
@@ -705,6 +711,8 @@ class World
         // next daily quests reset time
         time_t m_NextDailyQuestReset;
         time_t m_NextWeeklyQuestReset;
+        time_t m_NextMonthlyQuestReset;
+
         time_t m_NextRandomBGReset;
 
         //Player Queue

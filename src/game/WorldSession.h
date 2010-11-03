@@ -44,6 +44,7 @@ class QueryResult;
 class LoginQueryHolder;
 class CharacterHandler;
 class GMTicket;
+class MovementInfo;
 
 struct OpcodeHandler;
 
@@ -440,6 +441,7 @@ class MANGOS_DLL_SPEC WorldSession
         void HandleRequestVehicleSwitchSeat(WorldPacket &recv_data);
         void HandleEnterPlayerVehicle(WorldPacket &recv_data);
         void HandleEjectPasenger(WorldPacket &recv_data);
+        void HandleChangeSeatsOnControlledVehicle(WorldPacket &recv_data);
 
         void HandleRequestRaidInfoOpcode( WorldPacket & recv_data );
 
@@ -789,6 +791,8 @@ class MANGOS_DLL_SPEC WorldSession
     private:
         // private trade methods
         void moveItems(Item* myItems[], Item* hisItems[]);
+        bool VerifyMovementInfo(MovementInfo&,ObjectGuid&, Unit*) const;
+        void HandleMoverRelocation(MovementInfo&, Unit*, Player*);
 
         void ExecuteOpcode( OpcodeHandler const& opHandle, WorldPacket* packet );
 

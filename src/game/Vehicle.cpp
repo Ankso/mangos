@@ -157,10 +157,19 @@ bool VehicleKit::AddPassenger(Unit *passenger, int8 seatId)
         m_pBase->CombatStop(true);
         m_pBase->DeleteThreatList();
         m_pBase->getHostileRefManager().deleteReferences();
-        m_pBase->SetCharmerGUID(passenger->GetGUID());
+        m_pBase->SetCharmerGuid(passenger->GetObjectGuid());
         m_pBase->addUnitState(UNIT_STAT_CONTROLLED);
 
         passenger->SetCharm(m_pBase);
+
+        if(m_pBase->HasAuraType(SPELL_AURA_FLY) || m_pBase->HasAuraType(SPELL_AURA_MOD_FLIGHT_SPEED))
+        {
+            WorldPacket data;
+            data.Initialize(SMSG_MOVE_SET_CAN_FLY, 12);
+            data << m_pBase->GetPackGUID();
+            data << (uint32)(0);
+            m_pBase->SendMessageToSet(&data,false);
+        }
 
         if (passenger->GetTypeId() == TYPEID_PLAYER)
         {
@@ -204,15 +213,20 @@ void VehicleKit::RemovePassenger(Unit *passenger)
     seat->second.passenger = NULL;
     passenger->clearUnitState(UNIT_STAT_ON_VEHICLE);
 
+    float px, py, pz, po;
+    m_pBase->GetClosePoint(px, py, pz, m_pBase->GetObjectBoundingRadius(), 2.0f, M_PI_F);
+    po = m_pBase->GetOrientation();
+
     passenger->m_movementInfo.ClearTransportData();
     passenger->m_movementInfo.RemoveMovementFlag(MOVEFLAG_ONTRANSPORT);
 
     if (seat->second.seatInfo->m_flags & SEAT_FLAG_CAN_CONTROL)
     {
+
         passenger->SetCharm(NULL);
         passenger->RemoveSpellsCausingAura(SPELL_AURA_CONTROL_VEHICLE);
 
-        m_pBase->SetCharmerGUID(0);
+        m_pBase->SetCharmerGuid(ObjectGuid());
         m_pBase->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
         m_pBase->clearUnitState(UNIT_STAT_CONTROLLED);
 
@@ -236,7 +250,8 @@ void VehicleKit::RemovePassenger(Unit *passenger)
         data << uint32(0);
         passenger->SendMessageToSet(&data, true);
     }
-
+    passenger->UpdateAllowedPositionZ(px, py, pz);
+    passenger->SetPosition(px, py, pz + 0.5f, po);
     UpdateFreeSeatCount();
 }
 
@@ -274,6 +289,7 @@ void VehicleKit::RelocatePassengers(float x, float y, float z, float ang)
             float pz = z + passenger->m_movementInfo.GetTransportPos()->z;
             float po = ang + passenger->m_movementInfo.GetTransportPos()->o;
 
+            passenger->UpdateAllowedPositionZ(px, py, pz);
             passenger->SetPosition(px, py, pz, po);
         }
     }
