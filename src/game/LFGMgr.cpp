@@ -1,18 +1,20 @@
 /*
- * Copyright (C) 2008-2010 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * This code is based on TrinityCore <http://www.trinitycore.org/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #include "Common.h"
@@ -460,7 +462,7 @@ void LFGMgr::AddGuidToNewQueue(ObjectGuid guid)
         return;
     }
 
-    it = std::find(m_currentQueue.begin(), m_currentQueue.end(), guid.GetCounter());
+    it = std::find(m_currentQueue.begin(), m_currentQueue.end(), guid.GetRawValue());
     if (it != m_currentQueue.end())
     {
         sLog.outError("LFGMgr::AddGuidToNewQueue: %u being added to queue and already in current queue (removing to readd)", guid.GetCounter());
@@ -535,7 +537,7 @@ bool LFGMgr::RemoveFromQueue(ObjectGuid guid)
         m_QueueInfoMap.erase(it);
         ret = true;
     }
-    sLog.outDebug("LFGMgr::RemoveFromQueue: [" UI64FMTD "] %s - Queue(%u)", guid.GetRawValue(),
+    sLog.outDebug("LFGMgr::RemoveFromQueue: [%u] %s - Queue(%u)", guid.GetCounter(),
         before != m_QueueInfoMap.size() ? "Removed" : "Not in queue", uint32(m_QueueInfoMap.size()));
     return ret;
 }
@@ -843,16 +845,17 @@ bool LFGMgr::CheckCompatibility(LfgGuidList check, LfgProposal*& pProposal)
     LfgQueueInfoMap::iterator itQueue;
     for (LfgGuidList::const_iterator it = check.begin(); it != check.end() && numLfgGroups < 2 && numPlayers <= MAX_GROUP_SIZE; ++it)
     {
+        ObjectGuid guid(*it);
         itQueue = m_QueueInfoMap.find(*it);
         if (itQueue == m_QueueInfoMap.end())
         {
-            sLog.outError("LFGMgr::CheckCompatibility: [" UI64FMTD "] is not queued but listed as queued!", (*it));
-            RemoveFromQueue(*it);
+            sLog.outError("LFGMgr::CheckCompatibility: [" UI64FMTD "] is not queued but listed as queued!", guid.GetRawValue());
+            RemoveFromQueue(guid);
             return false;
         }
         pqInfoMap[*it] = itQueue->second;
         numPlayers += itQueue->second->roles.size();
-        ObjectGuid guid(*it);
+        
         if (guid.IsGroup())
         {
             if (Group* grp = sObjectMgr.GetGroupById(guid.GetCounter()))
@@ -1021,7 +1024,7 @@ bool LFGMgr::CheckCompatibility(LfgGuidList check, LfgProposal*& pProposal)
     pProposal = new LfgProposal(selectedDungeon);
     pProposal->cancelTime = time_t(time(NULL)) + LFG_TIME_PROPOSAL;
     pProposal->queues = check;
-    //pProposal->groupLowGuid = groupLowGuid;
+    pProposal->groupId = groupGuid.GetCounter();
 
     // Assign new roles to players and assign new leader
     LfgProposalPlayer* ppPlayer;
@@ -1032,7 +1035,7 @@ bool LFGMgr::CheckCompatibility(LfgGuidList check, LfgProposal*& pProposal)
         uint8 pos = urand(0, players.size() - 1);
         for (uint8 i = 0; i < pos; ++i)
             ++itPlayers;
-        newLeaderLowGuid = (*itPlayers)->GetGUIDLow();
+        newLeaderLowGuid = (*itPlayers)->GetObjectGuid().GetCounter();
     }
     pProposal->leaderLowGuid = newLeaderLowGuid;
 
@@ -1243,7 +1246,7 @@ void LFGMgr::RemoveFromCompatibles(ObjectGuid guid)
     std::string strGuid = ConcatenateGuids(lista);
     lista.clear();
 
-    sLog.outDebug("LFGMgr::RemoveFromCompatibles: Removing [" UI64FMTD "], %s", guid.GetRawValue(), strGuid.c_str());
+    sLog.outDebug("LFGMgr::RemoveFromCompatibles: Removing [%u], %s", guid.GetCounter(), strGuid.c_str());
     LfgCompatibleMap::iterator it;
     for (LfgCompatibleMap::iterator itNext = m_CompatibleMap.begin(); itNext != m_CompatibleMap.end();)
     {
@@ -1450,7 +1453,7 @@ void LFGMgr::UpdateProposal(uint32 proposalId, uint32 lowGuid, bool accept)
     LfgProposalPlayer* ppPlayer = itProposalPlayer->second;
 
     ppPlayer->accept = LfgAnswer(accept);
-    sLog.outDebug("LFGMgr::UpdateProposal: Player [" UI64FMTD "] of proposal %u selected: %u", MAKE_NEW_GUID(lowGuid, 0, HIGHGUID_PLAYER), proposalId, accept);
+    sLog.outDebug("LFGMgr::UpdateProposal: Player [%u] of proposal %u selected: %u", lowGuid, proposalId, accept);
     if (!accept)
     {
         RemoveProposal(itProposal, LFG_UPDATETYPE_PROPOSAL_DECLINED);
@@ -1495,13 +1498,13 @@ void LFGMgr::UpdateProposal(uint32 proposalId, uint32 lowGuid, bool accept)
             LfgProposalPlayer* pPlayer = pProposal->players[(*it)->GetObjectGuid().GetCounter()];
             uint32 groupId = (*it)->GetGroup() ? (*it)->GetGroup()->GetId() : 0;
             if (pPlayer->groupId != groupId)
-                sLog.outError("LFGMgr::UpdateProposal: [" UI64FMTD "] group mismatch: actual (%u) - queued (%u)", (*it)->GetGUID(), groupId, pPlayer->groupId);
+                sLog.outError("LFGMgr::UpdateProposal: [%u] group mismatch: actual (%u) - queued (%u)", (*it)->GetObjectGuid().GetCounter(), groupId, pPlayer->groupId);
 
             ObjectGuid guid = pPlayer->groupId ? ObjectGuid(HIGHGUID_GROUP, 0, pPlayer->groupId) : (*it)->GetObjectGuid();
             LfgQueueInfoMap::iterator itQueue = m_QueueInfoMap.find(guid.GetRawValue());
             if (itQueue == m_QueueInfoMap.end())
             {
-                sLog.outError("LFGMgr::UpdateProposal: Queue info for guid [" UI64FMTD "] not found!", guid.GetRawValue());
+                sLog.outError("LFGMgr::UpdateProposal: Queue info for guid [%u] not found!", guid.GetCounter());
                 waitTimesMap[guid.GetRawValue()] = -1;
             }
             else
@@ -1573,7 +1576,7 @@ void LFGMgr::UpdateProposal(uint32 proposalId, uint32 lowGuid, bool accept)
         grp->SetDungeonDifficulty(Difficulty(dungeon->difficulty));
         grp->SetLfgDungeonEntry(dungeon->Entry());
         grp->SetLfgStatus(LFG_STATUS_NOT_SAVED);
-        grp->SendUpdate();grp->SendUpdate(); // Send two time seem to resolve "unknow" charname
+
 
         // Remove players/groups from Queue
         for (LfgGuidList::const_iterator it = pProposal->queues.begin(); it != pProposal->queues.end(); ++it)
@@ -1582,6 +1585,9 @@ void LFGMgr::UpdateProposal(uint32 proposalId, uint32 lowGuid, bool accept)
         // Teleport Player
         for (LfgPlayerList::const_iterator it = players.begin(); it != players.end(); ++it)
             TeleportPlayer(*it, false);
+
+        // Update group info
+        grp->SendUpdate();
 
         for (LfgProposalPlayerMap::const_iterator it = pProposal->players.begin(); it != pProposal->players.end(); ++it)
             delete it->second;
@@ -1601,7 +1607,7 @@ void LFGMgr::UpdateProposal(uint32 proposalId, uint32 lowGuid, bool accept)
 void LFGMgr::RemoveProposal(LfgProposalMap::iterator itProposal, LfgUpdateType type)
 {
     Player* plr;
-    uint64 guid;
+    ObjectGuid guid;
     LfgUpdateType updateType;
     LfgQueueInfoMap::iterator itQueue;
     LfgProposal* pProposal = itProposal->second;
@@ -1617,10 +1623,11 @@ void LFGMgr::RemoveProposal(LfgProposalMap::iterator itProposal, LfgUpdateType t
     // Inform players
     for (LfgProposalPlayerMap::const_iterator it = pProposal->players.begin(); it != pProposal->players.end(); ++it)
     {
-        plr = sObjectMgr.GetPlayer(ObjectGuid(HIGHGUID_PLAYER,it->first));
+        guid = ObjectGuid(HIGHGUID_PLAYER,0,it->first);
+        plr = sObjectMgr.GetPlayer(guid);
         if (!plr)
             continue;
-        //guid = it->second->groupLowGuid ? MAKE_NEW_GUID(it->second->groupLowGuid, 0, HIGHGUID_GROUP) : plr->GetGUID();
+        //guid = it->second->groupId ? ObjectGuid(HIGHGUID_GROUP, 0, it->second->groupId) : plr->GetGUID();
 
         plr->GetSession()->SendUpdateProposal(itProposal->first, pProposal);
         // Remove members that didn't accept
@@ -1632,22 +1639,22 @@ void LFGMgr::RemoveProposal(LfgProposalMap::iterator itProposal, LfgUpdateType t
             if (!plr->GetGroup() || !plr->GetGroup()->isLFGGroup())
                 plr->SetLfgState(LFG_STATE_NONE);
 
-            sLog.outDebug("LFGMgr::RemoveProposal: %u didn't accept. Removing from queue and compatible cache", plr->GetObjectGuid().GetCounter());
+            sLog.outDebug("LFGMgr::RemoveProposal: %u didn't accept. Removing from queue and compatible cache", guid.GetCounter());
             RemoveFromQueue(guid);
         }
         else                                                // Readd to queue
         {
-            itQueue = m_QueueInfoMap.find(plr->GetObjectGuid().GetCounter());
+            itQueue = m_QueueInfoMap.find(guid.GetRawValue());
             if (itQueue == m_QueueInfoMap.end())            // Can't readd! misssing queue info!
             {
-                sLog.outError("LFGMgr::RemoveProposal: Imposible to readd %u to queue. Missing queue info!", plr->GetObjectGuid().GetCounter());
+                sLog.outError("LFGMgr::RemoveProposal: Imposible to readd %u to queue. Missing queue info!", guid.GetCounter());
                 updateType = LFG_UPDATETYPE_REMOVED_FROM_QUEUE;
             }
             else
             {
-                sLog.outDebug("LFGMgr::RemoveProposal: Readding %u to queue.", plr->GetObjectGuid().GetCounter());
+                sLog.outDebug("LFGMgr::RemoveProposal: Readding %u to queue.", guid.GetCounter());
                 itQueue->second->joinTime = time_t(time(NULL));
-                AddGuidToNewQueue(plr->GetObjectGuid());
+                AddGuidToNewQueue(guid);
                 updateType = LFG_UPDATETYPE_ADDED_TO_QUEUE;
             }
         }
