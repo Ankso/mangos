@@ -688,9 +688,6 @@ void LFGMgr::Join(Player* plr)
 /// <param name="Group*">Group (could be NULL)</param>
 void LFGMgr::Leave(Player* plr, Group* grp /* = NULL*/)
 {
-    if (!plr)
-        return;
-
     if ((plr && (!plr->GetLfgUpdate() || !plr->isUsingLfg())) || !sWorld.getConfig(CONFIG_BOOL_DUNGEON_FINDER_ENABLE))
         return;
 
