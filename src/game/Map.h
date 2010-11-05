@@ -438,4 +438,17 @@ Map::Visit(const Cell& cell, TypeContainerVisitor<T, CONTAINER> &visitor)
     }
 }
 
+template<class NOTIFIER>
+inline void
+Map::VisitGrid(const float &x, const float &y, float radius, NOTIFIER &notifier)
+{
+    CellPair p(MaNGOS::ComputeCellPair(x, y));
+    Cell cell(p);
+    cell.data.Part.reserved = (1 | 1 << 1 | 1 << 2 | 1 << 3 | 1 << 4);
+    cell.SetNoCreate();
+
+    TypeContainerVisitor<NOTIFIER, GridTypeMapContainer >  grid_object_notifier(notifier);
+    cell.Visit(p, grid_object_notifier, *this, radius, x, y);
+}
+
 #endif
