@@ -31,7 +31,7 @@
 #include "Util.h"
 #include "ObjectMgr.h"
 
-#define MAX_ALLOWED_QUESTS 18
+#define MAX_ALLOWED_QUESTS 19
 
 bool ChatHandler::HandleHelpCommand(char* args)
 {
@@ -125,6 +125,7 @@ bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
 {
     uint32 ALLOWED_QUESTS[MAX_ALLOWED_QUESTS] = {
         12779,  // A End to All Things... (DKs)
+        12641,  // Death comes from above (DKs)
         13680,  // The Aspirant's Challenge (H)
         13679,  // The Aspirant's Challenge (A)
         13724,
