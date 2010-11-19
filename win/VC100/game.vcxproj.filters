@@ -159,10 +159,10 @@
     <ClCompile Include="..\..\src\game\Map.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\game\MapInstanced.cpp">
+    <ClCompile Include="..\..\src\game\MapManager.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\game\MapManager.cpp">
+    <ClCompile Include="..\..\src\game\MapUpdater.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\MiscHandler.cpp">
@@ -456,12 +456,18 @@
     <ClCompile Include="..\..\src\game\LFGMgr.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\game\AntiCheat.cpp">
+      <Filter>World/Handlers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\AchievementMgr.h">
+      <Filter>World/Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\AntiCheat.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\BattleGround.h">
@@ -560,10 +566,10 @@
     <ClInclude Include="..\..\src\game\Map.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\game\MapInstanced.h">
+    <ClInclude Include="..\..\src\game\MapManager.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\game\MapManager.h">
+    <ClInclude Include="..\..\src\game\MapUpdater.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\NPCHandler.h">

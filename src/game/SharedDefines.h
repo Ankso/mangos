@@ -411,7 +411,7 @@ const uint32 ItemQualityColors[MAX_ITEM_QUALITY] = {
 #define SPELL_ATTR_EX5_UNK10                      0x00000400            // 10
 #define SPELL_ATTR_EX5_UNK11                      0x00000800            // 11
 #define SPELL_ATTR_EX5_UNK12                      0x00001000            // 12
-#define SPELL_ATTR_EX5_UNK13                      0x00002000            // 13 haste affects duration (e.g. 8050 since 3.3.3)
+#define SPELL_ATTR_EX5_AFFECTED_BY_HASTE          0x00002000            // 13 haste affects duration (e.g. 8050 since 3.3.3)
 #define SPELL_ATTR_EX5_UNK14                      0x00004000            // 14
 #define SPELL_ATTR_EX5_UNK15                      0x00008000            // 15
 #define SPELL_ATTR_EX5_UNK16                      0x00010000            // 16
@@ -544,6 +544,7 @@ enum Team
 
 enum SpellEffects
 {
+    SPELL_EFFECT_NONE                      = 0,
     SPELL_EFFECT_INSTAKILL                 = 1,
     SPELL_EFFECT_SCHOOL_DAMAGE             = 2,
     SPELL_EFFECT_DUMMY                     = 3,
@@ -1047,6 +1048,7 @@ enum WeaponAttackType
 
 enum Targets
 {
+    TARGET_NONE                        = 0,
     TARGET_SELF                        = 1,
     TARGET_RANDOM_ENEMY_CHAIN_IN_AREA  = 2,                 // only one spell has that, but regardless, it's a target type after all
     TARGET_RANDOM_FRIEND_CHAIN_IN_AREA = 3,
@@ -1964,6 +1966,9 @@ enum CreatureTypeFlags
     CREATURE_TYPEFLAGS_UNK27            = 0x04000000,       // creature has no type, or forces creature to be considered as in party, may be related to creature assistance
     CREATURE_TYPEFLAGS_UNK28            = 0x08000000,       // used in Lua_ForceGossip
     CREATURE_TYPEFLAGS_UNK29            = 0x10000000,       // no idea, but it used by client
+    CREATURE_TYPEFLAGS_UNK30            = 0x20000000,
+    CREATURE_TYPEFLAGS_UNK31            = 0x40000000,
+    CREATURE_TYPEFLAGS_QUEST_BOSS       = 0x80000000,       // Lua_UnitIsQuestBoss
 };
 
 enum CreatureEliteType
@@ -2482,6 +2487,16 @@ enum DiminishingGroup
     // Other
     // Don't Diminish, but limit duration to 10s
     DIMINISHING_LIMITONLY
+};
+
+enum InstanceResetMethod
+{
+    INSTANCE_RESET_ALL,
+    INSTANCE_RESET_CHANGE_DIFFICULTY,
+    INSTANCE_RESET_GLOBAL,
+    INSTANCE_RESET_GROUP_DISBAND,
+    INSTANCE_RESET_GROUP_JOIN,
+    INSTANCE_RESET_RESPAWN_DELAY
 };
 
 enum ResponseCodes

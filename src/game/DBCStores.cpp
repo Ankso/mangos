@@ -155,7 +155,7 @@ DBCStorage <SpellFocusObjectEntry> sSpellFocusObjectStore(SpellFocusObjectfmt);
 DBCStorage <SpellRadiusEntry> sSpellRadiusStore(SpellRadiusfmt);
 DBCStorage <SpellRangeEntry> sSpellRangeStore(SpellRangefmt);
 DBCStorage <SpellRuneCostEntry> sSpellRuneCostStore(SpellRuneCostfmt);
-DBCStorage <SpellShapeshiftEntry> sSpellShapeshiftStore(SpellShapeshiftfmt);
+DBCStorage <SpellShapeshiftFormEntry> sSpellShapeshiftFormStore(SpellShapeshiftFormfmt);
 DBCStorage <StableSlotPricesEntry> sStableSlotPricesStore(StableSlotPricesfmt);
 DBCStorage <SummonPropertiesEntry> sSummonPropertiesStore(SummonPropertiesfmt);
 DBCStorage <TalentEntry> sTalentStore(TalentEntryfmt);
@@ -177,6 +177,7 @@ DBCStorage <TaxiPathEntry> sTaxiPathStore(TaxiPathEntryfmt);
 TaxiPathNodesByPath sTaxiPathNodesByPath;
 static DBCStorage <TaxiPathNodeEntry> sTaxiPathNodeStore(TaxiPathNodeEntryfmt);
 
+DBCStorage <TeamContributionPoints> sTeamContributionPoints(TeamContributionPointsfmt);
 DBCStorage <TotemCategoryEntry> sTotemCategoryStore(TotemCategoryEntryfmt);
 DBCStorage <VehicleEntry> sVehicleStore(VehicleEntryfmt);
 DBCStorage <VehicleSeatEntry> sVehicleSeatStore(VehicleSeatEntryfmt);
@@ -191,7 +192,7 @@ bool IsAcceptableClientBuild(uint32 build)
 {
     int accepted_versions[] = EXPECTED_MANGOSD_CLIENT_BUILD;
     for(int i = 0; accepted_versions[i]; ++i)
-        if(build == accepted_versions[i])
+        if(int(build) == accepted_versions[i])
             return true;
 
     return false;
@@ -368,7 +369,7 @@ void LoadDBCStores(const std::string& dataPath)
         exit(1);
     }
 
-    const uint32 DBCFilesCount = 87;
+    const uint32 DBCFilesCount = 88;
 
     barGoLink bar( (int)DBCFilesCount );
 
@@ -531,7 +532,7 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sSpellRadiusStore,         dbcPath,"SpellRadius.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sSpellRangeStore,          dbcPath,"SpellRange.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sSpellRuneCostStore,       dbcPath,"SpellRuneCost.dbc");
-    LoadDBC(availableDbcLocales,bar,bad_dbc_files,sSpellShapeshiftStore,     dbcPath,"SpellShapeshiftForm.dbc");
+    LoadDBC(availableDbcLocales,bar,bad_dbc_files,sSpellShapeshiftFormStore, dbcPath,"SpellShapeshiftForm.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sStableSlotPricesStore,    dbcPath,"StableSlotPrices.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sSummonPropertiesStore,    dbcPath,"SummonProperties.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sTalentStore,              dbcPath,"Talent.dbc");
@@ -648,6 +649,7 @@ void LoadDBCStores(const std::string& dataPath)
         }
     }
 
+    LoadDBC(availableDbcLocales,bar,bad_dbc_files,sTeamContributionPoints,   dbcPath,"TeamContributionPoints.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sTotemCategoryStore,       dbcPath,"TotemCategory.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sVehicleStore,             dbcPath,"Vehicle.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sVehicleSeatStore,         dbcPath,"VehicleSeat.dbc");
@@ -941,7 +943,7 @@ bool IsPointInAreaTriggerZone(AreaTriggerEntry const* atEntry, uint32 mapid, flo
         // rotate the players position instead of rotating the whole cube, that way we can make a simplified
         // is-in-cube check and we have to calculate only one point instead of 4
 
-        // 2PI = 360 , keep in mind that ingame orientation is counter-clockwise
+        // 2PI = 360, keep in mind that ingame orientation is counter-clockwise
         double rotation = 2*M_PI-atEntry->box_orientation;
         double sinVal = sin(rotation);
         double cosVal = cos(rotation);

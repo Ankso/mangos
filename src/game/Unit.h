@@ -406,13 +406,13 @@ enum BaseModType
 
 enum DeathState
 {
-    ALIVE       = 0,
-    JUST_DIED   = 1,
-    CORPSE      = 2,
-    DEAD        = 3,
-    JUST_ALIVED = 4,
-    DEAD_FALLING= 5,
-    GHOULED     = 6
+    ALIVE          = 0,                                     // show as alive
+    JUST_DIED      = 1,                                     // temporary state at die, for creature auto converted to CORPSE, for player at next update call
+    CORPSE         = 2,                                     // corpse state, for player this also meaning that player not leave corpse
+    DEAD           = 3,                                     // for creature despawned state (corpse despawned), for player CORPSE/DEAD not clear way switches (FIXME), and use m_deathtimer > 0 check for real corpse state
+    JUST_ALIVED    = 4,                                     // temporary state at resurrection, for creature auto converted to ALIVE, for player at next update call
+    CORPSE_FALLING = 5,                                     // corpse state in case when corpse still falling to ground
+    GHOULED        = 6
 };
 
 // internal state flags for some auras and movement generators, other.
@@ -685,7 +685,7 @@ enum MovementFlags2
     MOVEFLAG2_ALLOW_PITCHING    = 0x0020,
     MOVEFLAG2_UNK4              = 0x0040,
     MOVEFLAG2_UNK5              = 0x0080,
-    MOVEFLAG2_UNK6              = 0x0100,
+    MOVEFLAG2_UNK6              = 0x0100,                   // transport related
     MOVEFLAG2_UNK7              = 0x0200,
     MOVEFLAG2_INTERP_MOVEMENT   = 0x0400,
     MOVEFLAG2_INTERP_TURNING    = 0x0800,
@@ -1184,6 +1184,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void ApplyDiminishingAura(DiminishingGroup  group, bool apply);
         void ClearDiminishings() { m_Diminishing.clear(); }
 
+        virtual void Update( uint32 time );
+
         void setAttackTimer(WeaponAttackType type, uint32 time) { m_attackTimer[type] = time; }
         void resetAttackTimer(WeaponAttackType type = BASE_ATTACK);
         uint32 getAttackTimer(WeaponAttackType type) const { return m_attackTimer[type]; }
@@ -1515,7 +1517,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         bool isAlive() const { return (m_deathState == ALIVE); };
         bool isDead() const { return ( m_deathState == DEAD || m_deathState == CORPSE ); };
-        DeathState getDeathState() { return m_deathState; };
+        DeathState getDeathState() const { return m_deathState; };
         virtual void SetDeathState(DeathState s);           // overwritten in Creature/Player/Pet
 
         ObjectGuid const& GetOwnerGuid() const { return  GetGuidValue(UNIT_FIELD_SUMMONEDBY); }
@@ -1939,7 +1941,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         uint32 CalcNotIgnoreAbsorbDamage( uint32 damage, SpellSchoolMask damageSchoolMask, SpellEntry const* spellInfo = NULL);
         uint32 CalcNotIgnoreDamageRedunction( uint32 damage, SpellSchoolMask damageSchoolMask);
-        int32 CalculateSpellDuration(SpellEntry const* spellProto, SpellEffectIndex effect_index, Unit const* target);
+        int32 CalculateBaseSpellDuration(SpellEntry const* spellProto, uint32* periodicTime = NULL);
+        uint32 CalculateSpellDuration(Unit const* caster, uint32 baseDuration, SpellEntry const* spellProto, SpellEffectIndex effect_index);
         float CalculateLevelPenalty(SpellEntry const* spellProto) const;
 
         void addFollower(FollowerReference* pRef) { m_FollowingRefManager.insertFirst(pRef); }
@@ -2023,7 +2026,6 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
     protected:
         explicit Unit ();
 
-        void Update(uint32 update_diff, uint32 tick_diff);  // overwrite WorldObject::Update
         void _UpdateSpells(uint32 time);
         void _UpdateAutoRepeatSpell();
 

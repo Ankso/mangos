@@ -59,7 +59,7 @@ void GossipMenu::AddMenuItem(uint8 Icon, const std::string& Message, uint32 dtSe
     }
 }
 
-void GossipMenu::AddGossipMenuItemData(uint32 action_menu, uint32 action_poi, uint32 action_script)
+void GossipMenu::AddGossipMenuItemData(int32 action_menu, uint32 action_poi, uint32 action_script)
 {
     GossipMenuItemData pItemData;
 
@@ -716,6 +716,7 @@ void PlayerMenu::SendQuestQueryResponse( Quest const *pQuest )
         data << ObjectiveText[iI];
 
     GetMenuSession()->SendPacket( &data );
+
     DEBUG_LOG( "WORLD: Sent SMSG_QUEST_QUERY_RESPONSE questid=%u", pQuest->GetQuestId() );
 }
 

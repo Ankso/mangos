@@ -56,16 +56,18 @@ enum AchievementFactionFlags
 
 enum AchievementFlags
 {
-    ACHIEVEMENT_FLAG_COUNTER           = 0x00000001,        // Just count statistic (never stop and complete)
-    ACHIEVEMENT_FLAG_HIDDEN            = 0x00000002,        // not show in client
-    ACHIEVEMENT_FLAG_STORE_MAX_VALUE   = 0x00000004,        // Store only max value? used only in "Reach level xx"
-    ACHIEVEMENT_FLAG_SUMM              = 0x00000008,        // Use summ criteria value from all reqirements (and calculate max value)
-    ACHIEVEMENT_FLAG_MAX_USED          = 0x00000010,        // Show max criteria (and calculate max value ??)
-    ACHIEVEMENT_FLAG_REQ_COUNT         = 0x00000020,        // Use not zero req count (and calculate max value)
-    ACHIEVEMENT_FLAG_AVERAGE           = 0x00000040,        // Show as average value (value / time_in_days) depend from other flag (by def use last criteria value)
-    ACHIEVEMENT_FLAG_BAR               = 0x00000080,        // Show as progress bar (value / max vale) depend from other flag (by def use last criteria value)
-    ACHIEVEMENT_FLAG_REALM_FIRST_REACH = 0x00000100,        //
-    ACHIEVEMENT_FLAG_REALM_FIRST_KILL  = 0x00000200,        //
+    ACHIEVEMENT_FLAG_NONE                   = 0x00000000,
+    ACHIEVEMENT_FLAG_COUNTER                = 0x00000001,   // ACHIEVEMENT_FLAG_STATISTIC Just count statistic (never stop and complete)
+    ACHIEVEMENT_FLAG_HIDDEN                 = 0x00000002,   // ACHIEVEMENT_FLAG_HIDDEN Not show in client
+    ACHIEVEMENT_FLAG_STORE_MAX_VALUE        = 0x00000004,   // ACHIEVEMENT_FLAG_HIDDEN_TILL_AWARDED Store only max value? used only in "Reach level xx"
+    ACHIEVEMENT_FLAG_SUMM                   = 0x00000008,   // ACHIEVEMENT_FLAG_CUMULATIVE Use summ criteria value from all requirements (and calculate max value)
+    ACHIEVEMENT_FLAG_MAX_USED               = 0x00000010,   // ACHIEVEMENT_FLAG_DISPLAY_HIGHEST Show max criteria (and calculate max value ??)
+    ACHIEVEMENT_FLAG_REQ_COUNT              = 0x00000020,   // ACHIEVEMENT_FLAG_CRITERIA_COUNT Use not zero req count (and calculate max value)
+    ACHIEVEMENT_FLAG_AVERAGE                = 0x00000040,   // ACHIEVEMENT_FLAG_AVG_PER_DAY Show as average value (value / time_in_days) depend from other flag (by def use last criteria value)
+    ACHIEVEMENT_FLAG_BAR                    = 0x00000080,   // ACHIEVEMENT_FLAG_HAS_PROGRESS_BAR Show as progress bar (value / max vale) depend from other flag (by def use last criteria value)
+    ACHIEVEMENT_FLAG_REALM_FIRST_REACH      = 0x00000100,   // ACHIEVEMENT_FLAG_SERVER_FIRST
+    ACHIEVEMENT_FLAG_REALM_FIRST_KILL       = 0x00000200,   //
+
 };
 
 enum AchievementCriteriaCondition
@@ -81,12 +83,13 @@ enum AchievementCriteriaCondition
 
 enum AchievementCriteriaCompletionFlags
 {
-    ACHIEVEMENT_CRITERIA_FLAG_SHOW_PROGRESS_BAR = 0x00000001,         // Show progress as bar
-    ACHIEVEMENT_CRITERIA_FLAG_HIDE_CRITERIA     = 0x00000002,         // Not show criteria in client
-    ACHIEVEMENT_CRITERIA_FLAG_UNK3              = 0x00000004,         // BG related??
-    ACHIEVEMENT_CRITERIA_FLAG_UNK4              = 0x00000008,         //
-    ACHIEVEMENT_CRITERIA_FLAG_UNK5              = 0x00000010,         // not used
-    ACHIEVEMENT_CRITERIA_FLAG_MONEY_COUNTER     = 0x00000020,         // Displays counter as money
+    ACHIEVEMENT_CRITERIA_FLAG_PROGRESS_BAR      = 0x00000001,         // Show progress as bar
+    ACHIEVEMENT_CRITERIA_FLAG_HIDDEN            = 0x00000002,         // Not show criteria in client
+    ACHIEVEMENT_CRITERIA_FLAG_FAIL_ACHIEVEMENT  = 0x00000004,         // BG related??
+    ACHIEVEMENT_CRITERIA_FLAG_RESET_ON_START    = 0x00000008,         //
+    ACHIEVEMENT_CRITERIA_FLAG_IS_DATE           = 0x00000010,         // not used
+    ACHIEVEMENT_CRITERIA_FLAG_IS_MONEY          = 0x00000020,         // Displays counter as money
+    ACHIEVEMENT_CRITERIA_FLAG_IS_ACHIEVEMENT_ID = 0x00000040,
 };
 
 enum AchievementCriteriaTypes
@@ -201,13 +204,14 @@ enum AchievementCriteriaTypes
     ACHIEVEMENT_CRITERIA_TYPE_ACCEPTED_SUMMONINGS = 114,
     ACHIEVEMENT_CRITERIA_TYPE_EARN_ACHIEVEMENT_POINTS = 115,
     ACHIEVEMENT_CRITERIA_TYPE_USE_LFD_TO_GROUP_WITH_PLAYERS = 119,
-    // 120
-    // 121
-    // 122
-    // 123
+    // 120 unused
+    // 121 unused
+    // 122 unused
+    // 123 unused
     // 0..123 => 124 criteria types total
-    ACHIEVEMENT_CRITERIA_TYPE_TOTAL = 124,
 };
+
+#define ACHIEVEMENT_CRITERIA_TYPE_TOTAL 124
 
 enum AreaFlags
 {
@@ -431,9 +435,15 @@ enum SpellEffectIndex
 
 enum VehicleFlags
 {
+    VEHICLE_FLAG_NO_STRAFE          = 0x00000001,           // Sets MOVEFLAG2_NO_STRAFE
+    VEHICLE_FLAG_NO_JUMPING         = 0x00000002,           // Sets MOVEFLAG2_NO_JUMPING
+    VEHICLE_FLAG_FULLSPEEDTURNING   = 0x00000004,           // Sets MOVEFLAG2_FULLSPEEDTURNING
+    VEHICLE_FLAG_ALLOW_PITCHING     = 0x00000010,           // Sets MOVEFLAG2_ALLOW_PITCHING
+    VEHICLE_FLAG_FULLSPEEDPITCHING  = 0x00000020,           // Sets MOVEFLAG2_FULLSPEEDPITCHING
+    VEHICLE_FLAG_CUSTOM_PITCH       = 0x00000040,           // If set use pitchMin and pitchMax from DBC, otherwise pitchMin = -pi/2, pitchMax = pi/2
     VEHICLE_FLAG_ADJUST_AIM_ANGLE   = 0x00000400,           // Lua_IsVehicleAimAngleAdjustable
     VEHICLE_FLAG_ADJUST_AIM_POWER   = 0x00000800,           // Lua_IsVehicleAimPowerAdjustable
-    VEHICLE_FLAG_CUSTOM_PITCH       = 0x00000040,           // If set use pitchMin and pitchMax from DBC, otherwise pitchMin = -pi/2, pitchMax = pi/2
+    VEHICLE_FLAG_NOT_DISMISS        = 0x10000000,           // Vehicle not dismissed after eject passenger?
 };
 
 enum VehicleSeatFlags

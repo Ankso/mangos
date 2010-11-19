@@ -1020,7 +1020,7 @@ uint8 Item::GetGemCountWithLimitCategory(uint32 limitCategory) const
 bool Item::IsLimitedToAnotherMapOrZone( uint32 cur_mapId, uint32 cur_zoneId) const
 {
     ItemPrototype const* proto = GetProto();
-    return proto && (proto->Map && proto->Map != cur_mapId || proto->Area && proto->Area != cur_zoneId );
+    return proto && ((proto->Map && proto->Map != cur_mapId) || (proto->Area && proto->Area != cur_zoneId));
 }
 
 // Though the client has the information in the item's data field,
@@ -1028,12 +1028,13 @@ bool Item::IsLimitedToAnotherMapOrZone( uint32 cur_mapId, uint32 cur_zoneId) con
 // time.
 void Item::SendTimeUpdate(Player* owner)
 {
-    if (!GetUInt32Value(ITEM_FIELD_DURATION))
+    uint32 duration = GetUInt32Value(ITEM_FIELD_DURATION);
+    if (!duration)
         return;
 
     WorldPacket data(SMSG_ITEM_TIME_UPDATE, (8+4));
-    data << (uint64)GetGUID();
-    data << (uint32)GetUInt32Value(ITEM_FIELD_DURATION);
+    data << uint64(GetGUID());
+    data << uint32(duration);
     owner->GetSession()->SendPacket(&data);
 }
 
