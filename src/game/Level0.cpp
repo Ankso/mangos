@@ -31,7 +31,7 @@
 #include "Util.h"
 #include "ObjectMgr.h"
 
-#define MAX_ALLOWED_QUESTS 19
+#define MAX_ALLOWED_QUESTS 20
 
 bool ChatHandler::HandleHelpCommand(char* args)
 {
@@ -140,6 +140,7 @@ bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
         12983,  
         12997,
         12886,
+        13723,
         12856,  // Hodir chain bugged quests (A/H)
         24451,  // An Audience With The Arcanist (A/H) (For Quel'delar)
         24560   // Tempering the Blade (A/H) (For Quel'delar)
