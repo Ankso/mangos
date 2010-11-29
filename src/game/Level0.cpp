@@ -136,11 +136,11 @@ bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
         13729,
         13731,
         13699,
+        13723,
         13713,  // The Valiant's Challenge (A/H)
         12983,  
         12997,
         12886,
-        13723,
         12856,  // Hodir chain bugged quests (A/H)
         24451,  // An Audience With The Arcanist (A/H) (For Quel'delar)
         24560   // Tempering the Blade (A/H) (For Quel'delar)

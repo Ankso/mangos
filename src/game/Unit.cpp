@@ -5056,6 +5056,109 @@ void Unit::RemoveSpellAuraHolder(SpellAuraHolder *holder, AuraRemoveMode mode)
 
     if (mode != AURA_REMOVE_BY_EXPIRE && IsChanneledSpell(AurSpellInfo) && !IsAreaOfEffectSpell(AurSpellInfo) && caster && caster->GetGUID() != GetGUID())
         caster->InterruptSpell(CURRENT_CHANNELED_SPELL);
+
+    // Hack for Necrotic Plague - for LK encounter
+    switch (AurSpellInfo->Id)
+    {
+        case 70337:
+        {
+            Unit *newTarget = this->SelectNearestTarget(NULL, 1000);
+            if (newTarget == NULL)
+                return;
+            bool isPlayer = (newTarget->GetTypeId() == TYPEID_PLAYER);
+            if (mode == AURA_REMOVE_BY_DISPEL)
+            {
+                if (!isPlayer)
+                    if (((Creature*)newTarget)->GetEntry() != 36597)
+                        newTarget->CastSpell(newTarget, 70337, true);
+                else if (!newTarget->HasAura(70337) && !newTarget->HasAura(73912) && !newTarget->HasAura(73914) && !newTarget->HasAura(73913))
+                        newTarget->CastSpell(newTarget, 70337, true);
+            }
+            else if (mode == AURA_REMOVE_BY_EXPIRE || AURA_REMOVE_BY_DEATH)
+            {
+                if (!isPlayer)
+                    if (((Creature*)newTarget)->GetEntry() != 36597)
+                        newTarget->CastSpell(newTarget, 73913, true);
+                else if (!newTarget->HasAura(70337) && !newTarget->HasAura(73912) && !newTarget->HasAura(73914) && !newTarget->HasAura(73913))
+                        newTarget->CastSpell(newTarget, 73913, true);
+            }
+            return;
+        }
+        case 73913:
+        {
+            Unit *newTarget = this->SelectNearestTarget(NULL, 1000);
+            if (newTarget == NULL)
+                return;
+            bool isPlayer = (newTarget->GetTypeId() == TYPEID_PLAYER);
+            if (mode == AURA_REMOVE_BY_DISPEL)
+            {
+                if (!isPlayer)
+                    if (((Creature*)newTarget)->GetEntry() != 36597)
+                        newTarget->CastSpell(newTarget, 70337, true);
+                else if (!newTarget->HasAura(70337) && !newTarget->HasAura(73912) && !newTarget->HasAura(73914) && !newTarget->HasAura(73913))
+                        newTarget->CastSpell(newTarget, 70337, true);
+            }
+            else if (mode == AURA_REMOVE_BY_EXPIRE || AURA_REMOVE_BY_DEATH)
+            {
+                if (!isPlayer)
+                    if (((Creature*)newTarget)->GetEntry() != 36597)
+                        newTarget->CastSpell(newTarget, 73912, true);
+                else if (!newTarget->HasAura(70337) && !newTarget->HasAura(73912) && !newTarget->HasAura(73914) && !newTarget->HasAura(73913))
+                        newTarget->CastSpell(newTarget, 73912, true);
+            }
+            return;
+        }
+        case 73912:
+        {
+            Unit *newTarget = this->SelectNearestTarget(NULL, 1000);
+            if (newTarget == NULL)
+                return;
+            bool isPlayer = (newTarget->GetTypeId() == TYPEID_PLAYER);
+            if (mode == AURA_REMOVE_BY_DISPEL)
+            {
+                if (!isPlayer)
+                    if (((Creature*)newTarget)->GetEntry() != 36597)
+                        newTarget->CastSpell(newTarget, 73913, true);
+                else if (!newTarget->HasAura(70337) && !newTarget->HasAura(73912) && !newTarget->HasAura(73914) && !newTarget->HasAura(73913))
+                        newTarget->CastSpell(newTarget, 73913, true);
+            }
+            else if (mode == AURA_REMOVE_BY_EXPIRE || AURA_REMOVE_BY_DEATH)
+            {
+                if (!isPlayer)
+                    if (((Creature*)newTarget)->GetEntry() != 36597)
+                        newTarget->CastSpell(newTarget, 73914, true);
+                else if (!newTarget->HasAura(70337) && !newTarget->HasAura(73912) && !newTarget->HasAura(73914) && !newTarget->HasAura(73913))
+                        newTarget->CastSpell(newTarget, 73914, true);
+            }
+            return;
+        }
+        case 73914:
+        {
+            Unit *newTarget = this->SelectNearestTarget(NULL, 1000);
+            if (newTarget == NULL)
+                return;
+            bool isPlayer = (newTarget->GetTypeId() == TYPEID_PLAYER);
+            if (mode == AURA_REMOVE_BY_DISPEL)
+            {
+                if (!isPlayer)
+                    if (((Creature*)newTarget)->GetEntry() != 36597)
+                        newTarget->CastSpell(newTarget, 73912, true);
+                else if (!newTarget->HasAura(70337) && !newTarget->HasAura(73912) && !newTarget->HasAura(73914) && !newTarget->HasAura(73913))
+                        newTarget->CastSpell(newTarget, 73912, true);
+            }
+            else if (mode == AURA_REMOVE_BY_EXPIRE || AURA_REMOVE_BY_DEATH)
+            {
+                if (!isPlayer)
+                    if (((Creature*)newTarget)->GetEntry() != 36597)
+                        newTarget->CastSpell(newTarget, 73914, true);
+                else if (!newTarget->HasAura(70337) && !newTarget->HasAura(73912) && !newTarget->HasAura(73914) && !newTarget->HasAura(73913))
+                        newTarget->CastSpell(newTarget, 73914, true);
+            }
+            return;
+        }
+        default:
+            return;
+    }
 }
 
 void Unit::RemoveSingleAuraFromSpellAuraHolder(SpellAuraHolder *holder, SpellEffectIndex index, AuraRemoveMode mode)
@@ -11141,6 +11244,40 @@ Unit* Unit::SelectRandomUnfriendlyTarget(Unit* except /*= NULL*/, float radius /
         ++tcIter;
 
     return *tcIter;
+}
+
+Unit* Unit::SelectNearestTarget(Unit* except /*= NULL*/, float radius /*= ATTACK_DISTANCE*/, uint32 excluded_npc /*= 0*/) const
+{
+    std::list<Unit *> targets;
+
+    MaNGOS::AnyUnitInObjectRangeCheck u_check(this, radius);
+    MaNGOS::UnitListSearcher<MaNGOS::AnyUnitInObjectRangeCheck> searcher(targets, u_check);
+    Cell::VisitAllObjects(this, searcher, radius);
+
+    // remove current target
+    if(except)
+        targets.remove(except);
+
+    // no appropriate targets
+    if(targets.empty())
+        return NULL;
+
+    // select nearest
+    uint32 Idx = targets.size()-1;
+    std::list<Unit *>::const_iterator tcIter = targets.begin();
+    float distance = this->GetDistance(*tcIter);
+    Unit *nearest = *tcIter;
+    for(uint32 i = 0; i < Idx; ++i)
+    {
+        if (distance > this->GetDistance(*tcIter) && this != *tcIter)
+        {
+            nearest = *tcIter;
+            distance = this->GetDistance(*tcIter);
+        }
+        ++tcIter;
+    }
+
+    return nearest;
 }
 
 Unit* Unit::SelectRandomFriendlyTarget(Unit* except /*= NULL*/, float radius /*= ATTACK_DISTANCE*/) const
