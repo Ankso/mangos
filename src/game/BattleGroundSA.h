@@ -196,7 +196,7 @@ class BattleGroundSA : public BattleGround
 
         uint32 GetController() const	{ return controller; }
 		uint8 GetGydController(uint8 gyd) const { return m_Gyd[gyd]; }
-        void RemovePlayer(Player *plr,uint64 guid);
+        void RemovePlayer(Player *plr, ObjectGuid guid);
         void HandleAreaTrigger(Player *Source, uint32 Trigger);
 		void EndBattleGround(uint32 winner);
 		void ResetBattle(uint32 vinner);

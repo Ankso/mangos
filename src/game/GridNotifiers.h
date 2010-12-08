@@ -1120,16 +1120,23 @@ namespace MaNGOS
 
     class GameObjectInRangeCheck
     {
-    public:
-        GameObjectInRangeCheck(Unit* obj, float _x, float _y, float _z, float _range) : i_obj(obj), x(_x), y(_y), z(_z), range(_range) {}
-        WorldObject const& GetFocusObject() const { return *i_obj; }
-        bool operator() (GameObject* go)
-        {
-            return go->IsInRange(x, y, z, range);
-        }
-    private:
-        Unit* const i_obj;
-        float x, y, z, range;
+        public:
+            GameObjectInRangeCheck(WorldObject const* _obj, float _x, float _y, float _z, float _range):
+              i_obj(_obj), x(_x), y(_y), z(_z), range(_range) {}
+
+            WorldObject const& GetFocusObject() const { return *i_obj; }
+
+            bool operator() (GameObject* go)
+            {
+                return go->IsInRange(x, y, z, range);
+            }
+
+        private:
+            WorldObject const* i_obj;
+            float x, y, z, range;
+
+            // prevent cloning this object
+            GameObjectInRangeCheck(GameObjectInRangeCheck const&);
     };
 
     class AnyPlayerInObjectRangeCheck

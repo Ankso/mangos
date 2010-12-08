@@ -530,8 +530,10 @@ enum Language
 
 #define LANGUAGES_COUNT   19
 
+// In fact !=0 values is alliance/horde root faction ids
 enum Team
 {
+    TEAM_NONE           = 0,                                // used when team value unknown or not set, 0 is also meaning that can be used !team check
     HORDE               = 67,
     ALLIANCE            = 469,
     //TEAM_STEAMWHEEDLE_CARTEL = 169,                       // not used in code
@@ -539,7 +541,6 @@ enum Team
     //TEAM_HORDE_FORCES        = 892,
     //TEAM_SANCTUARY           = 936,
     //TEAM_OUTLAND             = 980,
-    TEAM_OTHER                 = 0,                         // if ReputationListId > 0 && Flags != FACTION_FLAG_TEAM_HEADER
 };
 
 enum SpellEffects
@@ -634,7 +635,7 @@ enum SpellEffects
     SPELL_EFFECT_WMO_DAMAGE                = 87,
     SPELL_EFFECT_WMO_REPAIR                = 88,
     SPELL_EFFECT_WMO_CHANGE                = 89,
-    SPELL_EFFECT_KILL_CREDIT               = 90,
+    SPELL_EFFECT_KILL_CREDIT_PERSONAL      = 90,
     SPELL_EFFECT_THREAT_ALL                = 91,
     SPELL_EFFECT_ENCHANT_HELD_ITEM         = 92,
     SPELL_EFFECT_BREAK_PLAYER_TARGETING    = 93,
@@ -678,7 +679,7 @@ enum SpellEffects
     SPELL_EFFECT_131                       = 131,
     SPELL_EFFECT_PLAY_MUSIC                = 132,
     SPELL_EFFECT_UNLEARN_SPECIALIZATION    = 133,
-    SPELL_EFFECT_KILL_CREDIT2              = 134,
+    SPELL_EFFECT_KILL_CREDIT_GROUP         = 134,
     SPELL_EFFECT_CALL_PET                  = 135,
     SPELL_EFFECT_HEAL_PCT                  = 136,
     SPELL_EFFECT_ENERGIZE_PCT              = 137,
@@ -693,11 +694,11 @@ enum SpellEffects
     SPELL_EFFECT_ACTIVATE_RUNE             = 146,
     SPELL_EFFECT_QUEST_FAIL                = 147,
     SPELL_EFFECT_148                       = 148,
-    SPELL_EFFECT_149                       = 149,
+    SPELL_EFFECT_CHARGE2                   = 149,
     SPELL_EFFECT_QUEST_START               = 150,
     SPELL_EFFECT_TRIGGER_SPELL_2           = 151,
     SPELL_EFFECT_152                       = 152,
-    SPELL_EFFECT_153                       = 153,
+    SPELL_EFFECT_CREATE_PET                = 153,
     SPELL_EFFECT_TEACH_TAXI_NODE           = 154,
     SPELL_EFFECT_TITAN_GRIP                = 155,
     SPELL_EFFECT_ENCHANT_ITEM_PRISMATIC    = 156,
@@ -913,7 +914,7 @@ enum AuraState
     AURA_STATE_DEFENSE                      = 1,            // C   |
     AURA_STATE_HEALTHLESS_20_PERCENT        = 2,            // CcT |
     AURA_STATE_BERSERKING                   = 3,            // C T |
-    AURA_STATE_FROZEN                       = 4,            //  c t| frozen target
+    AURA_STATE_FROZEN                       = 4,            //  cT | frozen target
     AURA_STATE_JUDGEMENT                    = 5,            // C   |
     //AURA_STATE_UNKNOWN6                   = 6,            //     | not used
     AURA_STATE_HUNTER_PARRY                 = 7,            // C   |
@@ -1091,7 +1092,7 @@ enum Targets
     TARGET_DYNAMIC_OBJECT_BEHIND       = 48,
     TARGET_DYNAMIC_OBJECT_LEFT_SIDE    = 49,
     TARGET_DYNAMIC_OBJECT_RIGHT_SIDE   = 50,
-	TARGET_OBJECT_AREA_SRC             = 51,
+    TARGET_OBJECT_AREA_SRC             = 51,
     TARGET_AREAEFFECT_CUSTOM_2         = 52,
     TARGET_CURRENT_ENEMY_COORDINATES   = 53,                // set unit coordinates as dest, only 16 target B imlemented
     TARGET_LARGE_FRONTAL_CONE          = 54,
@@ -1120,6 +1121,7 @@ enum Targets
     TARGET_SELF2                       = 87,
     TARGET_DIRECTLY_FORWARD            = 89,
     TARGET_NONCOMBAT_PET               = 90,
+    TARGET_OWNED_VEHICLE               = 94,
     TARGET_IN_FRONT_OF_CASTER_30       = 104,
 };
 
@@ -1229,8 +1231,8 @@ enum GameObjectFlags
     GO_FLAG_TRIGGERED       = 0x00000040,                   //typically, summoned objects. Triggered by spell or other events
     GO_FLAG_UNK_8           = 0x00000080,
     GO_FLAG_UNK_9           = 0x00000100,                   //? Seen on type 33, possible meaning "destruct in progress"
-    GO_FLAG_DAMAGED         = 0x00000200,                   //? Seen on type 33
-    GO_FLAG_DESTROYED       = 0x00000400                    //? Seen on type 33, possibly meaning "destructed"
+    GO_FLAG_DAMAGED         = 0x00000200,                   //Seen on type 33
+    GO_FLAG_DESTROYED       = 0x00000400                    //Seen on type 33, meaning "destroyed"
 };
 
 enum GameObjectDynamicLowFlags

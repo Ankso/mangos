@@ -75,7 +75,6 @@ void WorldSession::HandleMoveWorldportAckOpcode()
     // relocate the player to the teleport destination
     GetPlayer()->SetMap(sMapMgr.CreateMap(loc.mapid, GetPlayer()));
     GetPlayer()->Relocate(loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation);
-    GetPlayer()->GetAntiCheat()->m_anti_TeleTime=time(NULL);
 
     GetPlayer()->SendInitialPacketsBeforeAddToMap();
     // the CanEnter checks are done in TeleporTo but conditions may change
@@ -102,7 +101,7 @@ void WorldSession::HandleMoveWorldportAckOpcode()
             // We're not in BG
             _player->SetBattleGroundId(0, BATTLEGROUND_TYPE_NONE);
             // reset destination bg team
-            _player->SetBGTeam(0);
+            _player->SetBGTeam(TEAM_NONE);
         }
         // join to bg case
         else if(BattleGround *bg = _player->GetBattleGround())
@@ -168,9 +167,6 @@ void WorldSession::HandleMoveWorldportAckOpcode()
     // resummon pet
     GetPlayer()->ResummonPetTemporaryUnSummonedIfAny();
 
-    GetPlayer()->GetAntiCheat()->Anti__SetLastTeleTime(::time(NULL));
-    GetPlayer()->GetAntiCheat()->m_anti_BeginFallZ=INVALID_HEIGHT;
-
     //lets process all delayed operations on successful teleport
     GetPlayer()->ProcessDelayedOperations();
 }
@@ -219,8 +215,6 @@ void WorldSession::HandleMoveTeleportAckOpcode(WorldPacket& recv_data)
 
     // resummon pet
     GetPlayer()->ResummonPetTemporaryUnSummonedIfAny();
-    GetPlayer()->GetAntiCheat()->Anti__SetLastTeleTime(::time(NULL));
-    GetPlayer()->GetAntiCheat()->m_anti_BeginFallZ=INVALID_HEIGHT;
 
     //lets process all delayed operations on successful teleport
     GetPlayer()->ProcessDelayedOperations();
@@ -250,7 +244,7 @@ void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
     recv_data >> movementInfo;
     /*----------------*/
 
-    if (!VerifyMovementInfo(movementInfo,guid,mover))
+    if (!VerifyMovementInfo(movementInfo, guid))
         return;
 
     // fall damage generation (ignore in flight case that can be triggered also at lags in moment teleportation to another map).
@@ -258,11 +252,10 @@ void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
         plMover->HandleFall(movementInfo);
 
     /* process anticheat check */
-    if (GetPlayer()->GetAntiCheat()->CheckNeeded(plMover))
-        GetPlayer()->GetAntiCheat()->CheckMovement(plMover,movementInfo, opcode);
+    GetPlayer()->GetAntiCheat()->DoAntiCheatCheck(CHECK_MOVEMENT,movementInfo, opcode);
 
     /* process position-change */
-    HandleMoverRelocation(movementInfo,mover,plMover);
+    HandleMoverRelocation(movementInfo);
 
     if (plMover)
         plMover->UpdateFallInformationIfNeed(movementInfo, opcode);
@@ -356,10 +349,12 @@ void WorldSession::HandleSetActiveMoverOpcode(WorldPacket &recv_data)
     ObjectGuid guid;
     recv_data >> guid;
 
-    if (Unit *pMover = ObjectAccessor::GetUnit(*GetPlayer(), guid))
-        GetPlayer()->SetMover(pMover);
-    else
-        GetPlayer()->SetMover(NULL);
+    if(_player->GetMover()->GetObjectGuid() != guid)
+    {
+        sLog.outError("HandleSetActiveMoverOpcode: incorrect mover guid: mover is %s and should be %s",
+            _player->GetMover()->GetGuidStr().c_str(), guid.GetString().c_str());
+        return;
+    }
 }
 
 void WorldSession::HandleMoveNotActiveMoverOpcode(WorldPacket &recv_data)
@@ -376,8 +371,8 @@ void WorldSession::HandleMoveNotActiveMoverOpcode(WorldPacket &recv_data)
     if(_player->GetMover()->GetObjectGuid() == old_mover_guid)
     {
         sLog.outError("HandleMoveNotActiveMover: incorrect mover guid: mover is %s and should be %s instead of %s",
-            _player->GetMover()->GetObjectGuid().GetString().c_str(),
-            _player->GetObjectGuid().GetString().c_str(),
+            _player->GetMover()->GetGuidStr().c_str(),
+            _player->GetGuidStr().c_str(),
             old_mover_guid.GetString().c_str());
         recv_data.rpos(recv_data.wpos());                   // prevent warnings spam
         return;
@@ -417,10 +412,10 @@ void WorldSession::HandleMoveKnockBackAck( WorldPacket & recv_data )
     recv_data >> Unused<uint32>();                          // knockback packets counter
     recv_data >> movementInfo;
 
-    if (!VerifyMovementInfo(movementInfo,guid,mover))
+    if (!VerifyMovementInfo(movementInfo, guid))
         return;
 
-    HandleMoverRelocation(movementInfo, mover, plMover);
+    HandleMoverRelocation(movementInfo);
 
     WorldPacket data(MSG_MOVE_KNOCK_BACK, recv_data.size() + 15);
     data << mover->GetPackGUID();
@@ -471,10 +466,10 @@ void WorldSession::HandleSummonResponseOpcode(WorldPacket& recv_data)
     _player->SummonIfPossible(agree);
 }
 
-bool WorldSession::VerifyMovementInfo(MovementInfo& movementInfo, ObjectGuid& guid, Unit* mover) const
+bool WorldSession::VerifyMovementInfo(MovementInfo const& movementInfo, ObjectGuid const& guid) const
 {
     // ignore wrong guid (player attempt cheating own session for not own guid possible...)
-    if (!mover || guid != mover->GetObjectGuid())
+    if (guid != _player->GetMover()->GetObjectGuid())
         return false;
 
     if (!MaNGOS::IsValidMapCoord(movementInfo.GetPos()->x, movementInfo.GetPos()->y, movementInfo.GetPos()->z, movementInfo.GetPos()->o))
@@ -497,21 +492,20 @@ bool WorldSession::VerifyMovementInfo(MovementInfo& movementInfo, ObjectGuid& gu
     return true;
 }
 
-void WorldSession::HandleMoverRelocation(MovementInfo& movementInfo, Unit* mover, Player* plMover)
+void WorldSession::HandleMoverRelocation(MovementInfo& movementInfo)
 {
     movementInfo.UpdateTime(getMSTime());
 
-    if (plMover)
+    Unit *mover = _player->GetMover();
+
+    if (Player *plMover = mover->GetTypeId() == TYPEID_PLAYER ? (Player*)mover : NULL)
     {
         if (movementInfo.HasMovementFlag(MOVEFLAG_ONTRANSPORT))
         {
             if (!plMover->GetTransport())
             {
-
                 /* process anticheat check */
-                if (GetPlayer()->GetAntiCheat()->CheckNeeded(plMover))
-                    if (!GetPlayer()->GetAntiCheat()->CheckOnTransport(movementInfo))
-                        return;
+                GetPlayer()->GetAntiCheat()->DoAntiCheatCheck(CHECK_TRANSPORT,movementInfo);
 
                 // elevators also cause the client to send MOVEFLAG_ONTRANSPORT - just unmount if the guid can be found in the transport list
                 for (MapManager::TransportSet::const_iterator iter = sMapMgr.m_Transports.begin(); iter != sMapMgr.m_Transports.end(); ++iter)
@@ -540,11 +534,6 @@ void WorldSession::HandleMoverRelocation(MovementInfo& movementInfo, Unit* mover
         {
             // now client not include swimming flag in case jumping under water
             plMover->SetInWater( !plMover->IsInWater() || plMover->GetTerrain()->IsUnderWater(movementInfo.GetPos()->x, movementInfo.GetPos()->y, movementInfo.GetPos()->z) );
-        }
-
-        if(plMover->GetTerrain()->IsUnderWater(movementInfo.GetPos()->x, movementInfo.GetPos()->y, movementInfo.GetPos()->z-7.0f))
-        {
-            plMover->GetAntiCheat()->m_anti_BeginFallZ=INVALID_HEIGHT;
         }
 
         plMover->SetPosition(movementInfo.GetPos()->x, movementInfo.GetPos()->y, movementInfo.GetPos()->z, movementInfo.GetPos()->o);

@@ -399,7 +399,7 @@ void AchievementMgr::Reset()
 
     m_completedAchievements.clear();
     m_criteriaProgress.clear();
-    DeleteFromDB(m_player->GetGUIDLow());
+    DeleteFromDB(m_player->GetObjectGuid());
 
     // re-fill data
     CheckAllAchievementCriteria();
@@ -444,11 +444,12 @@ void AchievementMgr::ResetAchievementCriteria(AchievementCriteriaTypes type, uin
     }
 }
 
-void AchievementMgr::DeleteFromDB(uint32 lowguid)
+void AchievementMgr::DeleteFromDB(ObjectGuid guid)
 {
+    uint32 lowguid = guid.GetCounter();
     CharacterDatabase.BeginTransaction ();
-    CharacterDatabase.PExecute("DELETE FROM character_achievement WHERE guid = %u",lowguid);
-    CharacterDatabase.PExecute("DELETE FROM character_achievement_progress WHERE guid = %u",lowguid);
+    CharacterDatabase.PExecute("DELETE FROM character_achievement WHERE guid = %u", lowguid);
+    CharacterDatabase.PExecute("DELETE FROM character_achievement_progress WHERE guid = %u", lowguid);
     CharacterDatabase.CommitTransaction ();
 }
 
@@ -948,7 +949,7 @@ void AchievementMgr::UpdateAchievementCriteria(AchievementCriteriaTypes type, ui
                         {
                             if (bg->GetTypeID(true) != BATTLEGROUND_AB)
                                 continue;
-                            if(!((BattleGroundAB*)bg)->IsTeamScores500Disadvantage(GetPlayer()->GetTeam()))
+                            if (!((BattleGroundAB*)bg)->IsTeamScores500Disadvantage(GetPlayer()->GetTeam()))
                                 continue;
                             break;
                         }
@@ -1183,7 +1184,7 @@ void AchievementMgr::UpdateAchievementCriteria(AchievementCriteriaTypes type, ui
                     continue;
 
                 // if team check required: must kill by opposition faction
-                if(achievement->ID==318 && miscvalue2==GetPlayer()->GetTeam())
+                if(achievement->ID==318 && miscvalue2==uint32(GetPlayer()->GetTeam()))
                     continue;
 
                 change = 1;

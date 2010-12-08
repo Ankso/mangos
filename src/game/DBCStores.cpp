@@ -97,6 +97,7 @@ DBCStorage <GtChanceToMeleeCritBaseEntry> sGtChanceToMeleeCritBaseStore(GtChance
 DBCStorage <GtChanceToMeleeCritEntry>     sGtChanceToMeleeCritStore(GtChanceToMeleeCritfmt);
 DBCStorage <GtChanceToSpellCritBaseEntry> sGtChanceToSpellCritBaseStore(GtChanceToSpellCritBasefmt);
 DBCStorage <GtChanceToSpellCritEntry>     sGtChanceToSpellCritStore(GtChanceToSpellCritfmt);
+DBCStorage <GtOCTClassCombatRatingScalarEntry> sGtOCTClassCombatRatingScalarStore(GtOCTClassCombatRatingScalarfmt);
 DBCStorage <GtOCTRegenHPEntry>            sGtOCTRegenHPStore(GtOCTRegenHPfmt);
 //DBCStorage <GtOCTRegenMPEntry>            sGtOCTRegenMPStore(GtOCTRegenMPfmt);  -- not used currently
 DBCStorage <GtRegenHPPerSptEntry>         sGtRegenHPPerSptStore(GtRegenHPPerSptfmt);
@@ -430,6 +431,19 @@ void LoadDBCStores(const std::string& dataPath)
 
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sFactionTemplateStore,     dbcPath,"FactionTemplate.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sGameObjectDisplayInfoStore,dbcPath,"GameObjectDisplayInfo.dbc");
+    for (uint32 i = 0; i < sGameObjectDisplayInfoStore.GetNumRows(); ++i)
+    {
+        if (GameObjectDisplayInfoEntry *info = const_cast<GameObjectDisplayInfoEntry*>(sGameObjectDisplayInfoStore.LookupEntry(i)))
+        {
+            if (info->maxX < info->minX)
+                std::swap(info->maxX, info->minX);
+            if (info->maxY < info->minY)
+                std::swap(info->maxY, info->minY);
+            if (info->maxZ < info->minZ)
+                std::swap(info->maxZ, info->minZ);
+        }
+    }
+
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sGemPropertiesStore,       dbcPath,"GemProperties.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sGlyphPropertiesStore,     dbcPath,"GlyphProperties.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sGlyphSlotStore,           dbcPath,"GlyphSlot.dbc");
@@ -443,6 +457,7 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sGtChanceToSpellCritBaseStore, dbcPath,"gtChanceToSpellCritBase.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sGtChanceToSpellCritStore, dbcPath,"gtChanceToSpellCrit.dbc");
 
+    LoadDBC(availableDbcLocales,bar,bad_dbc_files,sGtOCTClassCombatRatingScalarStore,dbcPath,"gtOCTClassCombatRatingScalar.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sGtOCTRegenHPStore,        dbcPath,"gtOCTRegenHP.dbc");
     //LoadDBC(availableDbcLocales,bar,bad_dbc_files,sGtOCTRegenMPStore,        dbcPath,"gtOCTRegenMP.dbc");       -- not used currently
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sGtRegenHPPerSptStore,     dbcPath,"gtRegenHPPerSpt.dbc");
@@ -646,8 +661,8 @@ void LoadDBCStores(const std::string& dataPath)
                 sOldContinentsNodesMask[field] |= submask;
 
             // fix DK node at Ebon Hold
-            if (i == 315) 
-                ((TaxiNodesEntry*)node)->MountCreatureID[1] = 32981;
+            if (i == 315)
+               ((TaxiNodesEntry*)node)->MountCreatureID[1] = 32981;
         }
     }
 

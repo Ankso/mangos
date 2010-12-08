@@ -36,7 +36,7 @@
 #include "AchievementMgr.h"
 #include "ReputationMgr.h"
 #include "BattleGround.h"
-#include "DBCEnums.h"
+#include "DBCStores.h"
 #include "SharedDefines.h"
 #include "AntiCheat.h"
 #include "LFG.h"
@@ -943,7 +943,7 @@ class MANGOS_DLL_SPEC PlayerTaxi
         void AppendTaximaskTo(ByteBuffer& data, bool all);
 
         // Destinations
-        bool LoadTaxiDestinationsFromString(const std::string& values, uint32 team);
+        bool LoadTaxiDestinationsFromString(const std::string& values, Team team);
         std::string SaveTaxiDestinationsToString();
 
         void ClearTaxiDestinations() { m_TaxiDestinations.clear(); }
@@ -970,7 +970,7 @@ std::ostringstream& operator<< (std::ostringstream& ss, PlayerTaxi const& taxi);
 struct BGData
 {
     BGData() : bgInstanceID(0), bgTypeID(BATTLEGROUND_TYPE_NONE), bgAfkReportedCount(0), bgAfkReportedTimer(0),
-        bgTeam(0), mountSpell(0) { ClearTaxiPath(); }
+        bgTeam(TEAM_NONE), mountSpell(0) { ClearTaxiPath(); }
 
 
     uint32 bgInstanceID;                                    ///< This variable is set to bg->m_InstanceID,
@@ -981,7 +981,7 @@ struct BGData
     uint8              bgAfkReportedCount;
     time_t             bgAfkReportedTimer;
 
-    uint32 bgTeam;                                          ///< What side the player will be added to
+    Team bgTeam;                                            ///< What side the player will be added to
 
 
     uint32 mountSpell;
@@ -1175,7 +1175,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         time_t GetTimeInnEnter() const { return time_inn_enter; }
         void UpdateInnerTime (time_t time) { time_inn_enter = time; }
 
-        void RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent = false);
+        void RemovePet(PetSaveMode mode);
 
         uint32 GetPhaseMaskForSpawn() const;                // used for proper set phase for DB at GM-mode creature/GO spawn
 
@@ -1194,7 +1194,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint8 FindEquipSlot(ItemPrototype const* proto, uint32 slot, bool swap) const;
         uint32 GetItemCount(uint32 item, bool inBankAlso = false, Item* skipItem = NULL) const;
         uint32 GetItemCountWithLimitCategory(uint32 limitCategory, Item* skipItem = NULL) const;
-        Item* GetItemByGuid(ObjectGuid uint64) const;
+        Item* GetItemByGuid(ObjectGuid guid) const;
         Item* GetItemByEntry(uint32 item) const;            // only for special cases
         Item* GetItemByLimitedCategory(uint32 limitedCategory) const;
         Item* GetItemByPos( uint16 pos ) const;
@@ -1313,7 +1313,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         /* Custom */
         void AddItem(uint32 item_id, uint32 count);
 
-        bool BuyItemFromVendorSlot(uint64 vendorguid, uint32 vendorslot, uint32 item, uint8 count, uint8 bag, uint8 slot);
+        bool BuyItemFromVendorSlot(ObjectGuid vendorGuid, uint32 vendorslot, uint32 item, uint8 count, uint8 bag, uint8 slot);
 
         float GetReputationPriceDiscount( Creature const* pCreature ) const;
 
@@ -1407,9 +1407,6 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         uint16 FindQuestSlot( uint32 quest_id ) const;
         uint32 GetQuestSlotQuestId(uint16 slot) const { return GetUInt32Value(PLAYER_QUEST_LOG_1_1 + slot * MAX_QUEST_OFFSET + QUEST_ID_OFFSET); }
-        uint32 GetQuestSlotState(uint16 slot)   const { return GetUInt32Value(PLAYER_QUEST_LOG_1_1 + slot * MAX_QUEST_OFFSET + QUEST_STATE_OFFSET); }
-        uint16 GetQuestSlotCounter(uint16 slot, uint8 counter) const { return (uint16)(GetUInt64Value(PLAYER_QUEST_LOG_1_1 + slot * MAX_QUEST_OFFSET + QUEST_COUNTS_OFFSET) >> (counter * 16)); }
-        uint32 GetQuestSlotTime(uint16 slot)    const { return GetUInt32Value(PLAYER_QUEST_LOG_1_1 + slot * MAX_QUEST_OFFSET + QUEST_TIME_OFFSET); }
         void SetQuestSlot(uint16 slot, uint32 quest_id, uint32 timer = 0)
         {
             SetUInt32Value(PLAYER_QUEST_LOG_1_1 + slot * MAX_QUEST_OFFSET + QUEST_ID_OFFSET, quest_id);
@@ -1463,7 +1460,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SendQuestConfirmAccept(Quest const* pQuest, Player* pReceiver);
         void SendPushToPartyResponse( Player *pPlayer, uint32 msg );
         void SendQuestUpdateAddItem( Quest const* pQuest, uint32 item_idx, uint32 count );
-        void SendQuestUpdateAddCreatureOrGo( Quest const* pQuest, ObjectGuid guid, uint32 creatureOrGO_idx, uint32 old_count, uint32 add_count );
+        void SendQuestUpdateAddCreatureOrGo(Quest const* pQuest, ObjectGuid guid, uint32 creatureOrGO_idx, uint32 count);
 
         uint64 GetDivider() { return m_divider; }
         void SetDivider( uint64 guid ) { m_divider = guid; }
@@ -1479,13 +1476,13 @@ class MANGOS_DLL_SPEC Player : public Unit
         /***                   LOAD SYSTEM                     ***/
         /*********************************************************/
 
-        bool LoadFromDB(uint32 guid, SqlQueryHolder *holder);
+        bool LoadFromDB(ObjectGuid guid, SqlQueryHolder *holder);
 
         bool MinimalLoadFromDB(uint64 lowguid);
 
         static uint32 GetZoneIdFromDB(ObjectGuid guid);
         static uint32 GetLevelFromDB(ObjectGuid guid);
-        static bool   LoadPositionFromDB(uint32& mapid, float& x,float& y,float& z,float& o, bool& in_flight, uint64 guid);
+        static bool   LoadPositionFromDB(ObjectGuid guid, uint32& mapid, float& x,float& y,float& z,float& o, bool& in_flight);
 
         /*********************************************************/
         /***                   SAVE SYSTEM                     ***/
@@ -1497,7 +1494,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         static void SetUInt32ValueInArray(Tokens& data,uint16 index, uint32 value);
         static void SetFloatValueInArray(Tokens& data,uint16 index, float value);
         static void Customize(ObjectGuid guid, uint8 gender, uint8 skin, uint8 face, uint8 hairStyle, uint8 hairColor, uint8 facialHair);
-        static void SavePositionInDB(uint32 mapid, float x,float y,float z,float o,uint32 zone,uint64 guid);
+        static void SavePositionInDB(ObjectGuid guid, uint32 mapid, float x,float y,float z,float o,uint32 zone);
 
         static void DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRealmChars = true, bool deleteFinally = false);
         static void DeleteOldCharacters();
@@ -1733,8 +1730,9 @@ class MANGOS_DLL_SPEC Player : public Unit
         void UpdateZone(uint32 newZone,uint32 newArea);
         void UpdateArea(uint32 newArea);
 
-        void UpdateZoneDependentAuras( uint32 zone_id );    // zones
-        void UpdateAreaDependentAuras( uint32 area_id );    // subzones
+        void UpdateZoneDependentAuras();
+        void UpdateAreaDependentAuras();                    // subzones
+        void UpdateZoneDependentPets();
 
         void UpdateAfkReport(time_t currTime);
         void UpdatePvPFlag(time_t currTime);
@@ -1768,7 +1766,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint32 GetGuildId() { return GetUInt32Value(PLAYER_GUILDID);  }
         static uint32 GetGuildIdFromDB(ObjectGuid guid);
         uint32 GetRank(){ return GetUInt32Value(PLAYER_GUILDRANK); }
-        static uint32 GetRankFromDB(uint64 guid);
+        static uint32 GetRankFromDB(ObjectGuid guid);
         int GetGuildIdInvited() { return m_GuildIdInvited; }
         static void RemovePetitionsAndSigns(ObjectGuid guid, uint32 type);
 
@@ -1834,7 +1832,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         float GetSpellCritFromIntellect();
         float OCTRegenHPPerSpirit();
         float OCTRegenMPPerSpirit();
-        float GetRatingCoefficient(CombatRating cr) const;
+        float GetRatingMultiplier(CombatRating cr) const;
         float GetRatingBonusValue(CombatRating cr) const;
         uint32 GetBaseSpellPowerBonus() { return m_baseSpellPower; }
 
@@ -1949,8 +1947,8 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         void CheckAreaExploreAndOutdoor(void);
 
-        static uint32 TeamForRace(uint8 race);
-        uint32 GetTeam() const { return m_team; }
+        static Team TeamForRace(uint8 race);
+        Team GetTeam() const { return m_team; }
         static uint32 getFactionForRace(uint8 race);
         void setFactionForRace(uint8 race);
 
@@ -2151,8 +2149,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         WorldLocation const& GetBattleGroundEntryPoint() const { return m_bgData.joinPos; }
         void SetBattleGroundEntryPoint();
 
-        void SetBGTeam(uint32 team) { m_bgData.bgTeam = team; }
-        uint32 GetBGTeam() const { return m_bgData.bgTeam ? m_bgData.bgTeam : GetTeam(); }
+        void SetBGTeam(Team team) { m_bgData.bgTeam = team; }
+        Team GetBGTeam() const { return m_bgData.bgTeam ? m_bgData.bgTeam : GetTeam(); }
 
         void LeaveBattleground(bool teleportToEntryPoint = true);
         bool CanJoinToBattleground() const;
@@ -2488,7 +2486,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void outDebugStatsValues() const;
         ObjectGuid m_lootGuid;
 
-        uint32 m_team;
+        Team m_team;
         uint32 m_nextSave;
         time_t m_speakTime;
         uint32 m_speakCount;

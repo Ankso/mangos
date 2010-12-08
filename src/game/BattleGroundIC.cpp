@@ -72,7 +72,7 @@ void BattleGroundIC::Update(uint32 diff)
     BattleGround::Update(diff);
 }
 
-void BattleGroundIC::UpdateScore(BattleGroundTeamId team, int32 points )
+void BattleGroundIC::UpdateScore(BattleGroundTeamIndex team, int32 points )
 {
     // note: to remove reinforcements points must be negative, for adding reinforcements points must be positive
     MANGOS_ASSERT( team == BG_TEAM_ALLIANCE || team == BG_TEAM_HORDE);
@@ -111,10 +111,10 @@ void BattleGroundIC::AddPlayer(Player *plr)
     //create score and add it to map, default values are set in constructor
     BattleGroundICScore* sc = new BattleGroundICScore;
 
-    m_PlayerScores[plr->GetGUID()] = sc;
+    m_PlayerScores[plr->GetObjectGuid()] = sc;
 }
 
-void BattleGroundIC::RemovePlayer(Player* /*plr*/,uint64 /*guid*/)
+void BattleGroundIC::RemovePlayer(Player* /*plr*/, ObjectGuid /*guid*/)
 {
 
 }
@@ -129,7 +129,7 @@ void BattleGroundIC::HandleAreaTrigger(Player * /*Source*/, uint32 /*Trigger*/)
 void BattleGroundIC::UpdatePlayerScore(Player* Source, uint32 type, uint32 value)
 {
 
-    std::map<uint64, BattleGroundScore*>::iterator itr = m_PlayerScores.find(Source->GetGUID());
+    BattleGroundScoreMap::iterator itr = m_PlayerScores.find(Source->GetObjectGuid());
 
     if(itr == m_PlayerScores.end())                         // player not found...
         return;

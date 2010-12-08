@@ -76,11 +76,11 @@ class BattleGroundIC : public BattleGround
         virtual void StartingEventOpenDoors();
         virtual void FillInitialWorldStates(WorldPacket& data, uint32& count);
 
-        void RemovePlayer(Player *plr,uint64 guid);
+        void RemovePlayer(Player *plr, ObjectGuid guid);
         void HandleAreaTrigger(Player *Source, uint32 Trigger);
         //bool SetupBattleGround();
 
-        void UpdateScore(BattleGroundTeamId team, int32 points);
+        void UpdateScore(BattleGroundTeamIndex team, int32 points);
         void HandleKillPlayer(Player* player, Player *killer);
         void HandleKillUnit(Creature *creature, Player *killer);
 

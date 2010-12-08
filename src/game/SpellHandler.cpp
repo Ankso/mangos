@@ -335,6 +335,10 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
     DEBUG_LOG("WORLD: got cast spell packet, spellId - %u, cast_count: %u, unk_flags %u, data length = %i",
         spellId, cast_count, unk_flags, (uint32)recvPacket.size());
 
+    /* process anticheat check */
+    if (!GetPlayer()->GetAntiCheat()->DoAntiCheatCheck(CHECK_SPELL, spellId, CMSG_CAST_SPELL))
+        return;
+
     SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellId );
 
     if(!spellInfo)
@@ -509,7 +513,7 @@ void WorldSession::HandlePetCancelAuraOpcode( WorldPacket& recvPacket)
 
     if (guid != GetPlayer()->GetPetGuid() && guid != GetPlayer()->GetCharmGuid())
     {
-        sLog.outError("HandlePetCancelAura. %s isn't pet of %s", guid.GetString().c_str(), GetPlayer()->GetObjectGuid().GetString().c_str());
+        sLog.outError("HandlePetCancelAura. %s isn't pet of %s", guid.GetString().c_str(), GetPlayer()->GetGuidStr().c_str());
         return;
     }
 
@@ -587,8 +591,8 @@ void WorldSession::HandleSpellClick( WorldPacket & recv_data )
     if (_player->isInCombat())                              // client prevent click and set different icon at combat state
         return;
 
-    Creature *unit = ObjectAccessor::GetAnyTypeCreature(*_player, guid);
-    if (!unit || unit->isInCombat())                        // client prevent click and set different icon at combat state
+    Creature *unit = _player->GetMap()->GetAnyTypeCreature(guid);
+    if (!unit)
         return;
 
     SpellClickInfoMapBounds clickPair = sObjectMgr.GetSpellClickInfoMapBounds(unit->GetEntry());

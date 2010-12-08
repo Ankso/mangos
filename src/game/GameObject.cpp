@@ -56,6 +56,8 @@ GameObject::GameObject() : WorldObject()
 
     m_DBTableGuid = 0;
     m_rotation = 0;
+
+    m_health = 0;
 }
 
 GameObject::~GameObject()
@@ -77,7 +79,7 @@ void GameObject::RemoveFromWorld()
     if(IsInWorld())
     {
         // Remove GO from owner
-        ObjectGuid owner_guid = GetOwnerGUID();
+        ObjectGuid owner_guid = GetOwnerGuid();
         if (!owner_guid.IsEmpty())
         {
             if (Unit* owner = ObjectAccessor::GetUnit(*this,owner_guid))
@@ -85,7 +87,7 @@ void GameObject::RemoveFromWorld()
             else
             {
                 sLog.outError("Delete %s with SpellId %u LinkedGO %u that lost references to owner %s GO list. Crash possible later.",
-                    GetObjectGuid().GetString().c_str(), m_spellId, GetGOInfo()->GetLinkedGameObjectEntry(), owner_guid.GetString().c_str());
+                    GetGuidStr().c_str(), m_spellId, GetGOInfo()->GetLinkedGameObjectEntry(), owner_guid.GetString().c_str());
             }
         }
 
@@ -148,8 +150,12 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map *map, uint32 phaseMa
     SetGoArtKit(0);                                         // unknown what this is
     SetGoAnimProgress(animprogress);
 
-    if(goinfo->type == GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING)
-        m_health = goinfo->destructibleBuilding.damagedHealth;
+    if (goinfo->type == GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING)
+    {
+        m_health = GetMaxHealth();
+        // destructible GO's show their "HP" as their animprogress
+        SetGoAnimProgress(255);
+    }
 
     //Notify the map's instance data.
     //Only works if you create the object in it, not if it is moves to that map.
@@ -210,7 +216,7 @@ void GameObject::Update(uint32 update_diff)
                             udata.BuildPacket(&packet);
                             ((Player*)caster)->GetSession()->SendPacket(&packet);
 
-                            SendGameObjectCustomAnim(GetGUID());
+                            SendGameObjectCustomAnim(GetGUID(), 0);
                         }
 
                         m_lootState = GO_READY;             // can be successfully open with some chance
@@ -411,7 +417,7 @@ void GameObject::Update(uint32 update_diff)
                 //any return here in case battleground traps
             }
 
-            if (GetOwnerGUID())
+            if (!GetOwnerGuid().IsEmpty())
             {
                 if (Unit* owner = GetOwner())
                     owner->RemoveGameObject(this, false);
@@ -695,7 +701,7 @@ bool GameObject::IsDynTransport() const
 
 Unit* GameObject::GetOwner() const
 {
-    return ObjectAccessor::GetUnit(*this, GetOwnerGUID());
+    return ObjectAccessor::GetUnit(*this, GetOwnerGuid());
 }
 
 void GameObject::SaveRespawnTime()
@@ -852,9 +858,9 @@ void GameObject::SummonLinkedTrapIfAny()
     linkedGO->SetRespawnTime(GetRespawnDelay());
     linkedGO->SetSpellId(GetSpellId());
 
-    if (GetOwnerGUID())
+    if (!GetOwnerGuid().IsEmpty())
     {
-        linkedGO->SetOwnerGUID(GetOwnerGUID());
+        linkedGO->SetOwnerGuid(GetOwnerGuid());
         linkedGO->SetUInt32Value(GAMEOBJECT_LEVEL, GetUInt32Value(GAMEOBJECT_LEVEL));
     }
 
@@ -1053,7 +1059,7 @@ void GameObject::Use(Unit* user)
                     Creature* helper = player->SummonCreature(14496, x_i, y_i, GetPositionZ(), GetOrientation(), TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 10000);
                     std::ostringstream output;
                     output << i << ": thisDist: " << thisDistance;
-                    helper->MonsterSay(output.str().c_str(), LANG_UNIVERSAL, 0);
+                    helper->MonsterSay(output.str().c_str(), LANG_UNIVERSAL);
                     */
 
                     if (thisDistance <= lowestDist)
@@ -1140,7 +1146,7 @@ void GameObject::Use(Unit* user)
 
             // this appear to be ok, however others exist in addition to this that should have custom (ex: 190510, 188692, 187389)
             if (time_to_restore && info->goober.customAnim)
-                SendGameObjectCustomAnim(GetGUID());
+                SendGameObjectCustomAnim(GetGUID(), info->goober.customAnim);
             else
                 SetGoState(GO_STATE_ACTIVE);
 
@@ -1190,7 +1196,7 @@ void GameObject::Use(Unit* user)
 
             Player* player = (Player*)user;
 
-            if (player->GetGUID() != GetOwnerGUID())
+            if (player->GetObjectGuid() != GetOwnerGuid())
                 return;
 
             switch(getLootState())
@@ -1222,7 +1228,7 @@ void GameObject::Use(Unit* user)
                     {
                         // prevent removing GO at spell cancel
                         player->RemoveGameObject(this,false);
-                        SetOwnerGUID(player->GetGUID());
+                        SetOwnerGuid(player->GetObjectGuid());
 
                         //fish catched
                         player->UpdateFishingSkill();
@@ -1529,92 +1535,83 @@ void GameObject::Use(Unit* user)
 
 bool GameObject::IsInRange(float x, float y, float z, float radius) const
 {
-    GameObjectDisplayInfoEntry const * info = sGameObjectDisplayInfoStore.LookupEntry(GetUInt32Value(GAMEOBJECT_DISPLAYID));
-    if(!info)
+    GameObjectDisplayInfoEntry const *info = sGameObjectDisplayInfoStore.LookupEntry(GetUInt32Value(GAMEOBJECT_DISPLAYID));
+    if (!info)
         return IsWithinDist3d(x, y, z, radius);
 
-    float sinA = sin(GetOrientation());
-    float cosA = cos(GetOrientation());
     float dx = x - GetPositionX();
     float dy = y - GetPositionY();
     float dz = z - GetPositionZ();
     float dist = sqrt(dx*dx + dy*dy);
+
+    if (dist <= CONTACT_DISTANCE)   // prevent division by 0
+        return true;
+
+    float sinA = sin(GetOrientation());
+    float cosA = cos(GetOrientation());
     float sinB = dx / dist;
     float cosB = dy / dist;
+
     dx = dist * (cosA * cosB + sinA * sinB);
     dy = dist * (cosA * sinB - sinA * cosB);
+
     return dx < info->maxX + radius && dx > info->minX - radius
         && dy < info->maxY + radius && dy > info->minY - radius
         && dz < info->maxZ + radius && dz > info->minZ - radius;
 }
 
-void GameObject::TakenDamage(uint32 damage, Unit* pKiller)
+void GameObject::DamageTaken(Unit* pDoneBy, uint32 damage)
 {
-    if(!m_health)
+    if (GetGoType() != GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING || !m_health)
         return;
-        
-    Player* pwho = NULL;
-    if(pKiller && pKiller->GetTypeId() == TYPEID_PLAYER)
-      pwho = (Player*)pKiller;
 
-    if(pKiller && ((Creature*)pKiller)->GetVehicleKit())
-      pwho = (Player*)pKiller->GetCharmerOrOwner();
-			
-    if(m_health > damage)
-    {
+    DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "GO damage taken: %u to health %u", damage, m_health);
+
+    if (m_health > damage)
         m_health -= damage;
+    else
+        m_health = 0;
 
-        DETAIL_LOG("siege damage:%d to health:%d ",damage,m_health);
-        EventInform(m_goInfo->destructibleBuilding.damageEvent);
-        if(pwho)
-            if(BattleGround* bg = pwho->GetBattleGround())
-                bg->EventPlayerDamegeGO(pwho, this, m_goInfo->destructibleBuilding.damageEvent);
-        return;
-    }
-
-    m_health = 0;
-
-	if (HasFlag(GAMEOBJECT_FLAGS,GO_FLAG_DAMAGED) && !HasFlag(GAMEOBJECT_FLAGS,GO_FLAG_DESTROYED)) // from damaged to destroyed
-	{
-		RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED);
-		SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_DESTROYED);
-		SetUInt32Value(GAMEOBJECT_DISPLAYID, m_goInfo->destructibleBuilding.destroyedDisplayId);
-		m_health = 0;
-		EventInform(m_goInfo->destructibleBuilding.destroyedEvent);
-		if(pwho)
-			if(BattleGround* bg = pwho->GetBattleGround())
-			  bg->EventPlayerDamegeGO(pwho, this, m_goInfo->destructibleBuilding.destroyedEvent);
-	}
-    else if(!HasFlag(GAMEOBJECT_FLAGS,GO_FLAG_DAMAGED) && !HasFlag(GAMEOBJECT_FLAGS,GO_FLAG_DESTROYED))
+    if (HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED)) // from damaged to destroyed
     {
-        SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED);
-        SetUInt32Value(GAMEOBJECT_DISPLAYID, m_goInfo->destructibleBuilding.damagedDisplayId);
-        if(m_goInfo->destructibleBuilding.destroyedDisplayId)
+        if (!m_health)
         {
-            m_health = m_goInfo->destructibleBuilding.destroyedHealth;
-            if(!m_health)
-                m_health = 1;
+            RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED);
+            SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_DESTROYED);
+            SetUInt32Value(GAMEOBJECT_DISPLAYID, m_goInfo->destructibleBuilding.destroyedDisplayId);
         }
-        else
-            m_health = 0;
-
- 		EventInform(m_goInfo->destructibleBuilding.damagedEvent);
- 		if(pwho)
- 			if(BattleGround* bg = pwho->GetBattleGround())
- 			  bg->EventPlayerDamegeGO(pwho, this, m_goInfo->destructibleBuilding.damagedEvent);
     }
+    else                                            // from intact to damaged
+    {
+        if (m_health <= m_goInfo->destructibleBuilding.damagedNumHits)
+        {
+            SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED);
+            SetUInt32Value(GAMEOBJECT_DISPLAYID, m_goInfo->destructibleBuilding.damagedDisplayId);
+            // if we have a "dead" display we can "kill" the building after its damaged
+            if (m_goInfo->destructibleBuilding.destroyedDisplayId)
+            {
+                m_health = m_goInfo->destructibleBuilding.damagedNumHits;
+                if (!m_health)
+                    m_health = 1;
+            }
+            // otherwise we just handle it as "destroyed"
+            else
+                m_health = 0;
+         }
+    }
+    SetGoAnimProgress(m_health * 255 / GetMaxHealth());
 }
 
-void GameObject::Rebuild(Unit* pKiller)
+void GameObject::Rebuild(Unit* pWho)
 {
-	RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED + GO_FLAG_DESTROYED);
-	SetUInt32Value(GAMEOBJECT_DISPLAYID, m_goInfo->displayId);
-	m_health = m_goInfo->destructibleBuilding.damagedHealth;
-	EventInform(m_goInfo->destructibleBuilding.rebuildingEvent);
-}
+    if (GetGoType() != GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING)
+        return;
 
-void GameObject::EventInform(uint32 eventId)
-{
+    RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED | GO_FLAG_DESTROYED);
+    SetUInt32Value(GAMEOBJECT_DISPLAYID, m_goInfo->displayId);
+    m_health = GetMaxHealth();
+
+    SetGoAnimProgress(255);
 }
 
 // overwrite WorldObject function for proper name localization
@@ -1755,7 +1752,7 @@ float GameObject::GetObjectBoundingRadius() const
     // 1. This is clearly hack way because GameObjectDisplayInfoEntry have 6 floats related to GO sizes, but better that use DEFAULT_WORLD_OBJECT_SIZE
     // 2. In some cases this must be only interactive size, not GO size, current way can affect creature target point auto-selection in strange ways for big underground/virtual GOs
     if (GameObjectDisplayInfoEntry const* dispEntry = sGameObjectDisplayInfoStore.LookupEntry(GetGOInfo()->displayId))
-        return fabs(dispEntry->unknown12) * GetObjectScale();
+        return fabs(dispEntry->minX) * GetObjectScale();
 
     return DEFAULT_WORLD_OBJECT_SIZE;
 }

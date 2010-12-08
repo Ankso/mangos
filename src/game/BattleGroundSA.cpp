@@ -99,7 +99,7 @@ void BattleGroundSA::EndBattleGround(uint32 winner)
         ++alliance_sc;
 	else if (winner == HORDE)
         ++horde_sc;
-	uint32 win = 0;
+	Team win = TEAM_NONE;
 	if(alliance_sc == 0 && horde_sc == 0)
 	{
 		RewardHonorToTeam(50, ALLIANCE);
@@ -242,7 +242,7 @@ void BattleGroundSA::StartingEventOpenDoors()
     LetsFly();
 }
 
-void BattleGroundSA::RemovePlayer(Player* /*plr*/,uint64 /*guid*/)
+void BattleGroundSA::RemovePlayer(Player* /*plr*/, ObjectGuid /*guid*/)
 {
 }
 
@@ -270,7 +270,7 @@ void BattleGroundSA::AddPlayer(Player *plr)
 
     BattleGroundSAScore* sc = new BattleGroundSAScore;
 
-    m_PlayerScores[plr->GetGUID()] = sc;
+    m_PlayerScores[plr->GetObjectGuid()] = sc;
 }
 
 void BattleGroundSA::HandleAreaTrigger(Player * /*Source*/, uint32 /*Trigger*/)
@@ -302,7 +302,7 @@ void BattleGroundSA::UpdatePlayerScore(Player* Source, uint32 type, uint32 value
 
 void BattleGroundSA::VirtualUpdatePlayerScore(Player* Source, uint32 type, uint32 value)
 {
-    BattleGroundScoreMap::iterator itr = m_PlayerScores.find(Source->GetGUID());
+    BattleGroundScoreMap::iterator itr = m_PlayerScores.find(Source->GetObjectGuid());
     if(itr == m_PlayerScores.end())                         // player not found...
         return;
 
@@ -460,7 +460,7 @@ void BattleGroundSA::EventPlayerClickedOnFlag(Player *source, GameObject* target
         return;
     BG_SA_GraveYard gyd = BG_SA_GraveYard(event);
 
-    BattleGroundTeamId teamIndex = GetTeamIndexByTeamId(source->GetTeam());
+    BattleGroundTeamIndex teamIndex = GetTeamIndexByTeamId(source->GetTeam());
 
     // Check if player really could use this banner, not cheated
     if (!(m_Gyd[gyd] == 0 || teamIndex == m_Gyd[gyd] % 2))
@@ -578,7 +578,7 @@ void BattleGroundSA::EventSpawnGOSA(Player *owner, Creature* obj, float x, float
 void BattleGroundSA::SendMessageSA(Player *player, uint32 type, uint32 name)
 {
 	uint32 entryMSG = 0;
-	BattleGroundTeamId teamIndex = GetTeamIndexByTeamId(player->GetTeam());
+	BattleGroundTeamIndex teamIndex = GetTeamIndexByTeamId(player->GetTeam());
 	switch (type)
 	{
 		case 0: entryMSG = LANG_BG_SA_GATE_ATTACK; break;
@@ -593,7 +593,7 @@ void BattleGroundSA::SendMessageSA(Player *player, uint32 type, uint32 name)
 
 void BattleGroundSA::EventPlayerDamegeGO(Player *player, GameObject* target_obj, uint32 eventId)
 {
-	BattleGroundTeamId teamIndex = GetTeamIndexByTeamId(player->GetTeam());
+	BattleGroundTeamIndex teamIndex = GetTeamIndexByTeamId(player->GetTeam());
 
 	uint32 type = NULL;
 	switch (target_obj->GetEntry())
@@ -608,12 +608,12 @@ void BattleGroundSA::EventPlayerDamegeGO(Player *player, GameObject* target_obj,
 					break;
 				case 19836:
 					// SendMessageSA(player, BG_SA_DAMAGE, _GatesName(target_obj));
-					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type);
+					SendWarningToAllSA(NULL, NULL, TEAM_NONE, true, type);
                     UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DAMAGE);
 					break;
 				case 19837:
 					// SendMessageSA(player, BG_SA_DESTROY, _GatesName(target_obj));
-                    SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type, true);
+                    SendWarningToAllSA(NULL, NULL, TEAM_NONE, true, type, true);
 					UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DESTROY);
 					UpdatePlayerScore(player, SCORE_GATES_DESTROYED, 1);
 					RewardHonorToTeam(100, (teamIndex == 0) ? ALLIANCE:HORDE);
@@ -632,12 +632,12 @@ void BattleGroundSA::EventPlayerDamegeGO(Player *player, GameObject* target_obj,
 					break;
 				case 19041:
 					// SendMessageSA(player, BG_SA_DAMAGE, _GatesName(target_obj));
-                    SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type);
+                    SendWarningToAllSA(NULL, NULL, TEAM_NONE, true, type);
 					UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DAMAGE);
 					break;
 				case 19046:
 					// SendMessageSA(player, BG_SA_DESTROY, _GatesName(target_obj));
-					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type, true);
+					SendWarningToAllSA(NULL, NULL, TEAM_NONE, true, type, true);
                     UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DESTROY);
 					UpdatePlayerScore(player, SCORE_GATES_DESTROYED, 1);
 					RewardHonorToTeam(85, (teamIndex == 0) ? ALLIANCE:HORDE);
@@ -656,12 +656,12 @@ void BattleGroundSA::EventPlayerDamegeGO(Player *player, GameObject* target_obj,
 					break;
 				case 19040:
 					// SendMessageSA(player, BG_SA_DAMAGE, _GatesName(target_obj));
-					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type);
+					SendWarningToAllSA(NULL, NULL, TEAM_NONE, true, type);
                     UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DAMAGE);
 					break;
 				case 19045:
 					// SendMessageSA(player, BG_SA_DESTROY, _GatesName(target_obj));
-					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type, true);
+					SendWarningToAllSA(NULL, NULL, TEAM_NONE, true, type, true);
                     UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DESTROY);
 					UpdatePlayerScore(player, SCORE_GATES_DESTROYED, 1);
 					RewardHonorToTeam(85, (teamIndex == 0) ? ALLIANCE:HORDE);
@@ -680,12 +680,12 @@ void BattleGroundSA::EventPlayerDamegeGO(Player *player, GameObject* target_obj,
 					break;
 				case 19043:
 					// SendMessageSA(player, BG_SA_DAMAGE, _GatesName(target_obj));
-					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type);
+					SendWarningToAllSA(NULL, NULL, TEAM_NONE, true, type);
                     UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DAMAGE);
 					break;
 				case 19048:
 					// SendMessageSA(player, BG_SA_DESTROY, _GatesName(target_obj));
-					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type, true);
+					SendWarningToAllSA(NULL, NULL, TEAM_NONE, true, type, true);
                     UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DESTROY);
 					UpdatePlayerScore(player, SCORE_GATES_DESTROYED, 1);
 					RewardHonorToTeam(85, (teamIndex == 0) ? ALLIANCE:HORDE);
@@ -704,12 +704,12 @@ void BattleGroundSA::EventPlayerDamegeGO(Player *player, GameObject* target_obj,
 					break;
 				case 19042:
 					// SendMessageSA(player, BG_SA_DAMAGE, _GatesName(target_obj));
-					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type);
+					SendWarningToAllSA(NULL, NULL, TEAM_NONE, true, type);
                     UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DAMAGE);
 					break;
 				case 19047:
 					// SendMessageSA(player, BG_SA_DESTROY, _GatesName(target_obj));
-					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type, true);
+					SendWarningToAllSA(NULL, NULL, TEAM_NONE, true, type, true);
                     UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DESTROY);
 					UpdatePlayerScore(player, SCORE_GATES_DESTROYED, 1);
 					RewardHonorToTeam(85, (teamIndex == 0) ? ALLIANCE:HORDE);
@@ -728,12 +728,12 @@ void BattleGroundSA::EventPlayerDamegeGO(Player *player, GameObject* target_obj,
 					break;
 				case 19044:
 					// SendMessageSA(player, BG_SA_DAMAGE, _GatesName(target_obj));
-					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type);
+					SendWarningToAllSA(NULL, NULL, TEAM_NONE, true, type);
                     UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DAMAGE);
 					break;
 				case 19049:
 					// SendMessageSA(player, BG_SA_DESTROY, _GatesName(target_obj));
-					SendWarningToAllSA(NULL, NULL, TEAM_OTHER, true, type, true);
+					SendWarningToAllSA(NULL, NULL, TEAM_NONE, true, type, true);
                     UpdateWorldState(BG_SA_GateStatus[type], GateStatus[type] = BG_SA_GO_GATES_DESTROY);
 					UpdatePlayerScore(player, SCORE_GATES_DESTROYED, 1);
 					RewardHonorToTeam(85, (teamIndex == 0) ? ALLIANCE:HORDE);
@@ -807,7 +807,7 @@ int32 BattleGroundSA::_GydName(uint8 gyd)
 
 WorldSafeLocsEntry const* BattleGroundSA::GetClosestGraveYard(Player* player)
 {
-    BattleGroundTeamId teamIndex = GetTeamIndexByTeamId(player->GetTeam());
+    BattleGroundTeamIndex teamIndex = GetTeamIndexByTeamId(player->GetTeam());
 
     // Is there any occupied node for this team?
     std::vector<uint8> gyd;
