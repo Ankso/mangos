@@ -185,7 +185,7 @@ class BattleGroundSA : public BattleGround
         virtual void AddPlayer(Player *plr);
         virtual void StartingEventCloseDoors();
         virtual void StartingEventOpenDoors();
-		virtual void EventPlayerDamegeGO(Player *player, GameObject* target_obj, uint32 eventId);
+		virtual void EventPlayerDamageGO(Player *player, GameObject* target_obj, uint32 eventId);
 		virtual void EventSpawnGOSA(Player *owner, Creature* obj, float x, float y, float z);
 		virtual void FillInitialWorldStates(WorldPacket& data, uint32& count);
 		virtual void VirtualUpdatePlayerScore(Player* Source, uint32 type, uint32 value);

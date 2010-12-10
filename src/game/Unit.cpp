@@ -5290,6 +5290,7 @@ Aura* Unit::GetLinkedDummyAura(uint32 spell_id) const
     }
     return NULL;
 }
+
 void Unit::RemoveDummyAuraLink(Aura* m_Aura)
 {
     m_dummyAuraLink.remove(m_Aura);

@@ -32,7 +32,7 @@
 /*
 * Strand of the Ancients by Rage Hunter, with modifications and bug fixes by me.
 * TODO:
-*   - Crashes at Windows sometimes when someone leaves de bg (only my core?)
+*   - Put Seaforium charges also in last zone, just before last door. But when?
 *   - Boats system, attackers must appear in a boat.
 *   - Move all the harcoded variables such coords to header BattleGroundSA.h
 *   - Cosmetics & avoid hacks.
@@ -591,7 +591,7 @@ void BattleGroundSA::SendMessageSA(Player *player, uint32 type, uint32 name)
         SendMessage2ToAll(entryMSG,CHAT_MSG_BG_SYSTEM_HORDE, player, name);
 }
 
-void BattleGroundSA::EventPlayerDamegeGO(Player *player, GameObject* target_obj, uint32 eventId)
+void BattleGroundSA::EventPlayerDamageGO(Player *player, GameObject* target_obj, uint32 eventId)
 {
 	BattleGroundTeamIndex teamIndex = GetTeamIndexByTeamId(player->GetTeam());
 

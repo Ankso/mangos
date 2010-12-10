@@ -2048,6 +2048,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     sLog.outDebug("Spell %i applying a periodic spell trigger aura has 2 dummy auras. May cause problems with target selection!");
             }
         }
+
     // AT APPLY
     if (apply)
     {

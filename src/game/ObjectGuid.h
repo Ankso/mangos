@@ -79,40 +79,6 @@ enum HighGuid
 // Temporary for dungeon finder compatibility
 #define MAKE_NEW_GUID(l, e, h)   uint64(uint64(l) | (uint64(e) << 24) | (uint64(h) << 48))
 
-//*** Must be replaced by ObjectGuid use ***
-#define IS_PLAYER_GUID(Guid)         ( GUID_HIPART(Guid) == HIGHGUID_PLAYER && Guid!=0 )
-                                                            // special case for empty guid need check
-#define GUID_HIPART(x)   (uint32)((uint64(x) >> 48) & 0x0000FFFF)
-
-// We have different low and middle part size for different guid types
-#define _GUID_LOPART_2(x) (uint32)(uint64(x)         & UI64LIT(0x00000000FFFFFFFF))
-#define _GUID_LOPART_3(x) (uint32)(uint64(x)         & UI64LIT(0x0000000000FFFFFF))
-
-inline bool IsGuidHaveEnPart(uint64 const& guid)
-{
-    switch(GUID_HIPART(guid))
-    {
-        case HIGHGUID_ITEM:
-        case HIGHGUID_PLAYER:
-        case HIGHGUID_DYNAMICOBJECT:
-        case HIGHGUID_CORPSE:
-        case HIGHGUID_MO_TRANSPORT:
-        case HIGHGUID_INSTANCE:
-            return false;
-        case HIGHGUID_GAMEOBJECT:
-        case HIGHGUID_TRANSPORT:
-        case HIGHGUID_UNIT:
-        case HIGHGUID_PET:
-        case HIGHGUID_VEHICLE:
-        case HIGHGUID_GROUP:
-        default:
-            return true;
-    }
-}
-
-#define GUID_LOPART(x) (IsGuidHaveEnPart(x) ? _GUID_LOPART_3(x) : _GUID_LOPART_2(x))
-
-//*** Must be replaced by ObjectGuid use END ***
 class ObjectGuid;
 class PackedGuid;
 

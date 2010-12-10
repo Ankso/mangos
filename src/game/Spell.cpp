@@ -1767,10 +1767,10 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             Cell::VisitAllObjects(m_caster, searcher, radius);
             for (std::list<GameObject*>::const_iterator itr = goList.begin(); itr != goList.end(); ++itr)
             {
-//                FactionTemplateEntry const* caster_faction = m_caster->getFactionTemplateEntry();
-//                FactionTemplateEntry const* go_faction     = sFactionTemplateStore.LookupEntry((*itr)->GetUInt32Value(GAMEOBJECT_FACTION));
-//                if (!caster_faction || !go_faction || caster_faction->IsFriendlyTo(*go_faction))
-//                    continue;
+                FactionTemplateEntry const* caster_faction = m_caster->getFactionTemplateEntry();
+                FactionTemplateEntry const* go_faction     = sFactionTemplateStore.LookupEntry((*itr)->GetUInt32Value(GAMEOBJECT_FACTION));
+                if (!caster_faction || !go_faction || caster_faction->IsFriendlyTo(*go_faction))
+                    continue;
                 AddGOTarget(*itr, effIndex);
             }
             break;
@@ -2353,7 +2353,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             if(m_triggeredByAuraSpell)
                 pAura = m_caster->GetLinkedDummyAura(m_triggeredByAuraSpell->Id);
             pTarget = pAura ? pAura->GetTarget() : m_targets.getUnitTarget();
-            if(Unit* pUnitTarget = m_caster->SelectMagnetTarget(m_targets.getUnitTarget(), this, effIndex))
+            if(Unit* pUnitTarget = m_caster->SelectMagnetTarget(pTarget, this, effIndex))
             {
                 m_targets.setUnitTarget(pUnitTarget);
                 targetUnitMap.push_back(pUnitTarget);
