@@ -171,7 +171,7 @@ pAuraProcHandler AuraProcHandler[TOTAL_AURAS]=
     &Unit::HandleNULLProc,                                  //135 SPELL_AURA_MOD_HEALING_DONE
     &Unit::HandleNULLProc,                                  //136 SPELL_AURA_MOD_HEALING_DONE_PERCENT
     &Unit::HandleNULLProc,                                  //137 SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE
-    &Unit::HandleHasteAuraProc,                             //138 SPELL_AURA_MOD_HASTE
+    &Unit::HandleHasteAuraProc,                             //138 SPELL_AURA_MOD_MELEE_HASTE
     &Unit::HandleNULLProc,                                  //139 SPELL_AURA_FORCE_REACTION
     &Unit::HandleNULLProc,                                  //140 SPELL_AURA_MOD_RANGED_HASTE
     &Unit::HandleNULLProc,                                  //141 SPELL_AURA_MOD_RANGED_AMMO_HASTE
@@ -971,6 +971,16 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                 case 63320:
                     triggered_spell_id = 63321;
                     break;
+                // Shiny Shard of the Scale - Equip Effect
+                case 69739:
+                    // Cauterizing Heal or Searing Flame
+                    triggered_spell_id = (procFlag & PROC_FLAG_SUCCESSFUL_POSITIVE_SPELL) ? 69734 : 69730;
+                    break;
+                // Purified Shard of the Scale - Equip Effect
+                case 69755:
+                    // Cauterizing Heal or Searing Flame
+                    triggered_spell_id = (procFlag & PROC_FLAG_SUCCESSFUL_POSITIVE_SPELL) ? 69733 : 69729;
+                    break;
                 // Item - Shadowmourne Legendary
                 case 71903:
                 {
@@ -1145,6 +1155,15 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                 {
                         triggered_spell_id = 71584;
                         break;
+                }
+                // Necrotic Touch item 50692
+                case 71875:
+                case 71877:
+                {
+                    basepoints[0] = damage * triggerAmount / 100;
+                    target = pVictim;
+                    triggered_spell_id = 71879;
+                    break;
                 }
             }
             break;
@@ -1971,7 +1990,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
             {
                 // "refresh your Slice and Dice duration to its 5 combo point maximum"
                 // lookup Slice and Dice
-                AuraList const& sd = GetAurasByType(SPELL_AURA_MOD_HASTE);
+                AuraList const& sd = GetAurasByType(SPELL_AURA_MOD_MELEE_HASTE);
                 for(AuraList::const_iterator itr = sd.begin(); itr != sd.end(); ++itr)
                 {
                     SpellEntry const *spellProto = (*itr)->GetSpellProto();

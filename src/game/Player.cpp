@@ -4388,6 +4388,9 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
             // Get guids of character's pets, will deleted in transaction
             QueryResult *resultPets = CharacterDatabase.PQuery("SELECT id FROM character_pet WHERE owner = '%u'", lowguid);
 
+            // delete char from friends list when selected chars is online (non existing - error)
+            QueryResult *resultFriend = CharacterDatabase.PQuery("SELECT DISTINCT guid FROM character_social WHERE friend = '%u'", lowguid);
+
             // NOW we can finally clear other DB data related to character
             CharacterDatabase.BeginTransaction();
             if (resultPets)
@@ -4399,6 +4402,24 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
                     Pet::DeleteFromDB(petguidlow);
                 } while (resultPets->NextRow());
                 delete resultPets;
+            }
+
+            // cleanup friends for online players, offline case will cleanup later in code
+            if (resultFriend)
+            {
+                do
+                {
+                    Field* fieldsFriend = resultFriend->Fetch();
+                    if (Player* sFriend = sObjectAccessor.FindPlayer(ObjectGuid(HIGHGUID_PLAYER, fieldsFriend[0].GetUInt32())))
+                    {
+                        if (sFriend->IsInWorld())
+                        {
+                            sFriend->GetSocial()->RemoveFromSocialList(playerguid, false);
+                            sSocialMgr.SendFriendStatus(sFriend, FRIEND_REMOVED, playerguid, false);
+                        }
+                    }
+                } while (resultFriend->NextRow());
+                delete resultFriend;
             }
 
             CharacterDatabase.PExecute("DELETE FROM characters WHERE guid = '%u'", lowguid);
@@ -4644,7 +4665,7 @@ void Player::KillPlayer()
     //SetFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_IN_PVP );
 
     SetFlag(UNIT_DYNAMIC_FLAGS, 0x00);
-    ApplyModFlag(PLAYER_FIELD_BYTES, PLAYER_FIELD_BYTE_RELEASE_TIMER, !sMapStore.LookupEntry(GetMapId())->Instanceable());
+    ApplyModByteFlag(PLAYER_FIELD_BYTES, 0, PLAYER_FIELD_BYTE_RELEASE_TIMER, !sMapStore.LookupEntry(GetMapId())->Instanceable());
 
     // 6 minutes until repop at graveyard
     m_deathTimer = 6*MINUTE*IN_MILLISECONDS;
@@ -15708,6 +15729,8 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder *holder )
     SetUInt64Value(PLAYER_FIELD_KNOWN_CURRENCIES, fields[47].GetUInt64());
 
     SetUInt32Value(PLAYER_AMMO_ID, fields[62].GetUInt32());
+
+    // Action bars state
     SetByteValue(PLAYER_FIELD_BYTES, 2, fields[64].GetUInt8());
 
     // cleanup inventory related item value fields (its will be filled correctly in _LoadInventory)
@@ -16445,7 +16468,7 @@ void Player::LoadCorpse()
     {
         if(Corpse *corpse = GetCorpse())
         {
-            ApplyModFlag(PLAYER_FIELD_BYTES, PLAYER_FIELD_BYTE_RELEASE_TIMER, corpse && !sMapStore.LookupEntry(corpse->GetMapId())->Instanceable() );
+            ApplyModByteFlag(PLAYER_FIELD_BYTES, 0, PLAYER_FIELD_BYTE_RELEASE_TIMER, corpse && !sMapStore.LookupEntry(corpse->GetMapId())->Instanceable() );
         }
         else
         {
@@ -17845,7 +17868,7 @@ void Player::_SaveMail()
         else if (m->state == MAIL_STATE_DELETED)
         {
             if (m->HasItems())
-                for(std::vector<MailItemInfo>::const_iterator itr2 = m->items.begin(); itr2 != m->items.end(); ++itr2)
+                for(MailItemInfoVec::const_iterator itr2 = m->items.begin(); itr2 != m->items.end(); ++itr2)
                     CharacterDatabase.PExecute("DELETE FROM item_instance WHERE guid = '%u'", itr2->item_guid);
 
             CharacterDatabase.PExecute("DELETE FROM mail WHERE id = '%u'", m->messageID);
