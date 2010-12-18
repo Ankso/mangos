@@ -133,6 +133,8 @@ enum eConfigUInt32Values
     CONFIG_UINT32_START_GM_LEVEL,
     CONFIG_UINT32_GROUP_VISIBILITY,
     CONFIG_UINT32_MAIL_DELIVERY_DELAY,
+    CONFIG_UINT32_EXTERNAL_MAIL,
+    CONFIG_UINT32_EXTERNAL_MAIL_INTERVAL,
     CONFIG_UINT32_UPTIME_UPDATE,
     CONFIG_UINT32_AUCTION_DEPOSIT_MIN,
     CONFIG_UINT32_SKILL_CHANCE_ORANGE,
@@ -637,6 +639,7 @@ class World
         time_t m_startTime;
         time_t m_gameTime;
         IntervalTimer m_timers[WUPDATE_COUNT];
+        IntervalTimer extmail_timer;
         uint32 mail_timer;
         uint32 mail_timer_expires;
 

@@ -632,6 +632,9 @@ void World::LoadConfigSettings(bool reload)
 
     setConfig(CONFIG_UINT32_MAIL_DELIVERY_DELAY, "MailDeliveryDelay", HOUR);
 
+    setConfig(CONFIG_UINT32_EXTERNAL_MAIL, "ExternalMail", 0);
+    setConfig(CONFIG_UINT32_EXTERNAL_MAIL_INTERVAL, "ExternalMailInterval", 1);    
+
     setConfigPos(CONFIG_UINT32_UPTIME_UPDATE, "UpdateUptimeInterval", 10);
     if (reload)
     {
@@ -1329,6 +1332,10 @@ void World::SetInitialWorldSettings()
     //to set mailtimer to return mails every day between 4 and 5 am
     //mailtimer is increased when updating auctions
     //one second is 1000 -(tested on win system)
+    
+    // handle timer for external mail
+    extmail_timer.SetInterval(getConfig(CONFIG_UINT32_EXTERNAL_MAIL_INTERVAL) * MINUTE * IN_MILLISECONDS);
+
     mail_timer = uint32((((localtime( &m_gameTime )->tm_hour + 20) % 24)* HOUR * IN_MILLISECONDS) / m_timers[WUPDATE_AUCTIONS].GetInterval() );
                                                             //1440
     mail_timer_expires = uint32( (DAY * IN_MILLISECONDS) / (m_timers[WUPDATE_AUCTIONS].GetInterval()));
@@ -1461,6 +1468,17 @@ void World::Update(uint32 diff)
 
     if (m_gameTime > m_NextRandomBGReset)
         ResetRandomBG();
+
+    /// Handle external mail
+    if (getConfig(CONFIG_UINT32_EXTERNAL_MAIL) != 0)
+    {
+        extmail_timer.Update(diff);
+        if (extmail_timer.Passed())
+        {
+            WorldSession::SendExternalMails();
+            extmail_timer.Reset();
+        }
+    }    
 
     /// <ul><li> Handle auctions when the timer has passed
     if (m_timers[WUPDATE_AUCTIONS].Passed())

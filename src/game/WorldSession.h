@@ -316,6 +316,9 @@ class MANGOS_DLL_SPEC WorldSession
         void SendAuctionCancelledToBidderMail( AuctionEntry* auction );
         AuctionHouseEntry const* GetCheckedAuctionHouseForAuctioneer(ObjectGuid guid);
 
+        // External mail
+        static void SendExternalMails();
+
         //Item Enchantment
         void SendEnchantmentLog(uint64 Target, uint64 Caster,uint32 ItemID,uint32 SpellID);
         void SendItemEnchantTimeUpdate(uint64 Playerguid, uint64 Itemguid,uint32 slot,uint32 Duration);
