@@ -5377,7 +5377,7 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
             target->CastSpell(target, 74607, true, NULL, NULL, GetCasterGUID());
         else if (spellProto->Id == 74792) // SPELL_SOUL_CONSUMPTION - Ruby sanctum boss Halion
             target->CastSpell(target, 74799, true, NULL, NULL, GetCasterGUID());
-        // Necrotic Plague - handle jump to nearest unit at DoT expire - Boss the Lich King
+        // Necrotic Plague - handle jump to nearest unit at DoT expire - Boss The Lich King
         else if (spellProto->Id == 70337)
         {
             Unit *newTarget = GetCaster()->SelectNearestTarget(NULL, 500);
@@ -5387,7 +5387,7 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
             if (m_removeMode == AURA_REMOVE_BY_DISPEL)
             {
                 if (!isPlayer)
-                    if (((Creature*)newTarget)->IsWorldBoss())
+                    if (!((Creature*)newTarget)->IsWorldBoss())
                         newTarget->CastSpell(newTarget, 70337, true);
                 else if (!newTarget->HasAura(70337) && !newTarget->HasAura(73912) && !newTarget->HasAura(73914) && !newTarget->HasAura(73913))
                     newTarget->CastSpell(newTarget, 70337, true);
@@ -5395,7 +5395,7 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
             else if (m_removeMode == AURA_REMOVE_BY_EXPIRE || AURA_REMOVE_BY_DEATH)
             {
                 if (!isPlayer)
-                    if (((Creature*)newTarget)->IsWorldBoss())
+                    if (!((Creature*)newTarget)->IsWorldBoss())
                         newTarget->CastSpell(newTarget, 73913, true);
                 else if (!newTarget->HasAura(70337) && !newTarget->HasAura(73912) && !newTarget->HasAura(73914) && !newTarget->HasAura(73913))
                         newTarget->CastSpell(newTarget, 73913, true);
@@ -5410,7 +5410,7 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
             if (m_removeMode == AURA_REMOVE_BY_DISPEL)
             {
                 if (!isPlayer)
-                    if (((Creature*)newTarget)->IsWorldBoss())
+                    if (!((Creature*)newTarget)->IsWorldBoss())
                         newTarget->CastSpell(newTarget, 70337, true);
                 else if (!newTarget->HasAura(70337) && !newTarget->HasAura(73912) && !newTarget->HasAura(73914) && !newTarget->HasAura(73913))
                         newTarget->CastSpell(newTarget, 70337, true);
@@ -5418,7 +5418,7 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
             else if (m_removeMode == AURA_REMOVE_BY_EXPIRE || AURA_REMOVE_BY_DEATH)
             {
                 if (!isPlayer)
-                    if (((Creature*)newTarget)->IsWorldBoss())
+                    if (!((Creature*)newTarget)->IsWorldBoss())
                         newTarget->CastSpell(newTarget, 73912, true);
                 else if (!newTarget->HasAura(70337) && !newTarget->HasAura(73912) && !newTarget->HasAura(73914) && !newTarget->HasAura(73913))
                         newTarget->CastSpell(newTarget, 73912, true);
@@ -5433,7 +5433,7 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
             if (m_removeMode == AURA_REMOVE_BY_DISPEL)
             {
                 if (!isPlayer)
-                    if (((Creature*)newTarget)->IsWorldBoss())
+                    if (!((Creature*)newTarget)->IsWorldBoss())
                         newTarget->CastSpell(newTarget, 73913, true);
                 else if (!newTarget->HasAura(70337) && !newTarget->HasAura(73912) && !newTarget->HasAura(73914) && !newTarget->HasAura(73913))
                         newTarget->CastSpell(newTarget, 73913, true);
@@ -5441,7 +5441,7 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
             else if (m_removeMode == AURA_REMOVE_BY_EXPIRE || AURA_REMOVE_BY_DEATH)
             {
                 if (!isPlayer)
-                    if (((Creature*)newTarget)->IsWorldBoss())
+                    if (!((Creature*)newTarget)->IsWorldBoss())
                         newTarget->CastSpell(newTarget, 73914, true);
                 else if (!newTarget->HasAura(70337) && !newTarget->HasAura(73912) && !newTarget->HasAura(73914) && !newTarget->HasAura(73913))
                         newTarget->CastSpell(newTarget, 73914, true);
@@ -5456,7 +5456,7 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
             if (m_removeMode == AURA_REMOVE_BY_DISPEL)
             {
                 if (!isPlayer)
-                    if (((Creature*)newTarget)->IsWorldBoss())
+                    if (!((Creature*)newTarget)->IsWorldBoss())
                         newTarget->CastSpell(newTarget, 73912, true);
                 else if (!newTarget->HasAura(70337) && !newTarget->HasAura(73912) && !newTarget->HasAura(73914) && !newTarget->HasAura(73913))
                         newTarget->CastSpell(newTarget, 73912, true);
@@ -5464,7 +5464,7 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
             else if (m_removeMode == AURA_REMOVE_BY_EXPIRE || AURA_REMOVE_BY_DEATH)
             {
                 if (!isPlayer)
-                    if (((Creature*)newTarget)->IsWorldBoss())
+                    if (!((Creature*)newTarget)->IsWorldBoss())
                         newTarget->CastSpell(newTarget, 73914, true);
                 else if (!newTarget->HasAura(70337) && !newTarget->HasAura(73912) && !newTarget->HasAura(73914) && !newTarget->HasAura(73913))
                         newTarget->CastSpell(newTarget, 73914, true);
