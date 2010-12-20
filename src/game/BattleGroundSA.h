@@ -212,6 +212,8 @@ class BattleGroundSA : public BattleGround
 		uint32 team;
 		uint32 Round_timer;
 		uint32 TimeST2Round;
+        uint32 timeToFly;
+        bool players_sent;
 		/* Scorekeeping */
 		void RewardMedalsToTeam(uint32 teamid, bool winner);
         void UpdatePlayerScore(Player *Source, uint32 type, uint32 value);

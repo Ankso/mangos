@@ -56,6 +56,8 @@ BattleGroundSA::BattleGroundSA()
 	Round_timer = 0;
 	team = 0;
 	Phase = 1;
+    timeToFly = 110000; // 10 seconds after the battle starts, players will leave the start location flying to docks
+    players_sent = false;
 }
 
 BattleGroundSA::~BattleGroundSA()
@@ -131,6 +133,16 @@ void BattleGroundSA::Update(uint32 diff)
 {
     BattleGround::Update(diff);
 
+    if (GetStatus() == STATUS_WAIT_JOIN && !players_sent)
+    {
+        if (timeToFly <= diff)
+        {
+            LetsFly();
+            players_sent = true;
+        }
+        else
+            timeToFly -= diff;
+    }
     if (GetStatus() == STATUS_IN_PROGRESS)
     {
         if (Round_timer >= BG_SA_ROUNDLENGTH)
@@ -146,7 +158,9 @@ void BattleGroundSA::Update(uint32 diff)
 				SendMessageToAll(LANG_BG_SA_NETRALL_END_2ROUND, CHAT_MSG_BG_SYSTEM_NEUTRAL, NULL);
 				EndBattleGround(0);
 			}
-		} else Round_timer += diff;
+		} 
+        else 
+            Round_timer += diff;
 
         for (int gyd = 0; gyd < BG_SA_GRY_MAX; ++gyd)
         {
@@ -215,7 +229,9 @@ void BattleGroundSA::Update(uint32 diff)
 			SendMessageToAll(LANG_BG_SA_HAS_BEGUN, CHAT_MSG_BG_SYSTEM_NEUTRAL, NULL);
             SendWarningToAll(LANG_BG_SA_HAS_BEGUN);
             LetsFly();
-		} else TimeST2Round -= diff;
+		} 
+        else 
+            TimeST2Round -= diff;
 
 		if ((TimeST2Round / 2) == 15000)
 			SendMessageToAll(LANG_BG_SA_START_HALF_MINUTE, CHAT_MSG_BG_SYSTEM_NEUTRAL, NULL);
@@ -328,7 +344,9 @@ void BattleGroundSA::ResetBattle(uint32 vinner)
         ++horde_sc;
 
 	Phase = 2;
-
+    timeToFly = 50000;
+    players_sent = false;
+    
 	for (int32 i = 0; i <= BG_SA_GATE_MAX; ++i)
 		GateStatus[i] = 1;
 

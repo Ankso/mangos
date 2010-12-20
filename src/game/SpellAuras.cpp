@@ -5380,9 +5380,14 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
         // Necrotic Plague - handle jump to nearest unit at DoT expire - Boss The Lich King
         else if (spellProto->Id == 70337)
         {
+            
             Unit *newTarget = GetCaster()->SelectNearestTarget(NULL, 500);
             if (newTarget == NULL)
                 return;
+            
+            if (((Totem*)newTarget)->IsTotem())
+                return;
+
             bool isPlayer = (newTarget->GetTypeId() == TYPEID_PLAYER);
             if (m_removeMode == AURA_REMOVE_BY_DISPEL)
             {
@@ -5404,8 +5409,13 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
         else if (spellProto->Id == 73913)
         {
             Unit *newTarget = GetCaster()->SelectNearestTarget(NULL, 500);
+            
             if (newTarget == NULL)
                 return;
+            
+            if (((Totem*)newTarget)->IsTotem())
+                return;
+
             bool isPlayer = (newTarget->GetTypeId() == TYPEID_PLAYER);
             if (m_removeMode == AURA_REMOVE_BY_DISPEL)
             {
@@ -5427,8 +5437,13 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
         else if (spellProto->Id == 73912)
         {
             Unit *newTarget = GetCaster()->SelectNearestTarget(NULL, 500);
+            
             if (newTarget == NULL)
                 return;
+            
+            if (((Totem*)newTarget)->IsTotem())
+                return;
+
             bool isPlayer = (newTarget->GetTypeId() == TYPEID_PLAYER);
             if (m_removeMode == AURA_REMOVE_BY_DISPEL)
             {
@@ -5449,9 +5464,14 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
         }
         else if (spellProto->Id ==  73914)
         {
-            Unit *newTarget = GetCaster()->SelectNearestTarget(NULL, 500);
+            Unit *newTarget = GetCaster()->SelectNearestTarget(NULL, 500); 
+            
             if (newTarget == NULL)
                 return;
+            
+            if (((Totem*)newTarget)->IsTotem())
+                return;
+
             bool isPlayer = (newTarget->GetTypeId() == TYPEID_PLAYER);
             if (m_removeMode == AURA_REMOVE_BY_DISPEL)
             {
@@ -5460,14 +5480,6 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
                         newTarget->CastSpell(newTarget, 73912, true);
                 else if (!newTarget->HasAura(70337) && !newTarget->HasAura(73912) && !newTarget->HasAura(73914) && !newTarget->HasAura(73913))
                         newTarget->CastSpell(newTarget, 73912, true);
-            }
-            else if (m_removeMode == AURA_REMOVE_BY_EXPIRE || AURA_REMOVE_BY_DEATH)
-            {
-                if (!isPlayer)
-                    if (!((Creature*)newTarget)->IsWorldBoss())
-                        newTarget->CastSpell(newTarget, 73914, true);
-                else if (!newTarget->HasAura(70337) && !newTarget->HasAura(73912) && !newTarget->HasAura(73914) && !newTarget->HasAura(73913))
-                        newTarget->CastSpell(newTarget, 73914, true);
             }
         }
     }
