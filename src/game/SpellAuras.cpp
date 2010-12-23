@@ -5099,6 +5099,19 @@ void Aura::HandlePeriodicTriggerSpell(bool apply, bool /*Real*/)
                     if (Unit* pCaster = GetCaster())
                         pCaster->CastSpell(target, GetSpellProto()->EffectTriggerSpell[GetEffIndex()], true, NULL, this);
                 }
+            case 69279: // Gas spore
+                if (!apply)
+                {
+                    if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
+                    {
+                         // Cast unknown spell - spore explode (override)
+                         float radius = 10.0f; // Hardcoded
+                         Map::PlayerList const& pList = target->GetMap()->GetPlayers();
+                         for (Map::PlayerList::const_iterator itr = pList.begin(); itr != pList.end(); ++itr)
+                             if (itr->getSource() && itr->getSource()->IsWithinDistInMap(target,radius))
+                                 itr->getSource()->CastSpell(itr->getSource(), 69291, true);
+                    }
+                }
 
                 return;
             default:
@@ -9236,7 +9249,7 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                 }
                 case 69290:
                 {
-                    if (!apply)
+                    /*if (!apply)
                     {
                         if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
                         {
@@ -9249,7 +9262,7 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                                  if (itr->getSource() && itr->getSource()->IsWithinDistInMap(m_target,radius))
                                      itr->getSource()->CastSpell(itr->getSource(), spellId1, true);
                         }
-                    }
+                    }*/
                     break;
                 }
                 default:
