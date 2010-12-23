@@ -5854,7 +5854,7 @@ SpellCastResult Spell::CheckPetCast(Unit* target)
     if(m_caster->GetTypeId()==TYPEID_UNIT && (((Creature*)m_caster)->IsPet() || m_caster->isCharmed()))
     {
                                                             //dead owner (pets still alive when owners ressed?)
-        if(m_caster->GetCharmerOrOwner() && !m_caster->GetCharmerOrOwner()->isAlive())
+        if(m_caster->GetCharmerOrOwner() && (!m_caster->GetCharmerOrOwner()->isAlive() && !(m_caster->GetCharmerOrOwner()->getDeathState() == GHOULED)))
             return SPELL_FAILED_CASTER_DEAD;
 
         if(!target && m_targets.getUnitTarget())
@@ -6806,7 +6806,7 @@ void Spell::UpdateOriginalCasterPointer()
 {
     if(m_originalCasterGUID == m_caster->GetObjectGuid())
         m_originalCaster = m_caster;
-    else if (m_originalCasterGUID.IsGameobject())
+    else if (m_originalCasterGUID.IsGameObject())
     {
         GameObject* go = m_caster->IsInWorld() ? m_caster->GetMap()->GetGameObject(m_originalCasterGUID) : NULL;
         m_originalCaster = go ? go->GetOwner() : NULL;
@@ -7280,14 +7280,14 @@ WorldObject* Spell::GetAffectiveCasterObject() const
     if (m_originalCasterGUID.IsEmpty())
         return m_caster;
 
-    if (m_originalCasterGUID.IsGameobject() && m_caster->IsInWorld())
+    if (m_originalCasterGUID.IsGameObject() && m_caster->IsInWorld())
         return m_caster->GetMap()->GetGameObject(m_originalCasterGUID);
     return m_originalCaster;
 }
 
 WorldObject* Spell::GetCastingObject() const
 {
-    if (m_originalCasterGUID.IsGameobject())
+    if (m_originalCasterGUID.IsGameObject())
         return m_caster->IsInWorld() ? m_caster->GetMap()->GetGameObject(m_originalCasterGUID) : NULL;
     else
         return m_caster;
