@@ -54,6 +54,7 @@
 #include "Util.h"
 #include "TemporarySummon.h"
 #include "ScriptCalls.h"
+#include "ScriptMgr.h"
 #include "SkillDiscovery.h"
 #include "Formulas.h"
 #include "GridNotifiers.h"
@@ -1382,16 +1383,14 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     return;
                 }
                 // Demon Broiled Surprise
-                /* FIX ME: Required for correct work implementing implicit target 7 (in pair (22,7))
                 case 43723:
                 {
                     if (m_caster->GetTypeId() != TYPEID_PLAYER)
                         return;
 
-                    ((Player*)m_caster)->CastSpell(unitTarget, 43753, true);
+                    ((Player*)m_caster)->CastSpell(unitTarget, 43753, true, m_CastItem, NULL, m_originalCasterGUID, m_spellInfo);
                     return;
                 }
-                */
                 case 43882:                                 // Scourging Crystal Controller Dummy
                 {
                     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_UNIT)
@@ -2888,16 +2887,6 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 m_caster->CastCustomSpell(m_caster, 45470, &bp, NULL, NULL, true);
                 return;
             }
-            // Raise ally
-            else if (m_spellInfo->Id == 61999)
-            {
-                if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER || unitTarget->isAlive())
-                    return;
-
-                // hack remove death
-                unitTarget->CastSpell(unitTarget, m_spellInfo->CalculateSimpleValue(eff_idx), true);
-                return;
-            }
             // Death Grip
             else if (m_spellInfo->Id == 49576)
             {
@@ -2939,8 +2928,6 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 // consume diseases
                 unitTarget->RemoveAurasWithDispelType(DISPEL_DISEASE, m_caster->GetGUID());
             }
-            else if (m_spellInfo->Id == 46584)
-                return;
             break;
         }
     }
@@ -5167,15 +5154,16 @@ void Spell::DoSummonVehicle(SpellEffectIndex eff_idx, uint32 forceFaction)
         else 
             return;
     }
-
     uint32 vehicle_entry = m_spellInfo->EffectMiscValue[eff_idx];
 
     if (!vehicle_entry)
         return;
 
-    uint32 mountSpellID = (m_spellInfo->EffectBasePoints[eff_idx] <= 1) ?
-                           46598 : m_spellInfo->EffectBasePoints[eff_idx]+1;
-    // Used MiscValue mount spell, if not present - hardcoded (by Blzz).
+    SpellEntry const* m_mountspell = sSpellStore.LookupEntry(m_spellInfo->EffectBasePoints[eff_idx] != 0 ? m_spellInfo->CalculateSimpleValue(eff_idx) : 46598);
+
+    if (!m_mountspell)
+        m_mountspell = sSpellStore.LookupEntry(46598);
+    // Used BasePoint mount spell, if not present - hardcoded (by Blzz).
 
     float px, py, pz;
     // If dest location present
@@ -5204,8 +5192,8 @@ void Spell::DoSummonVehicle(SpellEffectIndex eff_idx, uint32 forceFaction)
     {
         vehicle->setFaction(forceFaction ? forceFaction : m_caster->getFaction());
         vehicle->SetUInt32Value(UNIT_CREATED_BY_SPELL,m_spellInfo->Id);
-        m_caster->CastSpell(vehicle, mountSpellID, true);
-        DEBUG_LOG("Caster (guidlow %d) summon vehicle (guidlow %d, entry %d) and mounted with spell %d ", m_caster->GetGUIDLow(), vehicle->GetGUIDLow(), vehicle->GetEntry(), mountSpellID);
+        m_caster->CastSpell(vehicle, m_mountspell, true);
+        DEBUG_LOG("Caster (guidlow %d) summon vehicle (guidlow %d, entry %d) and mounted with spell %d ", m_caster->GetGUIDLow(), vehicle->GetGUIDLow(), vehicle->GetEntry(), m_mountspell->Id);
     }
     else
         sLog.outError("Vehicle (guidlow %d, entry %d) NOT summoned by undefined reason. ", vehicle->GetGUIDLow(), vehicle->GetEntry());
@@ -7635,17 +7623,13 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                     // If have 52143 spell - summoned pet from dummy effect
                     // Another case summoned guardian from script effect
-                    uint32 triggered_spell_id;
-                    if (!m_caster->HasSpell(52143))
-                        triggered_spell_id = m_spellInfo->EffectBasePoints[eff_idx]+1;
-                    else
-                        triggered_spell_id = m_spellInfo->EffectBasePoints[EFFECT_INDEX_2]+1;
+                    uint32 triggered_spell_id = m_spellInfo->CalculateSimpleValue(SpellEffectIndex(m_caster->HasSpell(52143) ? EFFECT_INDEX_2 : EFFECT_INDEX_1));
 
                     float x,y,z;
 
                     m_caster->GetClosePoint(x, y, z, m_caster->GetObjectBoundingRadius(), PET_FOLLOW_DIST);
 
-                    if ( unitTarget != m_caster )
+                    if ( unitTarget != (Unit*)m_caster )
                     {
                         m_caster->CastSpell(unitTarget->GetPositionX(),unitTarget->GetPositionY(),unitTarget->GetPositionZ(),triggered_spell_id, true, NULL, NULL, m_caster->GetObjectGuid(), m_spellInfo);
                         unitTarget->RemoveFromWorld();
@@ -7662,12 +7646,33 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     else
                     {
                         SendCastResult(SPELL_FAILED_REAGENTS);
-                        finish();
+                        finish(true);
                         CancelGlobalCooldown();
                         return;
                     }
                     ((Player*)m_caster)->RemoveSpellCooldown(triggered_spell_id,true);
-                    break;
+                    finish(true);
+                    CancelGlobalCooldown();
+                    return;
+                }
+                // Raise ally
+                case 61999:
+                {
+                    if (m_caster->GetTypeId() != TYPEID_PLAYER)
+                        return;
+
+                    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER || unitTarget->isAlive())
+                    {
+                        SendCastResult(SPELL_FAILED_TARGET_NOT_DEAD);
+                        finish(true);
+                        CancelGlobalCooldown();
+                        return;
+                    }
+
+                    // hack remove death
+                    unitTarget->CastSpell(unitTarget, m_spellInfo->CalculateSimpleValue(EFFECT_INDEX_0), true);
+                    CancelGlobalCooldown();
+                    return;
                 }
                 default:
                     break;
@@ -8380,13 +8385,11 @@ void Spell::EffectReputation(SpellEffectIndex eff_idx)
 
 void Spell::EffectQuestComplete(SpellEffectIndex eff_idx)
 {
-    if(m_caster->GetTypeId() != TYPEID_PLAYER)
+    if (unitTarget->GetTypeId() != TYPEID_PLAYER)
         return;
 
-    Player *_player = (Player*)m_caster;
-
     uint32 quest_id = m_spellInfo->EffectMiscValue[eff_idx];
-    _player->AreaExploredOrEventHappens(quest_id);
+    ((Player*)unitTarget)->AreaExploredOrEventHappens(quest_id);
 }
 
 void Spell::EffectSelfResurrect(SpellEffectIndex eff_idx)

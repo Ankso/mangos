@@ -538,18 +538,29 @@ namespace MaNGOS
 
                 return i_fobj->IsWithinDistInMap(u, i_range);
             }
-            bool operator()(Corpse* u)
-            {
-                // ignore bones
-                if(u->GetType() == CORPSE_BONES)
-                    return false;
-
-                return i_fobj->IsWithinDistInMap(u, i_range);
-            }
+            bool operator()(Corpse* u);
             bool operator()(Creature* u)
             {
                 if ( u->isAlive() || u->IsDeadByDefault() || u->IsTaxiFlying() ||
                    ( u->GetCreatureTypeMask() & CREATURE_TYPEMASK_HUMANOID_OR_UNDEAD) == 0 )
+                    return false;
+
+                return i_fobj->IsWithinDistInMap(u, i_range);
+            }
+            template<class NOT_INTERESTED> bool operator()(NOT_INTERESTED*) { return false; }
+        private:
+            WorldObject const* i_fobj;
+            float i_range;
+    };
+
+    class RaiseAllyObjectCheck
+    {
+        public:
+            RaiseAllyObjectCheck(WorldObject const* fobj, float range) : i_fobj(fobj), i_range(range) {}
+            WorldObject const& GetFocusObject() const { return *i_fobj; }
+            bool operator()(Player* u)
+            {
+                if( u->isAlive() || u->IsTaxiFlying() || !i_fobj->IsFriendlyTo(u) )
                     return false;
 
                 return i_fobj->IsWithinDistInMap(u, i_range);
