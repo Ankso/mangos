@@ -18,7 +18,7 @@ DeleTe From `npc_spellclick_spells` WHERE npc_entry in (28781);
 INSERT INTO `npc_spellclick_spells` VALUES ('28781', '60968', '0', '0', '0', '0');
 
 -- AP Cannon
-UPDATE `creature_template` SET `npcflag` = '1', unit_flags = 8, minhealth = '60000', maxhealth = '60000', `faction_A` = '35', `faction_H` = '35', `ScriptName` = 'npc_sa_cannon' WHERE entry = '27894';
+UPDATE `creature_template` SET `npcflag` = '1', unit_flags = 32768, type_flags = 131080, dynamicflags = 8, minhealth = '60000', maxhealth = '60000', `faction_A` = '35', `faction_H` = '35', `ScriptName` = 'npc_sa_cannon' WHERE entry = '27894';
 DeleTe From `npc_spellclick_spells` WHERE npc_entry in (27894);
 INSERT INTO `npc_spellclick_spells` VALUES ('27894', '60968', '0', '0', '0', '0');
 

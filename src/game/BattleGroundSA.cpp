@@ -56,13 +56,13 @@ BattleGroundSA::BattleGroundSA()
 	Round_timer = 0;
 	team = 0;
 	Phase = 1;
-    timeToFly = 110000; // 10 seconds after the battle starts, players will leave the start location flying to docks
+    timeToFly = 10000000; // Very high time, real timeToFly time will be set at first GetStartDelayTime() update.
+    timeToFly_set = false;
     players_sent = false;
 }
 
 BattleGroundSA::~BattleGroundSA()
 {
-
 }
 
 void BattleGroundSA::FillInitialWorldStates(WorldPacket& data, uint32& count)
@@ -133,16 +133,26 @@ void BattleGroundSA::Update(uint32 diff)
 {
     BattleGround::Update(diff);
 
-    if (GetStatus() == STATUS_WAIT_JOIN && !players_sent)
-    {
-        if (timeToFly <= diff)
+    // Set timeToFly when start delay time has started to change.
+    if (!timeToFly_set)
+        if (GetStartDelayTime() != 0)
         {
+            timeToFly = GetStartDelayTime() - 6000;
+            timeToFly_set = true;
+        }
+
+    DEBUG_LOG("DEBUG: time to send players: %u", timeToFly);
+    if (GetStatus() == STATUS_WAIT_JOIN && !players_sent)
+        if (timeToFly_set && timeToFly < diff)
+        {
+            OpenDoorEvent(SA_EVENT_OP_DOOR, 0);
             LetsFly();
             players_sent = true;
+            timeToFly = TimeST2Round + 26000;
         }
         else
             timeToFly -= diff;
-    }
+
     if (GetStatus() == STATUS_IN_PROGRESS)
     {
         if (Round_timer >= BG_SA_ROUNDLENGTH)
@@ -219,6 +229,14 @@ void BattleGroundSA::Update(uint32 diff)
 	}
 	if (GetStatus() == STATUS_WAIT_JOIN && Phase == 2)
     {
+        if (timeToFly <= diff && !players_sent)
+        {
+            players_sent = true;
+            OpenDoorEvent(SA_EVENT_OP_DOOR, 0);
+            LetsFly();
+        }
+        else
+            timeToFly -= diff;
 		if (TimeST2Round < diff)
 		{
 			Phase = 2;
@@ -228,7 +246,7 @@ void BattleGroundSA::Update(uint32 diff)
 			PlaySoundToAll(SOUND_BG_START);
 			SendMessageToAll(LANG_BG_SA_HAS_BEGUN, CHAT_MSG_BG_SYSTEM_NEUTRAL, NULL);
             SendWarningToAll(LANG_BG_SA_HAS_BEGUN);
-            LetsFly();
+            RemoveParachute();
 		} 
         else 
             TimeST2Round -= diff;
@@ -252,10 +270,9 @@ void BattleGroundSA::StartingEventCloseDoors()
 
 void BattleGroundSA::StartingEventOpenDoors()
 {
-	OpenDoorEvent(SA_EVENT_OP_DOOR, 0);
 	SpawnEvent(SA_EVENT_ADD_NPC, 0, true);
 	ToggleTimer();
-    LetsFly();
+    RemoveParachute();
 }
 
 void BattleGroundSA::RemovePlayer(Player* /*plr*/, ObjectGuid /*guid*/)
@@ -344,7 +361,6 @@ void BattleGroundSA::ResetBattle(uint32 vinner)
         ++horde_sc;
 
 	Phase = 2;
-    timeToFly = 50000;
     players_sent = false;
     
 	for (int32 i = 0; i <= BG_SA_GATE_MAX; ++i)
@@ -1017,19 +1033,6 @@ void BattleGroundSA::TeleportPlayerToCorrectLoc(Player *plr, bool resetBattle)
 {
     if (!plr)
         return;
-
-    if (resetBattle)
-    {
-        if (!plr->isAlive())
-        {
-            plr->ResurrectPlayer(1.0f);
-            plr->SpawnCorpseBones();
-        }
-
-        plr->SetHealth(plr->GetMaxHealth());
-        plr->SetPower(POWER_MANA, plr->GetMaxPower(POWER_MANA));
-        plr->CombatStopWithPets(true);
-    }
     
     if (GetStatus() != STATUS_IN_PROGRESS || resetBattle)
     {
@@ -1055,6 +1058,18 @@ void BattleGroundSA::TeleportPlayerToCorrectLoc(Player *plr, bool resetBattle)
         else
             plr->TeleportTo(607, BG_SA_START_LOCATIONS[4][0], BG_SA_START_LOCATIONS[4][1], BG_SA_START_LOCATIONS[4][2], BG_SA_START_LOCATIONS[4][3]);
     }
+    if (resetBattle)
+    {
+        if (!plr->isAlive())
+        {
+            plr->ResurrectPlayer(1.0f);
+            plr->SpawnCorpseBones();
+        }
+
+        plr->SetHealth(plr->GetMaxHealth());
+        plr->SetPower(POWER_MANA, plr->GetMaxPower(POWER_MANA));
+        plr->CombatStopWithPets(true);
+    }
 }
 
 void BattleGroundSA::LetsFly()
@@ -1071,10 +1086,45 @@ void BattleGroundSA::LetsFly()
                 // This is custom, I haven't implemented boats yet, so, fly!
                 player->CastSpell(player, 54168, true); // Parachute :)
                 if (player->GetPositionY() < 0)
-                    player->SendMonsterMove(1597.637f, -106.348f, 8.888f, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 10000);
+                    player->SendMonsterMove(1597.637f, -106.348f, 8.888f, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 5);
                 else
-                    player->SendMonsterMove(1606.608f, 50.1236f, 7.58f, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 10000);
+                    player->SendMonsterMove(1606.608f, 50.1236f, 7.58f, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 5);
             }
         }
     }
+}
+
+void BattleGroundSA::RemoveParachute()
+{
+    for (BattleGroundPlayerMap::const_iterator iter = m_Players.begin(); iter != m_Players.end(); ++iter)
+        if (Player *player = sObjectMgr.GetPlayer(iter->first))
+            if (player->HasAura(54168))
+                player->RemoveAurasDueToSpell(54168);
+}
+
+uint32 BattleGroundSA::GetCorrectFactionSA(uint8 vehicleType) const
+{
+    if (GetStatus() != STATUS_WAIT_JOIN)
+    {
+        switch(vehicleType)
+        {
+            case VEHICLE_SA_DEMOLISHER:
+            {
+                if (GetController() == ALLIANCE)
+                    return VEHICLE_FACTION_HORDE;
+                else
+                    return VEHICLE_FACTION_ALLIANCE;
+            }
+            case VEHICLE_SA_CANNON:
+            {
+                if (GetController() == ALLIANCE)
+                    return VEHICLE_FACTION_ALLIANCE;
+                else
+                    return VEHICLE_FACTION_HORDE;
+            }
+            default:
+                return VEHICLE_FACTION_NEUTRAL;
+        }
+    }
+    return VEHICLE_FACTION_NEUTRAL;
 }

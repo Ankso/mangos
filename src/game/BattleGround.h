@@ -369,9 +369,10 @@ class BattleGround
         bool IsRandom() { return m_IsRandom; }
 
         //START//////////SA and IC /////////START//
-        virtual uint32 GetController()				  const	{ return false; }
+        virtual uint32 GetController() const	             { return false; }
         virtual uint8  GetGydController(uint8 /*gyd*/) const { return false; }
         virtual uint8  GetNodeControll(uint8 /*node*/) const { return false; }
+        virtual uint32 GetVehicleFaction(uint8 vehicleType) const { return 35; }
         //END////////////SA and IC ///////////END//
 
         // Set methods:

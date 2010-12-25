@@ -155,6 +155,19 @@ enum BG_SA_type_gyd_attack
     STATUS_CONQUESTED       = 1
 };
 
+enum VehicleFactions
+{
+    VEHICLE_FACTION_NEUTRAL  = 35,
+    VEHICLE_FACTION_ALLIANCE = 3,
+    VEHICLE_FACTION_HORDE    = 6
+};
+
+enum VehicleTypes
+{
+    VEHICLE_UNK           = 0,
+    VEHICLE_SA_DEMOLISHER = 1,
+    VEHICLE_SA_CANNON     = 2
+};
 static float BG_SA_START_LOCATIONS[5][4] = {
     {1804.10f, -168.46f, 60.55f, 2.65f},  // Pillar 1
     {1803.71f, 118.61f, 59.83f, 3.56f},   // Pillar 2
@@ -196,6 +209,7 @@ class BattleGroundSA : public BattleGround
 
         uint32 GetController() const	{ return controller; }
 		uint8 GetGydController(uint8 gyd) const { return m_Gyd[gyd]; }
+        uint32 GetVehicleFaction(uint8 vehicleType) const { return GetCorrectFactionSA(vehicleType); }
         void RemovePlayer(Player *plr, ObjectGuid guid);
         void HandleAreaTrigger(Player *Source, uint32 Trigger);
 		void EndBattleGround(uint32 winner);
@@ -213,15 +227,19 @@ class BattleGroundSA : public BattleGround
 		uint32 Round_timer;
 		uint32 TimeST2Round;
         uint32 timeToFly;
+        bool timeToFly_set;
         bool players_sent;
 		/* Scorekeeping */
 		void RewardMedalsToTeam(uint32 teamid, bool winner);
         void UpdatePlayerScore(Player *Source, uint32 type, uint32 value);
         /* For SendWarningToAll */
         void SendWarningToAllSA(uint8 gyd, int status, Team team, bool isDoor = false, int door = NULL, bool destroyed = false);
+        /* For vehicle's faction*/
+        uint32 GetCorrectFactionSA(uint8 vehicleType) const;
         /* Custom */
         void TeleportPlayerToCorrectLoc(Player *player, bool resetBattle = false);
         void LetsFly();
+        void RemoveParachute();
     private:
         uint8               m_Gyd[BG_SA_GRY_MAX];
         uint8               m_prevGyd[BG_SA_GRY_MAX];   // used for performant wordlstate-updating
