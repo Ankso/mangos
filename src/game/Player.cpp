@@ -17546,8 +17546,6 @@ void Player::SaveToDB()
     CharacterDatabase.Execute( ps.str().c_str() );
     /* WoWArmory */
 
-    CharacterDatabase.PExecute("DELETE FROM characters WHERE guid = '%u'",GetGUIDLow());
-
     std::string sql_name = m_name;
     CharacterDatabase.escape_string(sql_name);
 
