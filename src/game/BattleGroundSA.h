@@ -87,7 +87,8 @@ enum BG_SA_GraveYard
 enum BG_SA_Timers
 {
     BG_SA_FLAG_CAPTURING_TIME           = 60000,
-	BG_SA_ROUNDLENGTH					= 600000
+	BG_SA_ROUNDLENGTH					= 600000,
+    BG_SA_BOAT_START                    = 60000
 };
 
 enum BG_SA_GateStatus
@@ -142,6 +143,13 @@ struct BG_SA_BannerTimer
     uint8       teamIndex;
 };
 
+enum BG_SA_Boats
+{
+    BG_SA_BOAT_ONE,
+    BG_SA_BOAT_TWO,
+    BG_SA_MAXOBJ = 2
+};
+
 enum BG_SA_MessageType
 {
 	BG_SA_ATTACK			= 0,
@@ -162,18 +170,35 @@ enum VehicleFactions
     VEHICLE_FACTION_HORDE    = 6
 };
 
+/* Ships:
+ * 193182 - ally
+ * 193183 - horde
+ * 193184 - horde
+ * 193185 - ally
+ */
+enum BG_SA_Boat
+{
+    BG_SA_BOAT_ONE_A = 193182,
+    BG_SA_BOAT_TWO_H = 193183,
+    BG_SA_BOAT_ONE_H = 193184,
+    BG_SA_BOAT_TWO_A = 193185
+};
+
 enum VehicleTypes
 {
     VEHICLE_UNK           = 0,
     VEHICLE_SA_DEMOLISHER = 1,
     VEHICLE_SA_CANNON     = 2
 };
-static float BG_SA_START_LOCATIONS[5][4] = {
-    {1804.10f, -168.46f, 60.55f, 2.65f},  // Pillar 1
-    {1803.71f, 118.61f, 59.83f, 3.56f},   // Pillar 2
+static float BG_SA_START_LOCATIONS[7][4] = {
+    {1804.10f, -168.46f, 60.55f, 2.65f},  // Pillar 1 - don't used now
+    {1803.71f, 118.61f, 59.83f, 3.56f},   // Pillar 2 - don't used now
     {1597.64f, -106.35f, 8.89f, 4.13f},   // Dock 1
     {1606.61f, 50.13f, 7.58f, 2.39f},     // Dock 2
-    {1209.70f, -65.16f, 70.10f, 0.00f}    // Defenders start loc
+    {1209.70f, -65.16f, 70.10f, 0.00f},   // Defenders start loc
+    //Ships
+    { 2679.696777f, -826.891235f, 3.712860f, 5.78367f}, //rot2 1 rot3 0.0002f
+    { 2574.003662f, 981.261475f, 2.603424f, 0.807696f}
 };
 
 class BattleGroundSAScore : public BattleGroundScore
@@ -226,20 +251,24 @@ class BattleGroundSA : public BattleGround
 		uint32 team;
 		uint32 Round_timer;
 		uint32 TimeST2Round;
-        uint32 timeToFly;
-        bool timeToFly_set;
-        bool players_sent;
+        bool shipsStarted;
+        uint32 shipsTimer;
 		/* Scorekeeping */
 		void RewardMedalsToTeam(uint32 teamid, bool winner);
         void UpdatePlayerScore(Player *Source, uint32 type, uint32 value);
+        /* For boats */
+        bool SetupShips();
+        void StartShips();
+        // Send packet to player for create boats (client part)
+        void SendTransportInit(Player *player);
+        // Send packet to player for destroy boats (client part)
+        void SendTransportsRemove(Player * player);
         /* For SendWarningToAll */
         void SendWarningToAllSA(uint8 gyd, int status, Team team, bool isDoor = false, int door = NULL, bool destroyed = false);
         /* For vehicle's faction*/
         uint32 GetCorrectFactionSA(uint8 vehicleType) const;
-        /* Custom */
+        /* This teleports player to correct loc in function of BG status and it resurects player if necesary */
         void TeleportPlayerToCorrectLoc(Player *player, bool resetBattle = false);
-        void LetsFly();
-        void RemoveParachute();
     private:
         uint8               m_Gyd[BG_SA_GRY_MAX];
         uint8               m_prevGyd[BG_SA_GRY_MAX];   // used for performant wordlstate-updating
