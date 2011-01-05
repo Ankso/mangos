@@ -4262,7 +4262,7 @@ void Aura::HandleAuraModDisarmOffhand(bool apply, bool Real)
 
     Unit *target = GetTarget();
 
-	if(!apply && target->HasAuraType(SPELL_AURA_MOD_DISARM_SHIELD))
+	if(!apply && target->HasAuraType(SPELL_AURA_MOD_DISARM_OFFHAND))
 		return;
 
     // not sure for it's correctness
