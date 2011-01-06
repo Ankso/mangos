@@ -2278,6 +2278,9 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         void SendCinematicStart(uint32 CinematicSequenceId);
         void SendMovieStart(uint32 MovieId);
+        
+        // Custom xp rating system
+        uint8 xp_rate;
 
         /*********************************************************/
         /***                 INSTANCE SYSTEM                   ***/

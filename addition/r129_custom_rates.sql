@@ -1,0 +1,1 @@
+ALTER TABLE `characters` ADD COLUMN `xp_rate` INT(8) UNSIGNED NOT NULL DEFAULT '1' AFTER `actionbars`;
