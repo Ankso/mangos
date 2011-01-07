@@ -763,6 +763,7 @@ ChatCommand * ChatHandler::getCommandTable()
         { "waterwalk",      SEC_GAMEMASTER,     false, &ChatHandler::HandleWaterwalkCommand,           "", NULL },
         { "quit",           SEC_CONSOLE,        true,  &ChatHandler::HandleQuitCommand,                "", NULL },
         { "mmap",           SEC_GAMEMASTER,     false, NULL,                                           "", mmapCommandTable },
+        { "rates",          SEC_PLAYER,         false, &ChatHandler::HandleRatesCommand,               "", NULL },
 
         { NULL,             0,                  false, NULL,                                           "", NULL }
     };

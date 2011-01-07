@@ -580,6 +580,9 @@ class ChatHandler
         bool HandleMmap(char* args);
         bool HandleMmapTestArea(char* args);
 
+        // For custom rates per character system
+        bool HandleRatesCommand(char* args);
+
         //! Development Commands
         bool HandleSaveAllCommand(char* args);
 
