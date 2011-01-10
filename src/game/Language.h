@@ -976,6 +976,8 @@ enum MangosStrings
     LANG_OPVP_ZM_GOSSIP_HORDE           = 10060,
 
     // Use for custom patches             11000-11999
+    LANG_COMMAND_FRIEND                 = 11133,
+    LANG_COMMAND_FRIEND_ERROR           = 11134,
 
 ///////////////////////////// Battle Ground Strand of the Ancients /////////////////////////////
     LANG_BG_SA_START_TWO_MINUTE				= 20000,

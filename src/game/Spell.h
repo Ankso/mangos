@@ -358,6 +358,9 @@ class Spell
         // GO_TYPE_33
         void EffectDamageBuilding(SpellEffectIndex eff_idx);
 
+        //RAF system
+        void EffectFriendSummon(SpellEffectIndex eff_idx);
+
         Spell(Unit* caster, SpellEntry const *info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = NULL);
         ~Spell();
 
