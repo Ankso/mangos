@@ -2300,7 +2300,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             {
                 // Fingers of Frost stacks set to max at apply
                 if (GetId() == 74396)
-                    GetHolder()->SetAuraCharges(GetSpellProto()->StackAmount + 1);
+                    GetHolder()->SetAuraCharges(GetSpellProto()->StackAmount);
                 break;
             }
             case SPELLFAMILY_SHAMAN:
