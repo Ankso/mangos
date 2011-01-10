@@ -36,8 +36,9 @@
 #include "BattleGroundAV.h"
 #include "Util.h"
 #include "ScriptMgr.h"
+#include "OutdoorPvPMgr.h"
 
-GameObject::GameObject() : WorldObject()
+GameObject::GameObject() : WorldObject(), m_goValue(new GameObjectValue)
 {
     m_objectType |= TYPEMASK_GAMEOBJECT;
     m_objectTypeId = TYPEID_GAMEOBJECT;
@@ -53,6 +54,7 @@ GameObject::GameObject() : WorldObject()
     m_spellId = 0;
     m_cooldownTime = 0;
     m_goInfo = NULL;
+    m_goData = NULL;
 
     m_DBTableGuid = 0;
     m_rotation = 0;
@@ -62,13 +64,19 @@ GameObject::GameObject() : WorldObject()
 
 GameObject::~GameObject()
 {
+    delete m_goValue;
 }
 
 void GameObject::AddToWorld()
 {
     ///- Register the gameobject for guid lookup
     if(!IsInWorld())
+    {
+        if(m_zoneScript)
+            m_zoneScript->OnGameObjectCreate(this, true);
+
         GetMap()->GetObjectsStore().insert<GameObject>(GetGUID(), (GameObject*)this);
+    }
 
     Object::AddToWorld();
 }
@@ -78,6 +86,9 @@ void GameObject::RemoveFromWorld()
     ///- Remove the gameobject from the accessor
     if(IsInWorld())
     {
+        if(m_zoneScript)
+            m_zoneScript->OnGameObjectCreate(this, false);
+
         // Remove GO from owner
         ObjectGuid owner_guid = GetOwnerGuid();
         if (!owner_guid.IsEmpty())
@@ -97,7 +108,7 @@ void GameObject::RemoveFromWorld()
     Object::RemoveFromWorld();
 }
 
-bool GameObject::Create(uint32 guidlow, uint32 name_id, Map *map, uint32 phaseMask, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint8 animprogress, GOState go_state)
+bool GameObject::Create(uint32 guidlow, uint32 name_id, Map *map, uint32 phaseMask, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint8 animprogress, GOState go_state, uint32 artKit)
 {
     MANGOS_ASSERT(map);
     Relocate(x,y,z,ang);
@@ -157,6 +168,11 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map *map, uint32 phaseMa
         SetGoAnimProgress(255);
     }
 
+    SetByteValue(GAMEOBJECT_BYTES_1, 2, artKit);
+
+    if (goinfo->type == GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING)
+        m_goValue->destructibleBuilding.health = goinfo->destructibleBuilding.intactNumHits + goinfo->destructibleBuilding.damagedNumHits;
+
     //Notify the map's instance data.
     //Only works if you create the object in it, not if it is moves to that map.
     //Normally non-players do not teleport to other maps.
@@ -171,6 +187,8 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map *map, uint32 phaseMa
         if (goinfo->transport.startOpen)
             SetGoState(GO_STATE_ACTIVE);
     }
+
+    SetZoneScript();
 
     return true;
 }
@@ -640,6 +658,8 @@ bool GameObject::LoadFromDB(uint32 guid, Map *map)
         }
     }
 
+    m_goData = data;
+
     return true;
 }
 
@@ -650,11 +670,6 @@ void GameObject::DeleteFromDB()
     WorldDatabase.PExecuteLog("DELETE FROM gameobject WHERE guid = '%u'", m_DBTableGuid);
     WorldDatabase.PExecuteLog("DELETE FROM game_event_gameobject WHERE guid = '%u'", m_DBTableGuid);
     WorldDatabase.PExecuteLog("DELETE FROM gameobject_battleground WHERE guid = '%u'", m_DBTableGuid);
-}
-
-GameObjectInfo const *GameObject::GetGOInfo() const
-{
-    return m_goInfo;
 }
 
 /*********************************************************/
@@ -706,7 +721,7 @@ Unit* GameObject::GetOwner() const
 
 void GameObject::SaveRespawnTime()
 {
-    if(m_respawnTime > time(NULL) && m_spawnedByDefault)
+    if(m_goData && m_goData->dbData && m_respawnTime > time(NULL) && m_spawnedByDefault)
         sObjectMgr.SaveGORespawnTime(m_DBTableGuid,GetInstanceId(),m_respawnTime);
 }
 
@@ -936,6 +951,29 @@ void GameObject::UseDoorOrButton(uint32 time_to_restore, bool alternative /* = f
     SetLootState(GO_ACTIVATED);
 
     m_cooldownTime = time(NULL) + time_to_restore;
+}
+
+void GameObject::SetGoArtKit(uint8 kit)
+{
+    SetByteValue(GAMEOBJECT_BYTES_1, 2, kit);
+    GameObjectData *data = const_cast<GameObjectData*>(sObjectMgr.GetGOData(m_DBTableGuid));
+    if(data)
+        data->artKit = kit;
+}
+
+void GameObject::SetGoArtKit(uint8 artkit, GameObject *go, uint32 lowguid)
+{
+    const GameObjectData *data = NULL;
+    if(go)
+    {
+        go->SetGoArtKit(artkit);
+        data = go->GetGOData();
+    }
+    else if(lowguid)
+        data = sObjectMgr.GetGOData(lowguid);
+
+    if(data)
+        const_cast<GameObjectData*>(data)->artKit = artkit;
 }
 
 void GameObject::SwitchDoorOrButton(bool activate, bool alternative /* = false */)
@@ -1536,7 +1574,10 @@ void GameObject::Use(Unit* user)
     SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellId);
     if (!spellInfo)
     {
-        sLog.outError("WORLD: unknown spell id %u at use action for gameobject (Entry: %u GoType: %u )", spellId,GetEntry(),GetGoType());
+        if(user->GetTypeId() != TYPEID_PLAYER || !sOutdoorPvPMgr.HandleCustomSpell((Player*)user,spellId,this))
+            sLog.outError("WORLD: unknown spell id %u at use action for gameobject (Entry: %u GoType: %u )", spellId,GetEntry(),GetGoType());
+        else
+            sLog.outDebug("WORLD: %u non-dbc spell was handled by OutdoorPvP", spellId);
         return;
     }
 
