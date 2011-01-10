@@ -830,7 +830,6 @@ class MANGOS_DLL_SPEC WorldSession
         void HandleQueryQuestsCompletedOpcode(WorldPacket& recv_data);
         void HandleQuestPOIQueryOpcode(WorldPacket& recv_data);
 
-<<<<<<< HEAD
         // Looking for Dungeon/Raid
         void HandleSetLfgCommentOpcode(WorldPacket & recv_data);
         void HandleLfgPlayerLockInfoRequestOpcode(WorldPacket& recv_data);
@@ -858,11 +857,9 @@ class MANGOS_DLL_SPEC WorldSession
         void SendLfgOfferContinue(uint32 dungeonEntry);
         void SendLfgTeleportError(uint8 err);
 
-=======
         // Refer-A-Friend
         void HandleGrantLevel(WorldPacket& recv_data);
         void HandleAcceptGrantLevel(WorldPacket& recv_data);
->>>>>>> 27dd955b7a38e98494cac9c82d8069e0ff2cc706
 
     private:
         // private trade methods
