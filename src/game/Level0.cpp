@@ -102,7 +102,7 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
     else
         full = _FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,REVISION_ID);
 
-    SendSysMessage("Revision ReinoDeLaOscuridad: [R130] || Conoce los ultimos cambios entrando en www.reinodelaoscuridad.com");
+    SendSysMessage("Revision ReinoDeLaOscuridad: [R131] || Conoce los ultimos cambios entrando en www.reinodelaoscuridad.com");
     //Don't send revision info to normal players, for some hacks, you need the server rev. =/
     if(chr->isGameMaster())
     {
@@ -119,7 +119,7 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
     return true;
 }
 
-#define MAX_ALLOWED_QUESTS 23
+#define MAX_ALLOWED_QUESTS 25
 
 bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
 {
@@ -144,6 +144,8 @@ bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
         12983,  
         12997,
         12886,
+        13828,  // Mastery of Melee (A/H)
+        13829,
         12856,  // Hodir chain bugged quests (A/H)
         24451,  // An Audience With The Arcanist (A/H) (For Quel'delar)
         24560   // Tempering the Blade (A/H) (For Quel'delar)

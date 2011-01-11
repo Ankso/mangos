@@ -1143,13 +1143,13 @@ void WorldSession::SendExternalMails()
  
                 MailDraft(subject, message)
                     .AddItem(ToMailItem)
-                    .AddMoney(money)
+                    .SetMoney(money)
                     .SendMailTo(MailReceiver(receiver), MailSender(MAIL_NORMAL, uint32(0), MAIL_STATIONERY_GM), MAIL_CHECK_MASK_RETURNED);
             }
             else
             {
                 MailDraft(subject, message)
-                    .AddMoney(money)
+                    .SetMoney(money)
                     .SendMailTo(MailReceiver(receiver), MailSender(MAIL_NORMAL, uint32(0), MAIL_STATIONERY_GM), MAIL_CHECK_MASK_RETURNED);
             }
             CharacterDatabase.PExecute("DELETE FROM mail_external WHERE id=%u", id);
