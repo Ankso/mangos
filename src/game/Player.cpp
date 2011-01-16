@@ -15919,7 +15919,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder *holder )
     //"resettalents_time, trans_x, trans_y, trans_z, trans_o, transguid, extra_flags, stable_slots, at_login, zone, online, death_expire_time, taxi_path, dungeon_difficulty,"
     // 39           40                41                42                    43          44          45              46           47               48              49
     //"arenaPoints, totalHonorPoints, todayHonorPoints, yesterdayHonorPoints, totalKills, todayKills, yesterdayKills, chosenTitle, knownCurrencies, watchedFaction, drunk,"
-    // 50      51      52      53      54      55      56      57      58         59          60             61              62      63           64          65
+    // 50      51      52      53      54      55      56      57      58         59          60             61              62      63           64          65               66
     //"health, power1, power2, power3, power4, power5, power6, power7, specCount, activeSpec, exploredZones, equipmentCache, ammoId, knownTitles, actionBars, grantableLevels, xp_rate  FROM characters WHERE guid = '%u'", GUID_LOPART(m_guid));
     QueryResult *result = holder->GetResult(PLAYER_LOGIN_QUERY_LOADFROM);
 
@@ -16468,7 +16468,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder *holder )
     }
 
     // Custom experience rate for each player
-    xp_rate = fields[65].GetUInt8();
+    xp_rate = fields[66].GetUInt8();
     if (xp_rate > 10)
         xp_rate = 10; // Preventive
     DETAIL_LOG("Custom experience rate for player %s is: %u", m_name.c_str(), xp_rate);
@@ -17917,8 +17917,6 @@ void Player::SaveToDB()
     CharacterDatabase.BeginTransaction();
 
     CharacterDatabase.Execute( ss.str().c_str() );
-
-    //CharacterDatabase.PExecute("UPDATE `characters` SET `xp_rate` = '%u' WHERE `guid` = '%u'", xp_rate, GetGUIDLow());
 
     if (m_mailsUpdated)                                     //save mails only when needed
         _SaveMail();
