@@ -393,6 +393,12 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                             // After explode the ghoul must be killed
                             unitTarget->DealDamage(unitTarget, unitTarget->GetMaxHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
                         }
+                    }
+                    // Touch the Nightmare
+                    case 50341:
+                    {
+                        if (effect_idx == EFFECT_INDEX_2)
+                            damage = int32(unitTarget->GetMaxHealth() * 0.3f);
                         break;
                     }
                     // Tympanic Tantrum
@@ -3832,7 +3838,7 @@ void Spell::EffectHealPct(SpellEffectIndex /*eff_idx*/)
         unitTarget->CalculateHealAbsorb(addhealth, &absorb);
 
         int32 gain = caster->DealHeal(unitTarget, addhealth - absorb, m_spellInfo, false, absorb);
-        unitTarget->getHostileRefManager().threatAssist(caster, float(gain) * 0.5f, m_spellInfo);
+        unitTarget->getHostileRefManager().threatAssist(caster, float(gain) * 0.5f * sSpellMgr.GetSpellThreatMultiplier(m_spellInfo), m_spellInfo);
     }
 }
 
@@ -3986,16 +3992,6 @@ void Spell::DoCreateItem(SpellEffectIndex eff_idx, uint32 itemtype)
         if(!bg_mark)
             player->UpdateCraftSkill(m_spellInfo->Id);
     }
-
-    // for battleground marks send by mail if not add all expected
-    // FIXME: single existing bg marks for outfield bg and we not have it..
-    /*
-    if(no_space > 0 && bg_mark)
-    {
-        if(BattleGround* bg = sBattleGroundMgr.GetBattleGroundTemplate(BattleGroundTypeId(bgType)))
-            bg->SendRewardMarkByMail(player, newitemid, no_space);
-    }
-    */
 }
 
 void Spell::EffectCreateItem(SpellEffectIndex eff_idx)
@@ -6807,13 +6803,13 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                     return;
                 }
-                case 50725:                                 // Vigilance
+                case 50725:                                 // Vigilance - remove cooldown on Taunt
                 {
-                    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+                    Unit* caster = GetAffectiveCaster();
+                    if (!caster || caster->GetTypeId() != TYPEID_PLAYER)
                         return;
 
-                    // Remove Taunt cooldown
-                    ((Player*)unitTarget)->RemoveSpellCooldown(355, true);
+                    ((Player*)caster)->RemoveSpellCategoryCooldown(82, true);
                     return;
                 }
                 case 51770:                                 // Emblazon Runeblade

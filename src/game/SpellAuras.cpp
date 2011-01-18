@@ -2308,14 +2308,12 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             }
             case SPELLFAMILY_HUNTER:
             {
-                /* disabled until full implementation
                 switch(GetId())
                 {
                     case 34026:                             // Kill Command
                         target->CastSpell(target, 34027, true, NULL, this);
                         return;
                 }
-                */
                 break;
             }
             case SPELLFAMILY_SHAMAN:
@@ -2451,7 +2449,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             }
             case 35079:                                     // Misdirection, triggered buff
             case 59628:                                     // Tricks of the Trade, triggered buff
-            case 59665:                                     // Vigilance, redirection spell
             {
                 if (Unit* pCaster = GetCaster())
                     pCaster->getHostileRefManager().ResetThreatRedirection();
@@ -2939,7 +2936,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     if (totem && apply)
                         ((Player*)target)->GetCamera().SetView(totem);
                     else
-                        ((Player*)target)->GetCamera().ResetView(totem);
+                        ((Player*)target)->GetCamera().ResetView();
 
                     return;
                 }
@@ -5135,16 +5132,26 @@ void Aura::HandleAuraProcTriggerSpell(bool apply, bool Real)
     if(!Real)
         return;
 
-    if(apply)
+    Unit *target = GetTarget();
+
+    switch (GetId())
     {
         // some spell have charges by functionality not have its in spell data
-        switch (GetId())
-        {
-            case 28200:                                     // Ascendance (Talisman of Ascendance trinket)
+        case 28200:                                         // Ascendance (Talisman of Ascendance trinket)
+            if(apply)
                 GetHolder()->SetAuraCharges(6);
-                break;
-            default: break;
-        }
+            break;
+        case 50720:                                         // Vigilance (threat transfering)
+            if (apply)
+            {
+                if (Unit* caster = GetCaster())
+                    target->CastSpell(caster, 59665, true);
+            }
+            else
+                target->getHostileRefManager().ResetThreatRedirection();
+            break;
+        default:
+            break;
     }
 }
 
@@ -7490,7 +7497,7 @@ void Aura::PeriodicTick()
             pCaster->CalculateHealAbsorb(heal, &absorbHeal);
 
             int32 gain = pCaster->DealHeal(pCaster, heal - absorbHeal, spellProto, false, absorbHeal);
-            pCaster->getHostileRefManager().threatAssist(pCaster, gain * 0.5f, spellProto);
+            pCaster->getHostileRefManager().threatAssist(pCaster, gain * 0.5f * sSpellMgr.GetSpellThreatMultiplier(spellProto), spellProto);
             break;
         }
         case SPELL_AURA_PERIODIC_HEAL:
@@ -7562,7 +7569,7 @@ void Aura::PeriodicTick()
                 if( BattleGround *bg = ((Player*)pCaster)->GetBattleGround() )
                     bg->UpdatePlayerScore(((Player*)pCaster), SCORE_HEALING_DONE, gain);
 
-            target->getHostileRefManager().threatAssist(pCaster, float(gain) * 0.5f, spellProto);
+            target->getHostileRefManager().threatAssist(pCaster, float(gain) * 0.5f * sSpellMgr.GetSpellThreatMultiplier(spellProto), spellProto);
 
             // heal for caster damage
             if(target != pCaster && spellProto->SpellVisual[0] == 163)
@@ -7715,7 +7722,7 @@ void Aura::PeriodicTick()
             int32 gain = target->ModifyPower(power,pdamage);
 
             if(Unit* pCaster = GetCaster())
-                target->getHostileRefManager().threatAssist(pCaster, float(gain) * 0.5f, spellProto);
+                target->getHostileRefManager().threatAssist(pCaster, float(gain) * 0.5f * sSpellMgr.GetSpellThreatMultiplier(spellProto), spellProto);
             break;
         }
         case SPELL_AURA_OBS_MOD_MANA:
@@ -7743,7 +7750,7 @@ void Aura::PeriodicTick()
             int32 gain = target->ModifyPower(powerType, pdamage);
 
             if(Unit* pCaster = GetCaster())
-                target->getHostileRefManager().threatAssist(pCaster, float(gain) * 0.5f, spellProto);
+                target->getHostileRefManager().threatAssist(pCaster, float(gain) * 0.5f * sSpellMgr.GetSpellThreatMultiplier(spellProto), spellProto);
             break;
         }
         case SPELL_AURA_POWER_BURN_MANA:
@@ -7805,7 +7812,7 @@ void Aura::PeriodicTick()
 
             int32 gain = target->ModifyHealth(m_modifier.m_amount);
             if (Unit *caster = GetCaster())
-                target->getHostileRefManager().threatAssist(caster, float(gain) * 0.5f, spellProto);
+                target->getHostileRefManager().threatAssist(caster, float(gain) * 0.5f  * sSpellMgr.GetSpellThreatMultiplier(spellProto), spellProto);
             break;
         }
         case SPELL_AURA_MOD_POWER_REGEN:
@@ -8800,11 +8807,12 @@ m_permanent(false), m_isRemovedOnShapeLost(true), m_deleted(false), m_in_use(0)
             break;
         // some auras applied with max stack
         case 24575:                                         // Brittle Armor
-        case 24662:                                         // Restless Strength
         case 24659:                                         // Unstable Power
+        case 24662:                                         // Restless Strength
         case 26464:                                         // Mercurial Shield
         case 34027:                                         // Kill Command
         case 55166:                                         // Tidal Force
+        case 58914:                                         // Kill Command (pet part)
         case 71564:                                         // Deadly Precision
             m_stackAmount = m_spellProto->StackAmount;
             break;
@@ -9339,6 +9347,10 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                         m_target->RemoveSpellsCausingAura(SPELL_AURA_FLY);
                         m_target->RemoveSpellsCausingAura(SPELL_AURA_MOD_INCREASE_SPEED);
                     }
+                }
+                case 50720:                                 // Vigilance (warrior spell but not have warrior family)
+                {
+                    spellId1 = 68066;                       // Damage Reduction
                     break;
                 }
                 case 57350:                                 // Illusionary Barrier
@@ -9359,6 +9371,14 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                 {
                     spellId1 = 70871;
                     break;
+                }
+                case 58914:                                     // Kill Command, pet aura
+                {
+                    // Removal is needed here because the dummy aura handler is applied / removed at stacks change
+                    if (!apply)
+                        if(Unit* caster = GetCaster())
+                            caster->RemoveAurasDueToSpell(34027);
+                    return;
                 }
                 case 71905:                                 // Soul Fragment
                 {
@@ -9683,10 +9703,46 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                     spellId3 = 24397;
                     spellId4 = 26592;
                     break;
+                case 34027:                                 // Kill Command, owner aura (spellmods)
+                {
+                    if (apply)
+                    {
+                        if (m_target->HasAura(35029))       // Focused Fire, rank 1
+                            spellId1 = 60110;               // Kill Command, Focused Fire rank 1 bonus
+                        else if (m_target->HasAura(35030))  // Focused Fire, rank 2
+                            spellId1 = 60113;               // Kill Command, Focused Fire rank 2 bonus
+                        else
+                            return;
+                    }
+                    else
+                    {
+                        spellId1 = 34026;                   // Kill Command, owner casting aura
+                        spellId2 = 60110;                   // Kill Command, Focused Fire rank 1 bonus
+                        spellId3 = 60113;                   // Kill Command, Focused Fire rank 2 bonus
+                        if (Unit* pet = m_target->GetPet())
+                            pet->RemoveAurasDueToSpell(58914); // Kill Command, pet aura
+                    }
+                    break;
+                }
+                case 35029:                                 // Focused Fire, rank 1
+                {
+                    if (apply && !m_target->HasAura(34027)) // Kill Command, owner casting aura
+                        return;
+
+                    spellId1 = 60110;                       // Kill Command, Focused Fire rank 1 bonus
+                    break;
+                }
+                case 35030:                                 // Focused Fire, rank 2
+                {
+                    if (apply && !m_target->HasAura(34027)) // Kill Command, owner casting aura
+                        return;
+
+                    spellId1 = 60113;                       // Kill Command, Focused Fire rank 2 bonus
+                    break;
+                }
                 default:
                     break;
             }
-
             // Freezing Trap Effect
             if (m_spellProto->SpellFamilyFlags & UI64LIT(0x0000000000000008))
             {

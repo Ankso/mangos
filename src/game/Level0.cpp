@@ -103,7 +103,7 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
     else
         full = _FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,REVISION_ID);
 
-    SendSysMessage("Revision ReinoDeLaOscuridad: [R131] || Conoce los ultimos cambios entrando en www.reinodelaoscuridad.com");
+    SendSysMessage("Revision ReinoDeLaOscuridad: [R132] || Conoce los ultimos cambios entrando en www.reinodelaoscuridad.com");
     //Don't send revision info to normal players, for some hacks, you need the server rev. =/
     if(chr->isGameMaster())
     {
@@ -129,7 +129,7 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
     return true;
 }
 
-#define MAX_ALLOWED_QUESTS 25
+#define MAX_ALLOWED_QUESTS 27
 
 bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
 {
@@ -139,6 +139,7 @@ bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
         12848,  // The Endless Hunger (DKs - Sometimes works, sometimes not)
         13625,  // Learning The Reins (H)
         13677,  //     "     "    "   (A)
+        12727,  // Bloody breakout (DKs - Sometimes the script fails)
         13680,  // The Aspirant's Challenge (H)
         13679,  // The Aspirant's Challenge (A)
         13724,
@@ -157,6 +158,7 @@ bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
         13828,  // Mastery of Melee (A/H)
         13829,
         12856,  // Hodir chain bugged quests (A/H)
+        12851,
         24451,  // An Audience With The Arcanist (A/H) (For Quel'delar)
         24560   // Tempering the Blade (A/H) (For Quel'delar)
     };
@@ -179,7 +181,8 @@ bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
     }
 
     bool allowed = false;
-    for (uint16 i = 0; i < MAX_ALLOWED_QUESTS; ++i)
+    uint16 i;
+    for (i = 0; i < MAX_ALLOWED_QUESTS; ++i)
     {
         if (ALLOWED_QUESTS[i] == entry)
         {
@@ -192,7 +195,7 @@ bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
     {
         PSendSysMessage("No se encuentra '%u' en la lista de misiones.", entry);
         PSendSysMessage("Las misiones soportadas por el comando son las siguientes:");
-        for (uint16 i = 0; i < MAX_ALLOWED_QUESTS; ++i)
+        for (i = 0; i < MAX_ALLOWED_QUESTS; ++i)
         {
             Quest const* pQuest = sObjectMgr.GetQuestTemplate(ALLOWED_QUESTS[i]);
             if (!pQuest)
