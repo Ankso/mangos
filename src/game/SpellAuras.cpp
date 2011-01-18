@@ -9364,14 +9364,6 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                         return;
                     break;
                 }
-                case 70867:                                 // Soul of Blood Qween
-                case 71473:
-                case 71532:
-                case 71533:
-                {
-                    spellId1 = 70871;
-                    break;
-                }
                 case 58914:                                     // Kill Command, pet aura
                 {
                     // Removal is needed here because the dummy aura handler is applied / removed at stacks change
@@ -9379,6 +9371,14 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                         if(Unit* caster = GetCaster())
                             caster->RemoveAurasDueToSpell(34027);
                     return;
+                }
+                case 70867:                                 // Soul of Blood Qween
+                case 71473:
+                case 71532:
+                case 71533:
+                {
+                    spellId1 = 70871;
+                    break;
                 }
                 case 71905:                                 // Soul Fragment
                 {
@@ -9696,13 +9696,15 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                 case 34460:
                     spellId1 = 75447;
                     break;
-                case 19574:          // The Beast Within and Bestial Wrath - immunity
-                case 34471:
+                case 19574:                                 // Bestial Wrath - immunity
+                case 34471:                                 // The Beast Within - immunity
+                {
                     spellId1 = 24395;
                     spellId2 = 24396;
                     spellId3 = 24397;
                     spellId4 = 26592;
                     break;
+                }
                 case 34027:                                 // Kill Command, owner aura (spellmods)
                 {
                     if (apply)
