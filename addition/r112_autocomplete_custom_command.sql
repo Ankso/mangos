@@ -1,2 +1,2 @@
-REPLACE INTO `command` (`name`, `security`, `help`) VALUES ('quest autocomplete', '0', 'Sintaxis: .quest autocomplete #idmision/ingame link:
-Completa todos los objetivos de la misiÛn (al jugador seleccionado) autom·ticamente. SÛlo funciona si la misiÛn est· en una lista aprobada por el Staff, puedes verla escribiendo .quest autocomplete 0. Visita la p·gina web para m·s informaciÛn.');
+ÔªøREPLACE INTO `command` (`name`, `security`, `help`) VALUES ('quest autocomplete', '0', 'Sintaxis: .quest autocomplete #idmision/ingame link:
+Completa todos los objetivos de la misi√≥n (al jugador seleccionado) autom√°ticamente. S√≥lo funciona si la misi√≥n est√° en una lista aprobada por el Staff, puedes verla escribiendo .quest autocomplete 0. Visita la p√°gina web para m√°s informaci√≥n.');

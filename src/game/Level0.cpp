@@ -25,6 +25,7 @@
 #include "ObjectAccessor.h"
 #include "Language.h"
 #include "AccountMgr.h"
+#include "ScriptMgr.h"
 #include "SystemConfig.h"
 #include "revision.h"
 #include "revision_nr.h"
@@ -108,7 +109,16 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
     {
         SendSysMessage("--------------------- INFORMACION ADICIONAL PARA EL STAFF ---------------------");
         SendSysMessage(full);
-        PSendSysMessage(LANG_USING_SCRIPT_LIB,sWorld.GetScriptsVersion());
+        if (sScriptMgr.IsScriptLibraryLoaded())
+        {
+            char const* ver = sScriptMgr.GetScriptLibraryVersion();
+            if (ver && *ver)
+                PSendSysMessage(LANG_USING_SCRIPT_LIB, ver);
+            else
+             SendSysMessage(LANG_USING_SCRIPT_LIB_UNKNOWN);
+        }
+        else
+            SendSysMessage(LANG_USING_SCRIPT_LIB_NONE);
         PSendSysMessage(LANG_USING_WORLD_DB,sWorld.GetDBVersion());
         PSendSysMessage(LANG_USING_EVENT_AI,sWorld.GetCreatureEventAIVersion());
         SendSysMessage("-----------------------------------------------------------------------------------------------------");

@@ -243,6 +243,8 @@ libmangosgame_a_SOURCES = \
 	OutdoorPvPTF.h \
 	OutdoorPvPZM.cpp \
 	OutdoorPvPZM.h \
+	OutdoorPvPGH.cpp \
+	OutdoorPvPGH.h \
 	Path.h \
 	PathFinder.cpp \
 	PathFinder.h \
