@@ -1591,6 +1591,74 @@ bool BattleGround::AddObject(uint32 type, uint32 entry, float x, float y, float 
     return true;
 }
 
+Creature* BattleGround::AddCreature(uint32 entry, uint32 type, uint32 teamval, float x, float y, float z, float o, uint32 respawntime)
+{
+    // If the assert is called, means that m_BgCreatures must be resized!
+    MANGOS_ASSERT(type < m_BgCreatures.size());
+
+    Map * map = GetBgMap();
+    if (!map)
+        return NULL;
+
+    Creature* pCreature = new Creature;
+    if (!pCreature->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_UNIT), map, PHASEMASK_NORMAL, entry, TEAM_NONE))
+    {
+        sLog.outError("Can't create creature entry: %u",entry);
+        delete pCreature;
+        return NULL;
+    }
+
+    CreatureInfo const *cinfo = ObjectMgr::GetCreatureTemplate(entry);
+    if (!cinfo)
+    {
+        sLog.outErrorDb("Battleground::AddCreature: entry %u does not exist.", entry);
+        return NULL;
+    }
+    //force using DB speeds
+    pCreature->SetSpeedRate(MOVE_WALK,  cinfo->speed_walk);
+    pCreature->SetSpeedRate(MOVE_RUN,   cinfo->speed_run);
+
+    map->Add(pCreature);
+    m_BgCreatures[type] = pCreature->GetGUID();
+
+    if (respawntime)
+        pCreature->SetRespawnDelay(respawntime);
+
+    return pCreature;
+}
+
+bool BattleGround::AddSpiritGuide(uint32 type, float x, float y, float z, float o, uint32 team)
+{
+    uint32 entry = 0;
+
+    if (team == ALLIANCE)
+        entry = BG_CREATURE_ENTRY_A_SPIRITGUIDE;
+    else
+        entry = BG_CREATURE_ENTRY_H_SPIRITGUIDE;
+
+    Creature* pCreature = AddCreature(entry,type,team,x,y,z,o);
+    if (!pCreature)
+    {
+        sLog.outError("Can't create Spirit guide. Battleground not created!");
+        EndNow();
+        return false;
+    }
+
+    pCreature->SetDeathState(DEAD);
+
+    pCreature->SetUInt64Value(UNIT_FIELD_CHANNEL_OBJECT, pCreature->GetGUID());
+    // aura
+    //TODO: Fix display here
+    //pCreature->SetVisibleAura(0, SPELL_SPIRIT_HEAL_CHANNEL);
+    // casting visual effect
+    pCreature->SetUInt32Value(UNIT_CHANNEL_SPELL, SPELL_SPIRIT_HEAL_CHANNEL);
+    // correct cast speed
+    pCreature->SetFloatValue(UNIT_MOD_CAST_SPEED, 1.0f);
+
+    //pCreature->CastSpell(pCreature, SPELL_SPIRIT_HEAL_CHANNEL, true);
+
+    return true;
+}
 //some doors aren't despawned so we cannot handle their closing in gameobject::update()
 //it would be nice to correctly implement GO_ACTIVATED state and open/close doors in gameobject code
 void BattleGround::DoorClose(ObjectGuid guid)
@@ -1910,6 +1978,14 @@ GameObject* BattleGround::GetBGObject(uint32 type)
     return obj;
 }
 
+Creature* BattleGround::GetBGCreature(uint32 type)
+{
+    Creature *creature = GetBgMap()->GetCreature(m_BgCreatures[type]);
+    if (!creature)
+        sLog.outError("Could not get BG creature %i (BG: %s Instance: %u)", type, GetBgMap()->GetBG()->GetName(), GetBgMap()->GetInstanceId());
+    return creature;
+}
+
 void BattleGround::SendMessage2ToAll(int32 entry, ChatMsg type, Player const* source, int32 arg1, int32 arg2)
 {
     MaNGOS::BattleGround2ChatBuilder bg_builder(type, entry, source, arg1, arg2);
@@ -2101,4 +2177,11 @@ void BattleGround::SetBracket( PvPDifficultyEntry const* bracketEntry )
 {
     m_BracketId  = bracketEntry->GetBracketId();
     SetLevelRange(bracketEntry->minLevel,bracketEntry->maxLevel);
+}
+
+void BattleGround::StartTimedAchievement(AchievementCriteriaTypes type, uint32 entry)
+{
+    /*for (BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
+        if (Player* pPlayer = sObjectMgr.GetPlayer(itr->first))
+            pPlayer->GetAchievementMgr().StartTimedAchievement(type, entry);*/
 }

@@ -8911,17 +8911,21 @@ void Spell::EffectTransmitted(SpellEffectIndex eff_idx)
 				uint32 team = 0;
 				if (m_caster->GetTypeId()==TYPEID_PLAYER)
 				{
+                    //TODO: Remove this hardcoded values
 					if (((Player*)m_caster)->GetTeam() == HORDE)
-						team = BG_IC_TEAM[1];
+						team = 83;
 					if (((Player*)m_caster)->GetTeam() == ALLIANCE)
-						team = BG_IC_TEAM[0];
+						team = 84;
  				}
 				float fx, fy, fz;
 				m_caster->GetPosition(fx, fy, fz);
 				uint32 bombId = 0;
-				if (m_spellInfo->Id == 52410) { bombId = BOMB_ID;}
-				if (m_spellInfo->Id == 66268) { bombId = BOMB_ID;}
-				if (m_spellInfo->Id == 66674) { bombId = BOMB_ID;}
+				if (m_spellInfo->Id == 52410) 
+                    bombId = BOMB_ID;
+				else if (m_spellInfo->Id == 66268)
+                    bombId = BOMB_ID;
+				else if (m_spellInfo->Id == 66674) 
+                    bombId = BOMB_ID;
 				Creature* cBomb = m_caster->SummonCreature(bombId, fx, fy, fz, 0, TEMPSUMMON_DEAD_DESPAWN, 0);
 				if (!cBomb)
 					return;
