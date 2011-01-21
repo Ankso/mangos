@@ -1702,8 +1702,8 @@ void ObjectMgr::LoadGameobjects()
             continue;
         }
 
-        if (data.spawnMask & ~spawnMasks[data.mapid])
-            sLog.outErrorDb("Table `gameobject` have gameobject (GUID: %u Entry: %u) that have wrong spawn mask %u including not supported difficulty modes for map (Id: %u), skip", guid, data.id, data.spawnMask, data.mapid);
+        //if (data.spawnMask & ~spawnMasks[data.mapid])
+            //sLog.outErrorDb("Table `gameobject` have gameobject (GUID: %u Entry: %u) that have wrong spawn mask %u including not supported difficulty modes for map (Id: %u), skip", guid, data.id, data.spawnMask, data.mapid);
 
         if (data.spawntimesecs == 0 && gInfo->IsDespawnAtAction())
         {

@@ -12287,7 +12287,16 @@ bool Unit::IsAllowedDamageInArea(Unit* pVictim) const
 
     // can't damage player controlled unit by player controlled unit in sanctuary
     AreaTableEntry const* area = GetAreaEntryByAreaID(pVictim->GetAreaId());
-    if (area && area->flags & AREA_FLAG_SANCTUARY)
+    // For allow duels in dalaran and custom event on my server
+    bool isDuel = false;
+    if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        isDuel = ((Player*)pVictim)->duel;
+    else if (pVictim->isCharmed())
+    {
+        if (pVictim->GetCharmerOrOwner()->GetTypeId() == TYPEID_PLAYER)
+            isDuel = ((Player*)pVictim->GetCharmerOrOwner())->duel;
+    }
+    if (area && area->flags & AREA_FLAG_SANCTUARY && !isDuel)
         return false;
 
     return true;

@@ -1620,7 +1620,7 @@ Creature* BattleGround::AddCreature(uint32 entry, uint32 type, uint32 teamval, f
 
     map->Add(pCreature);
     m_BgCreatures[type] = pCreature->GetGUID();
-
+    pCreature->SetPosition(x, y, z, o);
     if (respawntime)
         pCreature->SetRespawnDelay(respawntime);
 
@@ -1887,6 +1887,22 @@ void BattleGround::SpawnBGCreature(ObjectGuid guid, uint32 respawntime)
     }
 }
 
+bool BattleGround::DelCreature(uint32 type)
+{
+    if (m_BgCreatures[type].IsEmpty())
+        return true;
+
+    Creature *cr = GetBgMap()->GetCreature(m_BgCreatures[type]);
+    if (!cr)
+    {
+        sLog.outError("Can't find creature guid: %u", uint64((m_BgCreatures[type]).GetHigh()));
+        return false;
+    }
+    cr->AddObjectToRemoveList();
+    m_BgCreatures[type].Clear();
+    return true;
+}
+
 bool BattleGround::DelObject(uint32 type)
 {
     if (m_BgObjects[type].IsEmpty())
@@ -1956,17 +1972,11 @@ void BattleGround::SendWarningToAll(int32 entry, ...)
     data << (uint32)(strlen(msg.c_str())+1);
     data << msg.c_str();
     data << (uint8)0;
-    uint8 control = 0;
     for (BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
     {
-        if (control == 40)  // More than 40 iterations? This is imposible, so, break me!
-            break;
-
         if (Player *plr = ObjectAccessor::FindPlayer(ObjectGuid(itr->first)))
             if (plr->GetSession())
                 plr->GetSession()->SendPacket(&data);
-
-        ++control;
     }
 }
 

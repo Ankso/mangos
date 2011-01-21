@@ -34,6 +34,7 @@
 #include "InstanceData.h"
 #include "BattleGround.h"
 #include "BattleGroundAV.h"
+#include "BattleGroundSA.h"
 #include "Util.h"
 #include "ScriptMgr.h"
 #include "OutdoorPvPMgr.h"
@@ -1173,7 +1174,7 @@ void GameObject::Use(Unit* user)
 					if (player->CanUseBattleGroundObject())
     					if (BattleGround *bg = player->GetBattleGround())
         					if (bg->GetTypeID(true) == BATTLEGROUND_SA)
-           	 				bg->EventPlayerDamageGO(player, this, info->goober.eventId);
+           	 				    bg->EventPlayerUsedGO(player, this);
                 }
 
                 // possible quest objective for active quests
@@ -1654,29 +1655,41 @@ void GameObject::DamageTaken(Unit* pDoneBy, uint32 damage)
     if (m_health > damage)
     {
         m_health -= damage;
-        // For Strand of the Ancients and probably Isle of Conquest
+        // For Strand of the Ancients and Isle of Conquest
         if (pWho)
             if (BattleGround *bg = pWho->GetBattleGround())
-                bg->EventPlayerDamageGO(pWho, this, m_goInfo->destructibleBuilding.damageEvent);
+                bg->EventPlayerDamagedGO(pWho, this, BG_OBJECT_DMG_HIT_TYPE_JUST_DAMAGED, m_goInfo->destructibleBuilding.damageEvent);
     }
     else
         m_health = 0;
 
     if (HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED)) // from damaged to destroyed
     {
+        uint8 hitType = BG_OBJECT_DMG_HIT_TYPE_HIGH_DAMAGED;
         if (!m_health)
         {
             RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED);
             SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_DESTROYED);
             SetUInt32Value(GAMEOBJECT_DISPLAYID, m_goInfo->destructibleBuilding.destroyedDisplayId);
-            // For Strand of the Ancients and probably Isle of Conquest
+            // For Strand of the Ancients Isle of Conquest
             if (pWho)
                 if (BattleGround *bg = pWho->GetBattleGround())
-                    bg->EventPlayerDamageGO(pWho, this, m_goInfo->destructibleBuilding.destroyedEvent);
+                {
+                    DEBUG_LOG("GameObject::DamgeTaken: Calling DestroyGate for SotA BG!");
+                    bg->DestroyGate(pWho, this, m_goInfo->destructibleBuilding.destroyedEvent);
+                }
+            hitType = BG_OBJECT_DMG_HIT_TYPE_JUST_DESTROYED;
         }
+        if (pWho)
+            if (BattleGround *bg = pWho->GetBattleGround())
+                bg->EventPlayerDamagedGO(pWho, this, hitType, m_goInfo->destructibleBuilding.destroyedEvent);
     }
     else                                            // from intact to damaged
     {
+        uint8 hitType = BG_OBJECT_DMG_HIT_TYPE_JUST_DAMAGED;
+        if (m_goValue->destructibleBuilding.health + damage < m_goInfo->destructibleBuilding.intactNumHits + m_goInfo->destructibleBuilding.damagedNumHits)
+            hitType = BG_OBJECT_DMG_HIT_TYPE_DAMAGED;
+
         if (m_health <= m_goInfo->destructibleBuilding.damagedNumHits)
         {
             SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED);
@@ -1691,10 +1704,11 @@ void GameObject::DamageTaken(Unit* pDoneBy, uint32 damage)
             // otherwise we just handle it as "destroyed"
             else
                 m_health = 0;
-            // For Strand of the Ancients and probably Isle of Conquest
+            hitType = BG_OBJECT_DMG_HIT_TYPE_JUST_HIGH_DAMAGED;
+            // For Strand of the Ancients Isle of Conquest
             if (pWho)
                 if (BattleGround *bg = pWho->GetBattleGround())
-                    bg->EventPlayerDamageGO(pWho, this, m_goInfo->destructibleBuilding.damagedEvent);
+                    bg->EventPlayerDamagedGO(pWho, this, hitType, m_goInfo->destructibleBuilding.damagedEvent);
          }
     }
     SetGoAnimProgress(m_health * 255 / GetMaxHealth());

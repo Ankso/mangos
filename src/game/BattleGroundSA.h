@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #ifndef __BattleGroundSA_H
@@ -401,6 +401,15 @@ const float BG_SA_GYOrientation[BG_SA_MAX_GY] =
     6.148f, //defender last GY
 };
 
+const uint32 BG_SA_DoorNames[5] = 
+{
+    20074, // Green
+    20078, // Yellow
+    20075, // Blue
+    20077, // Red
+    20076, // Purple
+};
+
 struct BG_SA_RoundScore
 {
     TeamId winner;
@@ -490,6 +499,9 @@ class BattleGroundSA : public BattleGround
         /// Update score board
         void UpdatePlayerScore(Player *Source, uint32 type, uint32 value, bool doAddHonor = true);
 
+        /// Called to handle vehicles scripts
+        uint32 GetController() { return (Attackers == TEAM_ALLIANCE ? HORDE : ALLIANCE); }
+
     private:
 
         /**
@@ -533,6 +545,9 @@ class BattleGroundSA : public BattleGround
         void CaptureGraveyard(BG_SA_Graveyards i, Player *Source);
         /// Switch on/off timer worldstate
         void ToggleTimer();
+
+        /// To handle seforium charges spawn
+        void EventSpawnGOSA(Player *owner, Creature* obj, float x, float y, float z);
 
         /// Respawn dead demolisher
         void UpdateDemolisherSpawns();

@@ -999,7 +999,13 @@ enum MangosStrings
     LANG_BG_SA_A_GY_EAST                    = 20070, //The Alliance captured the East Graveyard!
     LANG_BG_SA_H_GY_SOUTH                   = 20071, //The Horde captured the South Graveyard!
     LANG_BG_SA_H_GY_WEST                    = 20072, //The Horde captured the West Graveyard!
-    LANG_BG_SA_H_GY_EAST                    = 20073  //The Horde captured the East Graveyard!
+    LANG_BG_SA_H_GY_EAST                    = 20073, //The Horde captured the East Graveyard!
+    LANG_BG_SA_GREEN_DOOR                   = 20074, //Green Emerald door
+    LANG_BG_SA_BLUE_DOOR                    = 20075, //Blue Saphire door
+    LANG_BG_SA_PURPLE_DOOR                  = 20076, //Purple Ametist door
+    LANG_BG_SA_RED_DOOR                     = 20077, //Red Sun door
+    LANG_BG_SA_YELLOW_DOOR                  = 20078, //Yellow Moon door
+    LANG_BG_SA_PUT_SEFORIUM_CHARGE          = 20079, //%s has put a seforium charge!
 
     // NOT RESERVED IDS                   12000-1999999999
     // `db_script_string` table index     2000000000-2000009999 (MIN_DB_SCRIPT_STRING_ID-MAX_DB_SCRIPT_STRING_ID)

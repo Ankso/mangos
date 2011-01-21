@@ -26,7 +26,7 @@ REPLACE INTO `mangos_string` (`entry`, `content_default`, `content_loc1`, `conte
 (20058,'The battle for Strand of the Ancients begins in 30 seconds. Prepare yourselves!.',NULL,NULL,NULL,NULL,NULL,'La batalla por Playa de los Ancestros comenzará en 30 segundos. ¡Preparaos!','La batalla por Playa de los Ancestros comenzará en 30 segundos. ¡Preparaos!',NULL),
 (20059,'Let the battle for Strand of the Ancients begin!',NULL,NULL,NULL,NULL,NULL,'¡La batalla por Playa de los Ancestros ha comenzado!','¡La batalla por Playa de los Ancestros ha comenzado!',NULL),
 (20060,'The %s is under attack!',NULL,NULL,NULL,NULL,NULL,'¡La %s está siendo atacada!','¡La %s está siendo atacada!',NULL),
-(20061,'The %s was destroyed!',NULL,NULL,NULL,NULL,NULL,'¡La %s ha sido destruída!','¡La %s ha sido destruída!',NULL),
+(20061,'The %s was destroyed!',NULL,NULL,NULL,NULL,NULL,'¡La %s ha sido destruida!','¡La %s ha sido destruída!',NULL),
 (20062,'Round 1 -  finished!',NULL,NULL,NULL,NULL,NULL,'¡La primera ronda ha finalizado!','¡La primera ronda ha finalizado!',NULL),
 (20063,'The Alliance captured the titan portal!',NULL,NULL,NULL,NULL,NULL,'¡La Alianza ha capturado la Reliquia del Titán.!','¡La Alianza ha capturado la Reliquia del Titán.!',NULL),
 (20064,'The Horde captured the titan portal!',NULL,NULL,NULL,NULL,NULL,'¡La Horda ha capturado la Reliquia del Titán.!','¡La Horda ha capturado la Reliquia del Titán.!',NULL),
@@ -39,5 +39,10 @@ REPLACE INTO `mangos_string` (`entry`, `content_default`, `content_loc1`, `conte
 (20071,'The Horde captured the South Graveyard!',NULL,NULL,NULL,NULL,NULL,'¡La Horda ha capturado el cementerio Sur!','¡La Horda ha capturado el cementerio Sur!',NULL),
 (20072,'The Horde captured the West Graveyard!',NULL,NULL,NULL,NULL,NULL,'¡La Horda ha capturado el cementerio Occidental!','¡La Horda ha capturado el cementerio Occidental!',NULL),
 (20073,'The Horde captured the East Graveyard!',NULL,NULL,NULL,NULL,NULL,'¡La Horda ha capturado el cementerio Oriental!','¡La Horda ha capturado el cementerio Oriental!',NULL),
+(20074,'Green Emerald door',NULL,NULL,NULL,NULL,NULL,'puerta Esmeralda Verde','puerta Esmeralda Verde',NULL),
+(20075,'Blue Sapphire door',NULL,NULL,NULL,NULL,NULL,'puerta Zafiro Azul','puerta Zafiro Azul',NULL),
+(20076,'Purple Ametist door',NULL,NULL,NULL,NULL,NULL,'puerta Amatista Púrpura','puerta Amatista Púrpura',NULL),
+(20077,'Red Sun door',NULL,NULL,NULL,NULL,NULL,'puerta Sol Rojo','puerta Sol Rojo',NULL),
+(20078,'Yellow Moon door',NULL,NULL,NULL,NULL,NULL,'puerta Luna Amarilla','puerta Luna Amarilla',NULL),
 
 UPDATE `gameobject_template` Set `ScriptName` = 'go_sa_def_portal' WHERE entry = 191575;

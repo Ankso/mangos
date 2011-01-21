@@ -385,12 +385,8 @@ class BattleGround
         uint32 GetBonusHonorFromKill(uint32 kills) const;
         bool IsRandom() { return m_IsRandom; }
 
-        //START//////////SA and IC /////////START//
-        virtual uint32 GetController() const	             { return false; }
-        virtual uint8  GetGydController(uint8 /*gyd*/) const { return false; }
-        virtual uint8  GetNodeControll(uint8 /*node*/) const { return false; }
-        virtual uint32 GetVehicleFaction(uint8 vehicleType) const { return 35; }
-        //END////////////SA and IC ///////////END//
+        // For SotA vehicle's scripts
+        virtual uint32 GetController() const { return false; }
 
         // Set methods:
         void SetName(char const* Name)      { m_Name = Name; }
@@ -543,8 +539,10 @@ class BattleGround
         virtual void EventPlayerDroppedFlag(Player* /*player*/) {}
         virtual void EventPlayerClickedOnFlag(Player* /*player*/, GameObject* /*target_obj*/) {}
         virtual void EventPlayerCapturedFlag(Player* /*player*/) {}
-		virtual void EventPlayerDamageGO(Player* /*player*/, GameObject* /*target_obj*/, uint32 /*eventId*/) {}
+		virtual void EventPlayerDamagedGO(Player* /*player*/, GameObject* /*target_obj*/, uint8 /*hitType*/, uint32 /*eventId*/) {}
+        virtual void EventPlayerUsedGO(Player* /*Source*/, GameObject* /*object*/) {}
 		virtual void EventSpawnGOSA(Player* /*owner*/, Creature* /*obj*/, float /*x*/, float /*y*/, float /*z*/) {}
+        virtual void DestroyGate(Player* /*pl*/, GameObject* /*go*/, uint32 /*destroyedEvent*/) {}
 		virtual void VirtualUpdatePlayerScore(Player* /*Source*/, uint32 /*type*/, uint32 /*value*/) {}
         void EventPlayerLoggedIn(Player* player, ObjectGuid plr_guid);
         void EventPlayerLoggedOut(Player* player);
