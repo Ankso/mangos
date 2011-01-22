@@ -248,7 +248,7 @@ void BattleGroundWS::EventPlayerCapturedFlag(Player *Source)
     }
     //for flag capture is reward 2 honorable kills
     RewardHonorToTeam(GetBonusHonorFromKill(2), Source->GetTeam());
-    RewardXpToTeam(0, 0.6, Source->GetTeam());
+    RewardXpToTeam(0, 0.6f, Source->GetTeam());
 
     //flag carrier gets another 2 honorable kills
     Source->RewardHonor(NULL, 0, GetBonusHonorFromKill(2));
@@ -598,9 +598,9 @@ void BattleGroundWS::EndBattleGround(Team winner)
     RewardHonorToTeam(GetBonusHonorFromKill(m_HonorEndKills), ALLIANCE);
     RewardHonorToTeam(GetBonusHonorFromKill(m_HonorEndKills), HORDE);
 
-    RewardXpToTeam(0, 0.8, winner);
-    RewardXpToTeam(0, 0.8, ALLIANCE);
-    RewardXpToTeam(0, 0.8, HORDE);
+    RewardXpToTeam(0, 0.8f, winner);
+    RewardXpToTeam(0, 0.8f, ALLIANCE);
+    RewardXpToTeam(0, 0.8f, HORDE);
     BattleGround::EndBattleGround(winner);
 }
 

@@ -1674,10 +1674,7 @@ void GameObject::DamageTaken(Unit* pDoneBy, uint32 damage)
             // For Strand of the Ancients Isle of Conquest
             if (pWho)
                 if (BattleGround *bg = pWho->GetBattleGround())
-                {
-                    DEBUG_LOG("GameObject::DamgeTaken: Calling DestroyGate for SotA BG!");
                     bg->DestroyGate(pWho, this, m_goInfo->destructibleBuilding.destroyedEvent);
-                }
             hitType = BG_OBJECT_DMG_HIT_TYPE_JUST_DESTROYED;
         }
         if (pWho)

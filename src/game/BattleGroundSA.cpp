@@ -459,7 +459,7 @@ void BattleGroundSA::AddPlayer(Player *plr)
     {
         if (plr->GetTeamId() == Attackers)
         {
-            plr->CastSpell(plr,12438,true);//Without this player falls before boat loads...
+            plr->CastSpell(plr,12438,true); //Without this player falls before boat loads...
 
             if (urand(0,1))
                 plr->TeleportTo(607, 2682.936f, -830.368f, 50.0f, 2.895f, 0);
@@ -554,6 +554,7 @@ void BattleGroundSA::EventPlayerDamagedGO(Player* /*plr*/, GameObject* go, uint8
             break;
         case BG_OBJECT_DMG_HIT_TYPE_JUST_HIGH_DAMAGED:
         {
+            SendWarningToAll(LANG_BG_SA_IS_UNDER_ATTACK, sObjectMgr.GetMangosStringForDBCLocale(doorName));
             uint32 i = GetGateIDFromDestroyEventID(destroyedEvent);
             GateStatus[i] = BG_SA_GATE_DAMAGED;
             uint32 uws = GetWorldStateFromGateID(i);
@@ -657,7 +658,10 @@ void BattleGroundSA::DestroyGate(Player* pl, GameObject* /*go*/, uint32 destroye
             DelObject(i+9);
         UpdatePlayerScore(pl,SCORE_DESTROYED_WALL, 1);
         if (rewardHonor)
+        {
             UpdatePlayerScore(pl,SCORE_BONUS_HONOR,(GetBonusHonorFromKill(1)));
+            RewardXpToTeam(0, 0.4f, (Attackers == TEAM_ALLIANCE ? ALLIANCE : HORDE));
+        }
     }
 }
 
@@ -712,16 +716,22 @@ void BattleGroundSA::EventPlayerClickedOnFlag(Player *Source, GameObject* target
         case 191308:
             if (GateStatus[BG_SA_GREEN_GATE] == BG_SA_GATE_DESTROYED || GateStatus[BG_SA_BLUE_GATE] == BG_SA_GATE_DESTROYED)
                 CaptureGraveyard(BG_SA_LEFT_CAPTURABLE_GY, Source);
+            else
+                DETAIL_LOG("SotA: Player %s has claimed the Eastern Graveyard, but his team can't reach it!", Source->GetName());
             break;
         case 191305:
         case 191306:
             if (GateStatus[BG_SA_GREEN_GATE] == BG_SA_GATE_DESTROYED || GateStatus[BG_SA_BLUE_GATE] == BG_SA_GATE_DESTROYED)
                 CaptureGraveyard(BG_SA_RIGHT_CAPTURABLE_GY, Source);
+            else
+                DETAIL_LOG("SotA: Player %s has claimed the Western Graveyard, but his team can't reach it!", Source->GetName());
             break;
         case 191310:
         case 191309:
             if ((GateStatus[BG_SA_GREEN_GATE] == BG_SA_GATE_DESTROYED || GateStatus[BG_SA_BLUE_GATE] == BG_SA_GATE_DESTROYED) && (GateStatus[BG_SA_RED_GATE] == BG_SA_GATE_DESTROYED || GateStatus[BG_SA_PURPLE_GATE] == BG_SA_GATE_DESTROYED))
                 CaptureGraveyard(BG_SA_CENTRAL_CAPTURABLE_GY, Source);
+            else
+                DETAIL_LOG("SotA: Player %s has claimed the South Graveyard, but his team can't reach it!", Source->GetName());
             break;
         default:
             return;
@@ -814,6 +824,8 @@ void BattleGroundSA::EventPlayerUsedGO(Player* Source, GameObject* object)
                 SendMessageToAll(LANG_BG_SA_ALLIANCE_CAPTURED_RELIC, CHAT_MSG_BG_SYSTEM_NEUTRAL);
             else SendMessageToAll(LANG_BG_SA_HORDE_CAPTURED_RELIC, CHAT_MSG_BG_SYSTEM_NEUTRAL);
 
+            RewardXpToTeam(0, 0.6f, (Attackers == ALLIANCE ? ALLIANCE : HORDE));
+
             if (Status == BG_SA_ROUND_ONE)
             {
                 RoundScores[0].winner = Attackers;
@@ -879,6 +891,10 @@ void BattleGroundSA::EndBattleGround(uint32 winner)
         RewardHonorToTeam(GetBonusHonorFromKill(1), ALLIANCE);
     else if (winner == HORDE)
         RewardHonorToTeam(GetBonusHonorFromKill(1), HORDE);
+
+    RewardXpToTeam(0, 0.8f, ALLIANCE);
+    RewardXpToTeam(0, 0.8f, HORDE);
+    RewardXpToTeam(0, 0.8f, winner);
 
     //complete map_end rewards (even if no team wins)
     RewardHonorToTeam(GetBonusHonorFromKill(2), ALLIANCE);

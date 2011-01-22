@@ -136,7 +136,7 @@ void BattleGroundAB::Update(uint32 diff)
                 }
                 if (m_ExperiencesTicks[team] >= BG_AB_ExperiencesTicks)
                 {
-                    RewardXpToTeam(0, 0.8, team);
+                    RewardXpToTeam(0, 0.8f, team);
                     m_ExperiencesTicks[team] -= BG_AB_ExperiencesTicks;
                 }
 
@@ -502,9 +502,9 @@ void BattleGroundAB::EndBattleGround(Team winner)
     RewardHonorToTeam(GetBonusHonorFromKill(1), HORDE);
     RewardHonorToTeam(GetBonusHonorFromKill(1), ALLIANCE);
 
-    RewardXpToTeam(0, 0.8, winner);
-    RewardXpToTeam(0, 0.8, HORDE);
-    RewardXpToTeam(0, 0.8, ALLIANCE);
+    RewardXpToTeam(0, 0.8f, winner);
+    RewardXpToTeam(0, 0.8f, HORDE);
+    RewardXpToTeam(0, 0.8f, ALLIANCE);
 
     BattleGround::EndBattleGround(winner);
 }

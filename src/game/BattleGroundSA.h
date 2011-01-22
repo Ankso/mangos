@@ -568,7 +568,7 @@ class BattleGroundSA : public BattleGround
         bool ShipsStarted;
         /// Status of each gate (Destroy/Damage/Intact)
         BG_SA_GateState GateStatus[6];
-        /// Statu of battle (Start or not, and what round)
+        /// Status of battle (Start or not, and what round)
         BG_SA_Status Status;
         /// Team witch conntrol each graveyard
         TeamId GraveyardStatus[BG_SA_MAX_GY];
