@@ -11,12 +11,12 @@ INSERT INTO `gameobject_template` (`entry`, `type`, `displayId`, `name`, `IconNa
 (190753, 22, 8582, 'Barril de seforio', '', '', '', 12, 0, 2, 0, 0, 0, 0, 0, 0, 52415, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''),
 (194086, 22, 8582, 'Barril de seforio', '', '', '', 29, 0, 2, 0, 0, 0, 0, 0, 0, 52415, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '');
 -- Demolisher
-UPDATE `creature_template` SET `npcflag` = '1', minhealth = '80000', maxhealth = '80000', `ScriptName` = 'npc_sa_demolisher' WHERE `entry` = '28781';
+UPDATE `creature_template` SET `npcflag` = '0', minhealth = '80000', maxhealth = '80000', `ScriptName` = '' WHERE `entry` = '28781';
 DELETE FROM `npc_spellclick_spells` WHERE npc_entry in (28781);
 INSERT INTO `npc_spellclick_spells` VALUES ('28781', '60968', '0', '0', '0', '0');
 
 -- AP Cannon
-UPDATE `creature_template` SET `npcflag` = '1', unit_flags = 32768, type_flags = 131080, dynamicflags = 8, minhealth = '60000', maxhealth = '60000', `faction_A` = '35', `faction_H` = '35', `ScriptName` = 'npc_sa_cannon' WHERE entry = '27894';
+UPDATE `creature_template` SET `npcflag` = '0', unit_flags = 32768, type_flags = 131080, dynamicflags = 8, minhealth = '60000', maxhealth = '60000', `faction_A` = '35', `faction_H` = '35', `ScriptName` = '' WHERE entry = '27894';
 DELETE FROM `npc_spellclick_spells` WHERE npc_entry in (27894);
 INSERT INTO `npc_spellclick_spells` VALUES ('27894', '60968', '0', '0', '0', '0');
 
@@ -44,5 +44,6 @@ REPLACE INTO `mangos_string` (`entry`, `content_default`, `content_loc1`, `conte
 (20076,'Purple Ametist door',NULL,NULL,NULL,NULL,NULL,'puerta Amatista Púrpura','puerta Amatista Púrpura',NULL),
 (20077,'Red Sun door',NULL,NULL,NULL,NULL,NULL,'puerta Sol Rojo','puerta Sol Rojo',NULL),
 (20078,'Yellow Moon door',NULL,NULL,NULL,NULL,NULL,'puerta Luna Amarilla','puerta Luna Amarilla',NULL),
+(20079,'$s has put a seforium charge!',NULL,NULL,NULL,NULL,NULL,'¡%s ha colocado una carga de seforio!','¡%s ha colocado una carga de seforio!',NULL);
 
 UPDATE `gameobject_template` Set `ScriptName` = 'go_sa_def_portal' WHERE entry = 191575;
