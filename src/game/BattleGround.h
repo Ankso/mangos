@@ -386,7 +386,7 @@ class BattleGround
         bool IsRandom() { return m_IsRandom; }
 
         // For SotA vehicle's scripts
-        virtual uint32 GetController() const { return false; }
+        virtual Team GetController() const { return TEAM_NONE; }
 
         // Set methods:
         void SetName(char const* Name)      { m_Name = Name; }

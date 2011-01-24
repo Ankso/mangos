@@ -500,7 +500,7 @@ class BattleGroundSA : public BattleGround
         void UpdatePlayerScore(Player *Source, uint32 type, uint32 value, bool doAddHonor = true);
 
         /// Called to handle vehicles scripts
-        uint32 GetController() { return (Attackers == TEAM_ALLIANCE ? HORDE : ALLIANCE); }
+        Team GetController() { return (Attackers == TEAM_ALLIANCE ? HORDE : ALLIANCE); }
 
     private:
 
