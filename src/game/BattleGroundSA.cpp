@@ -900,7 +900,7 @@ void BattleGroundSA::EndBattleGround(uint32 winner)
     RewardHonorToTeam(GetBonusHonorFromKill(2), ALLIANCE);
     RewardHonorToTeam(GetBonusHonorFromKill(2), HORDE);
 
-    BattleGround::EndBattleGround(winner == ALLIANCE ? ALLIANCE : HORDE);
+    BattleGround::EndBattleGround(winner);
 }
 
 void BattleGroundSA::UpdateDemolisherSpawns()
