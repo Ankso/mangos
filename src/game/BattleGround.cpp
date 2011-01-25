@@ -625,6 +625,29 @@ void BattleGround::CastSpellOnTeam(uint32 SpellID, Team teamId)
     }
 }
 
+void BattleGround::RemoveAuraOnTeam(uint32 SpellID, Team team)
+{
+    for (BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
+    {
+        if (itr->second.OfflineRemoveTime)
+            continue;
+        Player *plr = sObjectMgr.GetPlayer(itr->first);
+
+        if (!plr)
+        {
+            sLog.outError("Battleground:RemoveAuraOnTeam: Player not found!");
+            continue;
+        }
+
+        Team pTeam = itr->second.PlayerTeam;
+        if (!pTeam)
+            team = plr->GetTeam();
+
+        if (team == pTeam)
+            plr->RemoveAurasDueToSpell(SpellID);
+    }
+}
+
 void BattleGround::RewardHonorToTeam(uint32 Honor, Team teamId)
 {
     for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)

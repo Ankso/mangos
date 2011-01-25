@@ -591,13 +591,13 @@ void BattleGroundSA::OverrideGunFaction()
     if (m_BgCreatures[0].IsEmpty())
         return;
 
-    for (uint8 i = BG_SA_GUN_1; i <= BG_SA_GUN_10;i++)
+    for (uint8 i = BG_SA_GUN_1; i <= BG_SA_GUN_10; i++)
     {
         if (Creature* gun = GetBGCreature(i))
             gun->setFaction(BG_SA_Factions[Attackers? TEAM_ALLIANCE : TEAM_HORDE]);
     }
 
-    for (uint8 i = BG_SA_DEMOLISHER_1; i <= BG_SA_DEMOLISHER_4;i++)
+    for (uint8 i = BG_SA_DEMOLISHER_1; i <= BG_SA_DEMOLISHER_4; i++)
     {
         if (Creature* dem = GetBGCreature(i))
             dem->setFaction(BG_SA_Factions[Attackers]);
@@ -824,7 +824,7 @@ void BattleGroundSA::EventPlayerUsedGO(Player* Source, GameObject* object)
                 SendMessageToAll(LANG_BG_SA_ALLIANCE_CAPTURED_RELIC, CHAT_MSG_BG_SYSTEM_NEUTRAL);
             else SendMessageToAll(LANG_BG_SA_HORDE_CAPTURED_RELIC, CHAT_MSG_BG_SYSTEM_NEUTRAL);
 
-            RewardXpToTeam(0, 0.6f, (Attackers == ALLIANCE ? ALLIANCE : HORDE));
+            RewardXpToTeam(0, 0.6f, (Attackers == TEAM_ALLIANCE ? ALLIANCE : HORDE));
 
             if (Status == BG_SA_ROUND_ONE)
             {
