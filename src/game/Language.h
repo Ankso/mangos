@@ -1006,6 +1006,7 @@ enum MangosStrings
     LANG_BG_SA_RED_DOOR                     = 20077, //Red Sun door
     LANG_BG_SA_YELLOW_DOOR                  = 20078, //Yellow Moon door
     LANG_BG_SA_PUT_SEFORIUM_CHARGE          = 20079, //%s has put a seforium charge!
+    LANG_BG_SA_ANCIENTS_DOOR                = 20102, //Ancient's door
 
     // Isle of Conquest
     LANG_BG_IC_START_TWO_MINUTES        = 20080,

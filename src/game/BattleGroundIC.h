@@ -19,6 +19,8 @@
 #ifndef __BATTLEGROUNDIC_H
 #define __BATTLEGROUNDIC_H
 
+#include "Language.h"
+
 class BattleGround;
 
 const uint32 BG_IC_Factions[2] =
@@ -485,7 +487,7 @@ const ICNpc BG_IC_NpcSpawnlocs[MAX_NORMAL_NPCS_SPAWNS]=
     {BG_IC_NPC_KEEP_CANNON_25,NPC_KEEP_CANNON,TEAM_HORDE,1166.13f,-858.391f,87.9653f,5.63741f},// 35
 };
 
-const Position BG_IC_WorkshopVehicles[5] =
+const float BG_IC_WorkshopVehicles[5][4] =
 {
     {751.8281f, -852.732666f, 12.5250978f, 1.46607661f}, // Demolisher
     {761.809f, -854.2274f, 12.5263243f, 1.46607661f}, // Demolisher
@@ -494,13 +496,13 @@ const Position BG_IC_WorkshopVehicles[5] =
     {773.680542f, -884.092041f, 16.8090363f, 1.58824956f} // Siege Engine
 };
 
-const Position BG_IC_DocksVehiclesGlaives[2] = 
+const float BG_IC_DocksVehiclesGlaives[2][4] = 
 {
     { 779.3125f, -342.972229f, 12.2104874f, 4.712389f }, // Glaive Throwers
     { 790.029541f, -342.899323f, 12.2128582f, 4.71238f }, // Glaive Throwers
 };
 
-const Position BG_IC_DocksVehiclesCatapults[4] = 
+const float BG_IC_DocksVehiclesCatapults[4][4] = 
 {
     {757.283f, -341.7795f, 12.2113762f, 4.729842f}, // Catapults
     {766.947937f, -342.053833f, 12.2009945f, 4.694f}, // Catapults
@@ -508,7 +510,7 @@ const Position BG_IC_DocksVehiclesCatapults[4] =
     {810.7257f, -342.083344f, 12.1675768f, 4.6600f}, // Catapults
 };
 
-const Position BG_IC_HangarTeleporters[3] = 
+const float BG_IC_HangarTeleporters[3][4] = 
 {
     {827.958f,-994.467f,134.071f,0.0f}, // Gunship Portal
     {738.613f,-1106.58f,134.745f,2.54818f}, // Gunship Portal
@@ -645,7 +647,7 @@ const ICGo BG_IC_ObjSpawnlocs[MAX_NORMAL_GAMEOBJECTS_SPAWNS] =
     {BG_IC_GO_DOODAD_ND_WINTERORC_WALL_GATEFX_DOOR01,GO_DOODAD_ND_WINTERORC_WALL_GATEFX_DOOR01,1150.9f,-762.606f,47.0f,3.14159f} // Doodad_ND_WinterOrc_Wall_GateFX_Door01 -> this was not sniffed because I only had alliance sniffs
 };
 
-const Position workshopBombs[2] = 
+const float workshopBombs[2][4] = 
 {
     {750.601f,-864.597f,13.4754f,1.93731f},
     {785.509f,-864.715f,13.3993f,2.47837f}
@@ -779,8 +781,8 @@ enum ICNodeState
 
 const uint32 BG_IC_GraveyardIds[MAX_NODE_TYPES+2] = {0, 0, 1480, 1481, 1482, 1485, 1486, 1483, 1484};
 
-const Position TransportMovementInfo = {7.305609f, -0.095246f, 34.51022f, 0.0f};
-const Position TeleportToTransportPosition = {661.0f,-1244.0f,288.0f,0.0f};
+const float TransportMovementInfo[4] = {7.305609f, -0.095246f, 34.51022f, 0.0f};
+const float TeleportToTransportPosition[4] = {661.0f,-1244.0f,288.0f,0.0f};
 
 const float BG_IC_SpiritGuidePos[MAX_NODE_TYPES+2][4] = 
 {
@@ -795,7 +797,7 @@ const float BG_IC_SpiritGuidePos[MAX_NODE_TYPES+2][4] =
     {1148.65f, -1250.98f, 16.60f, 1.74f},         // last resort horde
 };
 
-const Position hordeGunshipPassengers[5] = 
+const float hordeGunshipPassengers[5][4] = 
 {
     {-21.401f, -31.343f, 34.173f, 4.62057f},
     {-12.1064f, -31.9697f, 34.3807f, 4.62057f},
@@ -804,7 +806,7 @@ const Position hordeGunshipPassengers[5] =
     {19.4636f, -30.794f, 36.2254f, 4.83106f}
 };
 
-const Position allianceGunshipPassengers[5] = 
+const float allianceGunshipPassengers[5][4] = 
 {
     {-41.7122f, 23.1838f, 22.5605f, 1.60659f},
     {-31.0354f, 25.1286f, 21.6921f, 1.60659f},
@@ -886,7 +888,7 @@ class BattleGroundIC : public BattleGround
         /* Scorekeeping */
         void UpdatePlayerScore(Player *Source, uint32 type, uint32 value, bool doAddHonor = true);
 
-        void FillInitialWorldStates(WorldPacket& data);
+        void FillInitialWorldStates(WorldPacket& data, uint32& count);
 
         virtual void DoAction(uint32 action, uint64 var);
 
@@ -960,5 +962,6 @@ class BattleGroundIC : public BattleGround
         void HandleContestedNodes(ICNodePoint* nodePoint);
         Transport* CreateTransport(uint32 goEntry,uint32 period);
         void SendTransportInit(Player* player);
+        void HandleParachutes();
 };
 #endif

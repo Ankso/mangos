@@ -95,17 +95,14 @@ void BattleGroundIC::DoAction(uint32 action, uint64 var)
     if (!plr || !gunshipAlliance || !gunshipHorde)
         return;
 
-    plr->CastSpell(plr,SPELL_PARACHUTE,true); // this must be changed, there is a trigger in each transport that casts the spell.
-    plr->CastSpell(plr,SPELL_SLOW_FALL,true);
+    plr->CastSpell(plr, SPELL_PARACHUTE, true); // this must be changed, there is a trigger in each transport that casts the spell.
+    plr->CastSpell(plr, SPELL_SLOW_FALL, true);
 
     plr->SetTransport(plr->GetTeamId() == TEAM_ALLIANCE ? gunshipAlliance : gunshipHorde);
 
-    plr->m_movementInfo.t_pos.x = TransportMovementInfo.x;
-    plr->m_movementInfo.t_pos.y = TransportMovementInfo.y;
-    plr->m_movementInfo.t_pos.z = TransportMovementInfo.z;
-    plr->m_movementInfo.t_guid = (plr->GetTeamId() == TEAM_ALLIANCE ? gunshipAlliance : gunshipHorde)->GetGUID();
-
-    plr->TeleportTo(GetMapId(), TeleportToTransportPosition.x, TeleportToTransportPosition.y, TeleportToTransportPosition.z, TeleportToTransportPosition.o, TELE_TO_NOT_LEAVE_TRANSPORT);
+    plr->m_movementInfo.SetTransportData((plr->GetTeamId() == TEAM_ALLIANCE ? gunshipAlliance->GetObjectGuid() : gunshipHorde->GetObjectGuid()), TransportMovementInfo[0], TransportMovementInfo[1], TransportMovementInfo[2], TransportMovementInfo[3], 0, 0);
+    
+    plr->TeleportTo(GetMapId(), TeleportToTransportPosition[0], TeleportToTransportPosition[1], TeleportToTransportPosition[2], TeleportToTransportPosition[3], TELE_TO_NOT_LEAVE_TRANSPORT);
 }
 
 void BattleGroundIC::Update(uint32 diff)
@@ -220,6 +217,7 @@ void BattleGroundIC::Update(uint32 diff)
             
                 DelObject(nodePoint[i].gameobject_type);
                 AddObject(nodePoint[i].gameobject_type,nodePoint[i].gameobject_entry,cords[0],cords[1],cords[2],cords[3],0,0,0,0,RESPAWN_ONE_DAY);
+                SpawnBGObject(m_BgObjects[nodePoint[i].gameobject_type], RESPAWN_IMMEDIATELY);
 
                 GetBGObject(nodePoint[i].gameobject_type)->SetUInt32Value(GAMEOBJECT_FACTION, nodePoint[i].faction == TEAM_ALLIANCE ? BG_IC_Factions[1] : BG_IC_Factions[0]);
 
@@ -247,7 +245,9 @@ void BattleGroundIC::Update(uint32 diff)
             }
         }
         resourceTimer = IC_RESOURCE_TIME;
-    } else resourceTimer -= diff; 
+    } else resourceTimer -= diff;
+
+    HandleParachutes();
 }
 
 void BattleGroundIC::StartingEventCloseDoors()
@@ -277,6 +277,8 @@ void BattleGroundIC::StartingEventOpenDoors()
             BG_IC_Teleporters[i].z,BG_IC_Teleporters[i].o,
             0,0,0,0,RESPAWN_ONE_DAY))
             sLog.outError("Isle of Conquest | Starting Event Open Doors: There was an error spawning gameobject %u",BG_IC_Teleporters[i].entry);
+        else
+            SpawnBGObject(m_BgObjects[BG_IC_Teleporters[i].type], RESPAWN_IMMEDIATELY);
     }
 }
 
@@ -344,21 +346,21 @@ void BattleGroundIC::UpdatePlayerScore(Player* Source, uint32 type, uint32 value
     }
 }
 
-void BattleGroundIC::FillInitialWorldStates(WorldPacket& data)
+void BattleGroundIC::FillInitialWorldStates(WorldPacket& data, uint32& count)
 {
-    data << uint32(BG_IC_ALLIANCE_RENFORT_SET) << uint32(1);
-    data << uint32(BG_IC_HORDE_RENFORT_SET) << uint32(1);
-    data << uint32(BG_IC_ALLIANCE_RENFORT) << uint32(factionReinforcements[TEAM_ALLIANCE]);
-    data << uint32(BG_IC_HORDE_RENFORT) << uint32(factionReinforcements[TEAM_HORDE]);
+    FillInitialWorldState(data, count, uint32(BG_IC_ALLIANCE_RENFORT_SET), uint32(1));
+    FillInitialWorldState(data, count, uint32(BG_IC_HORDE_RENFORT_SET), uint32(1));
+    FillInitialWorldState(data, count, uint32(BG_IC_ALLIANCE_RENFORT), uint32(factionReinforcements[TEAM_ALLIANCE]));
+    FillInitialWorldState(data, count, uint32(BG_IC_HORDE_RENFORT), uint32(factionReinforcements[TEAM_HORDE]));
 
     for (uint8 i = 0; i < MAX_FORTRESS_GATES_SPAWNS; i++)
     {
         uint32 uws = GetWorldStateFromGateEntry(BG_IC_ObjSpawnlocs[i].entry,(GateStatus[GetGateIDFromEntry(BG_IC_ObjSpawnlocs[i].entry)] == BG_IC_GATE_DESTROYED ? true : false));
-        data << uint32(uws) << uint32(1);
+        FillInitialWorldState(data, count, uint32(uws), uint32(1));
     }
     
     for (uint8 i = 0 ; i < MAX_NODE_TYPES ; i++)
-        data << uint32(nodePoint[i].worldStates[nodePoint[i].nodeState]) << uint32(1);
+        FillInitialWorldState(data, count, uint32(nodePoint[i].worldStates[nodePoint[i].nodeState]), uint32(1));
 }
 
 bool BattleGroundIC::SetupBattleGround()
@@ -373,6 +375,8 @@ bool BattleGroundIC::SetupBattleGround()
             sLog.outError("Isle of Conquest: There was an error spawning gameobject %u",BG_IC_ObjSpawnlocs[i].entry);
             return false;      
         }
+        else
+            SpawnBGObject(m_BgObjects[BG_IC_ObjSpawnlocs[i].type], RESPAWN_IMMEDIATELY);
     } 
 
     for (uint8 i = 0; i < MAX_NORMAL_NPCS_SPAWNS; i++)
@@ -474,11 +478,11 @@ void BattleGroundIC::EndBattleGround(uint32 winner)
 void BattleGroundIC::RealocatePlayers(ICNodePointType nodeType)
 {
     // Those who are waiting to resurrect at this node are taken to the closest own node's graveyard
-    std::vector<ObjectGuid> ghost_list = m_ReviveQueue[m_BgCreatures[BG_IC_NPC_SPIRIT_GUIDE_1 + nodeType - 2]];
+    /*std::vector<uint64> ghost_list = m_ReviveQueue[BG_IC_NPC_SPIRIT_GUIDE_1 + nodeType - 2];
     if (!ghost_list.empty())
     {
         WorldSafeLocsEntry const *ClosestGrave = NULL;
-        for (std::vector<ObjectGuid>::const_iterator itr = ghost_list.begin(); itr != ghost_list.end(); ++itr)
+        for (std::vector<uint64>::const_iterator itr = ghost_list.begin(); itr != ghost_list.end(); ++itr)
         {
             Player* plr = sObjectMgr.GetPlayer(*itr);
             if (!plr)
@@ -490,7 +494,7 @@ void BattleGroundIC::RealocatePlayers(ICNodePointType nodeType)
             if (ClosestGrave)
                 plr->TeleportTo(GetMapId(), ClosestGrave->x, ClosestGrave->y, ClosestGrave->z, plr->GetOrientation());
         }
-    }
+    }*/
 }
 
 void BattleGroundIC::EventPlayerClickedOnFlag(Player* player, GameObject* target_obj)
@@ -554,6 +558,7 @@ void BattleGroundIC::EventPlayerClickedOnFlag(Player* player, GameObject* target
             
             DelObject(nodePoint[i].gameobject_type);
             AddObject(nodePoint[i].gameobject_type,nodePoint[i].gameobject_entry,cords[0],cords[1],cords[2],cords[3],0,0,0,0,RESPAWN_ONE_DAY);
+            SpawnBGObject(m_BgObjects[nodePoint[i].gameobject_type], RESPAWN_IMMEDIATELY);
 
             GetBGObject(nodePoint[i].gameobject_type)->SetUInt32Value(GAMEOBJECT_FACTION, nodePoint[i].faction == TEAM_ALLIANCE ? BG_IC_Factions[1] : BG_IC_Factions[0]);
 
@@ -651,9 +656,10 @@ void BattleGroundIC::HandleCapturedNodes(ICNodePoint* nodePoint, bool recapture)
         {
             uint8 type = BG_IC_GO_HANGAR_TELEPORTER_1+u;
             AddObject(type, (nodePoint->faction == TEAM_ALLIANCE ? GO_ALLIANCE_GUNSHIP_PORTAL : GO_HORDE_GUNSHIP_PORTAL),
-                BG_IC_HangarTeleporters[u].x, BG_IC_HangarTeleporters[u].y,
-                BG_IC_HangarTeleporters[u].z, BG_IC_HangarTeleporters[u].o,
+                BG_IC_HangarTeleporters[u][0], BG_IC_HangarTeleporters[u][1],
+                BG_IC_HangarTeleporters[u][2], BG_IC_HangarTeleporters[u][3],
                 0,0,0,0,RESPAWN_ONE_DAY);
+            SpawnBGObject(m_BgObjects[type], RESPAWN_IMMEDIATELY);
         }
 
         //sLog->outError("BG_IC_GO_HANGAR_BANNER CAPTURED Faction: %u", nodePoint->faction);
@@ -712,8 +718,8 @@ void BattleGroundIC::HandleCapturedNodes(ICNodePoint* nodePoint, bool recapture)
                 continue;
 
             if (AddCreature(nodePoint->faction == TEAM_ALLIANCE ? NPC_GLAIVE_THROWER_A : NPC_GLAIVE_THROWER_H,type,nodePoint->faction,
-                    BG_IC_DocksVehiclesGlaives[i].x,BG_IC_DocksVehiclesGlaives[i].y,
-                    BG_IC_DocksVehiclesGlaives[i].z,BG_IC_DocksVehiclesGlaives[i].o,
+                    BG_IC_DocksVehiclesGlaives[i][0],BG_IC_DocksVehiclesGlaives[i][1],
+                    BG_IC_DocksVehiclesGlaives[i][2],BG_IC_DocksVehiclesGlaives[i][3],
                     RESPAWN_ONE_DAY))
                     GetBGCreature(type)->setFaction(BG_IC_Factions[(nodePoint->faction == TEAM_ALLIANCE ? 0 : 1)]);
         }
@@ -727,8 +733,8 @@ void BattleGroundIC::HandleCapturedNodes(ICNodePoint* nodePoint, bool recapture)
                 continue;
 
             if (AddCreature(NPC_CATAPULT,type,nodePoint->faction,
-                    BG_IC_DocksVehiclesCatapults[i].x,BG_IC_DocksVehiclesCatapults[i].y,
-                    BG_IC_DocksVehiclesCatapults[i].z,BG_IC_DocksVehiclesCatapults[i].o,
+                    BG_IC_DocksVehiclesCatapults[i][0],BG_IC_DocksVehiclesCatapults[i][1],
+                    BG_IC_DocksVehiclesCatapults[i][2],BG_IC_DocksVehiclesCatapults[i][3],
                     RESPAWN_ONE_DAY))
                     GetBGCreature(type)->setFaction(BG_IC_Factions[(nodePoint->faction == TEAM_ALLIANCE ? 0 : 1)]);
         }
@@ -745,12 +751,12 @@ void BattleGroundIC::HandleCapturedNodes(ICNodePoint* nodePoint, bool recapture)
                 {
                     if (Creature* demolisher = GetBGCreature(i))
                     {
-                        /*if (VehicleKit* vehicleDemolisher = demolisher->GetVehicleKit())
-                        {*/
+                        if (VehicleKit* vehicleDemolisher = demolisher->GetVehicleKit())
+                        {
                             // is IsVehicleInUse working as expected?
                             if (!demolisher->GetCharmerOrOwner())
                                 DelCreature(i);
-                        /*}*/
+                        }
                     }
                 }
 
@@ -762,8 +768,8 @@ void BattleGroundIC::HandleCapturedNodes(ICNodePoint* nodePoint, bool recapture)
                         continue;
 
                     if (AddCreature(NPC_DEMOLISHER,type,nodePoint->faction,
-                        BG_IC_WorkshopVehicles[i].x,BG_IC_WorkshopVehicles[i].y,
-                        BG_IC_WorkshopVehicles[i].z,BG_IC_WorkshopVehicles[i].o,
+                        BG_IC_WorkshopVehicles[i][0],BG_IC_WorkshopVehicles[i][1],
+                        BG_IC_WorkshopVehicles[i][2],BG_IC_WorkshopVehicles[i][3],
                         RESPAWN_ONE_DAY))
                         GetBGCreature(type)->setFaction(BG_IC_Factions[(nodePoint->faction == TEAM_ALLIANCE ? 0 : 1)]);
                 }
@@ -785,8 +791,8 @@ void BattleGroundIC::HandleCapturedNodes(ICNodePoint* nodePoint, bool recapture)
                 if (!GetBGCreature(siegeType) || !GetBGCreature(siegeType)->isAlive())
                 {
                     AddCreature((nodePoint->faction == TEAM_ALLIANCE ? NPC_SIEGE_ENGINE_A : NPC_SIEGE_ENGINE_H),siegeType,nodePoint->faction, 
-                        BG_IC_WorkshopVehicles[4].x,BG_IC_WorkshopVehicles[4].y,
-                        BG_IC_WorkshopVehicles[4].z,BG_IC_WorkshopVehicles[4].o,
+                        BG_IC_WorkshopVehicles[4][0],BG_IC_WorkshopVehicles[4][1],
+                        BG_IC_WorkshopVehicles[4][2],BG_IC_WorkshopVehicles[4][3],
                         RESPAWN_ONE_DAY);
 
                     if (Creature* siegeEngine = GetBGCreature(siegeType))
@@ -800,9 +806,10 @@ void BattleGroundIC::HandleCapturedNodes(ICNodePoint* nodePoint, bool recapture)
             for (uint8 i = 0; i < MAX_WORKSHOP_BOMBS_SPAWNS_PER_FACTION; i++)
             {
                 AddObject(BG_IC_GO_SEAFORIUM_BOMBS_1+i,GO_SEAFORIUM_BOMBS,
-                workshopBombs[i].x,workshopBombs[i].y,
-                workshopBombs[i].z,workshopBombs[i].o,
+                workshopBombs[i][0],workshopBombs[i][1],
+                workshopBombs[i][2],workshopBombs[i][3],
                 0,0,0,0,10);
+                SpawnBGObject(m_BgObjects[BG_IC_GO_SEAFORIUM_BOMBS_1 + i], RESPAWN_IMMEDIATELY);
 
                 if (GameObject* seaforiumBombs = GetBGObject(BG_IC_GO_SEAFORIUM_BOMBS_1+i))
                 {
@@ -827,7 +834,7 @@ void BattleGroundIC::DestroyGate(Player* pl, GameObject* go, uint32 /*destroyedE
         UpdateWorldState(uws_close,0);
         UpdateWorldState(uws_open, 1);
     }
-    DoorOpen((pl->GetTeamId() == TEAM_ALLIANCE ? BG_IC_GO_HORDE_KEEP_PORTCULLIS : BG_IC_GO_DOODAD_PORTCULLISACTIVE02));
+    DoorOpen((pl->GetTeamId() == TEAM_ALLIANCE ? m_BgObjects[BG_IC_GO_HORDE_KEEP_PORTCULLIS] : m_BgObjects[BG_IC_GO_DOODAD_PORTCULLISACTIVE02]));
 
     uint32 lang_entry = 0;
    
@@ -860,7 +867,7 @@ void BattleGroundIC::EventPlayerDamagedGO(Player* /*plr*/, GameObject* /*go*/, u
 
 WorldSafeLocsEntry const* BattleGroundIC::GetClosestGraveYard(Player* player)
 {
-    BattleGroundTeamId teamIndex = GetTeamIndexByTeamId(player->GetTeam());
+    BattleGroundTeamIndex teamIndex = GetTeamIndexByTeamId(player->GetTeam());
 
     // Is there any occupied node for this team?
     std::vector<uint8> nodes;
@@ -897,9 +904,9 @@ WorldSafeLocsEntry const* BattleGroundIC::GetClosestGraveYard(Player* player)
     return good_entry;
 }
 
-Transport* BattleGroundIC::CreateTransport(uint32 goEntry,uint32 period)
+Transport* BattleGroundIC::CreateTransport(uint32 goEntry, uint32 period)
 {
-    Transport* t = new Transport(period,0);
+    Transport* t = new Transport;
 
     const GameObjectInfo* goinfo = sObjectMgr.GetGameObjectInfo(goEntry);
 
@@ -928,7 +935,7 @@ Transport* BattleGroundIC::CreateTransport(uint32 goEntry,uint32 period)
     float o = 1;
 
     // creates the Gameobject
-    if (!t->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_MO_TRANSPORT),goEntry, mapid, x, y, z, o, 100, 0))
+    if (!t->Create(goEntry, mapid, x, y, z, o, GO_ANIMPROGRESS_DEFAULT, 0))
     {
         delete t;
         return NULL;
@@ -937,8 +944,24 @@ Transport* BattleGroundIC::CreateTransport(uint32 goEntry,uint32 period)
     //If we someday decide to use the grid to track transports, here:
     t->SetMap(GetBgMap());
 
-    for (uint8 i = 0; i < 5; i++)
-        t->AddNPCPassenger(0,(goEntry == GO_HORDE_GUNSHIP ? NPC_HORDE_GUNSHIP_CANNON : NPC_ALLIANCE_GUNSHIP_CANNON), (goEntry == GO_HORDE_GUNSHIP ? hordeGunshipPassengers[i].GetPositionX() : allianceGunshipPassengers[i].GetPositionX()) , (goEntry == GO_HORDE_GUNSHIP ? hordeGunshipPassengers[i].GetPositionY() : allianceGunshipPassengers[i].GetPositionY()),(goEntry == GO_HORDE_GUNSHIP ? hordeGunshipPassengers[i].GetPositionZ() : allianceGunshipPassengers[i].GetPositionZ()), (goEntry == GO_HORDE_GUNSHIP ? hordeGunshipPassengers[i].GetOrientation() : allianceGunshipPassengers[i].GetOrientation()));
+    //for (uint8 i = 0; i < 5; i++)
+    //    t->AddNPCPassenger(0,(goEntry == GO_HORDE_GUNSHIP ? NPC_HORDE_GUNSHIP_CANNON : NPC_ALLIANCE_GUNSHIP_CANNON), (goEntry == GO_HORDE_GUNSHIP ? hordeGunshipPassengers[i].GetPositionX() : allianceGunshipPassengers[i].GetPositionX()) , (goEntry == GO_HORDE_GUNSHIP ? hordeGunshipPassengers[i].GetPositionY() : allianceGunshipPassengers[i].GetPositionY()),(goEntry == GO_HORDE_GUNSHIP ? hordeGunshipPassengers[i].GetPositionZ() : allianceGunshipPassengers[i].GetPositionZ()), (goEntry == GO_HORDE_GUNSHIP ? hordeGunshipPassengers[i].GetOrientation() : allianceGunshipPassengers[i].GetOrientation()));
         
     return t;
+}
+
+void BattleGroundIC::HandleParachutes()
+{
+    for (BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
+    {
+        if (Player *player = sObjectMgr.GetPlayer(itr->first))
+        {
+            if (!player->IsFalling())
+                continue;
+
+            float height = player->GetPositionZ();
+            if (height < 180 && height > 140 && (!player->HasAura(66657)))
+                player->CastSpell(player, 66657, true);
+        }
+    }
 }
