@@ -9229,6 +9229,10 @@ bool Unit::CanHaveThreatList() const
     if (creature->GetCharmerGuid().IsPlayer())
         return false;
 
+    // Vehicles can't have threat list
+    if (creature->GetVehicleKit())
+        return false;
+
     // Is it correct?
     if (isCharmed())
         return false;
