@@ -409,44 +409,44 @@ void BattleGroundSA::StartingEventOpenDoors()
 {
 }
 
-void BattleGroundSA::FillInitialWorldStates(WorldPacket& data)
+void BattleGroundSA::FillInitialWorldStates(WorldPacket& data, uint32& count)
 {
   uint32 ally_attacks = uint32(Attackers == TEAM_ALLIANCE ? 1 : 0);
   uint32 horde_attacks = uint32(Attackers == TEAM_HORDE ? 1 : 0);
 
-  data << uint32(BG_SA_ANCIENT_GATEWS) << uint32(GateStatus[BG_SA_ANCIENT_GATE]);
-  data << uint32(BG_SA_YELLOW_GATEWS) << uint32(GateStatus[BG_SA_YELLOW_GATE]);
-  data << uint32(BG_SA_GREEN_GATEWS) << uint32(GateStatus[BG_SA_GREEN_GATE]);
-  data << uint32(BG_SA_BLUE_GATEWS) << uint32(GateStatus[BG_SA_BLUE_GATE]);
-  data << uint32(BG_SA_RED_GATEWS) << uint32(GateStatus[BG_SA_RED_GATE]);
-  data << uint32(BG_SA_PURPLE_GATEWS) << uint32(GateStatus[BG_SA_PURPLE_GATE]);
+  FillInitialWorldState(data, count, uint32(BG_SA_ANCIENT_GATEWS), uint32(GateStatus[BG_SA_ANCIENT_GATE]));
+  FillInitialWorldState(data, count, uint32(BG_SA_YELLOW_GATEWS), uint32(GateStatus[BG_SA_YELLOW_GATE]));
+  FillInitialWorldState(data, count, uint32(BG_SA_GREEN_GATEWS), uint32(GateStatus[BG_SA_GREEN_GATE]));
+  FillInitialWorldState(data, count, uint32(BG_SA_BLUE_GATEWS), uint32(GateStatus[BG_SA_BLUE_GATE]));
+  FillInitialWorldState(data, count, uint32(BG_SA_RED_GATEWS), uint32(GateStatus[BG_SA_RED_GATE]));
+  FillInitialWorldState(data, count, uint32(BG_SA_PURPLE_GATEWS), uint32(GateStatus[BG_SA_PURPLE_GATE]));
 
-  data << uint32(BG_SA_BONUS_TIMER) << uint32(0);
+  FillInitialWorldState(data, count, uint32(BG_SA_BONUS_TIMER), uint32(0));
 
-  data << uint32(BG_SA_HORDE_ATTACKS)<< horde_attacks;
-  data << uint32(BG_SA_ALLY_ATTACKS) << ally_attacks;
+  FillInitialWorldState(data, count, uint32(BG_SA_HORDE_ATTACKS), horde_attacks);
+  FillInitialWorldState(data, count, uint32(BG_SA_ALLY_ATTACKS), ally_attacks);
 
   //Time will be sent on first update...
-  data << uint32(BG_SA_ENABLE_TIMER) << ((TimerEnabled) ? uint32(1) : uint32(0));
-  data << uint32(BG_SA_TIMER_MINS) << uint32(0);
-  data << uint32(BG_SA_TIMER_SEC_TENS) << uint32(0);
-  data << uint32(BG_SA_TIMER_SEC_DECS) << uint32(0);
+  FillInitialWorldState(data, count, uint32(BG_SA_ENABLE_TIMER), ((TimerEnabled) ? uint32(1) : uint32(0)));
+  FillInitialWorldState(data, count, uint32(BG_SA_TIMER_MINS), uint32(0));
+  FillInitialWorldState(data, count, uint32(BG_SA_TIMER_SEC_TENS), uint32(0));
+  FillInitialWorldState(data, count, uint32(BG_SA_TIMER_SEC_DECS), uint32(0));
 
-  data << uint32(BG_SA_RIGHT_GY_HORDE) << uint32(GraveyardStatus[BG_SA_RIGHT_CAPTURABLE_GY] == TEAM_HORDE?1:0);
-  data << uint32(BG_SA_LEFT_GY_HORDE) << uint32(GraveyardStatus[BG_SA_LEFT_CAPTURABLE_GY] == TEAM_HORDE?1:0);
-  data << uint32(BG_SA_CENTER_GY_HORDE) << uint32(GraveyardStatus[BG_SA_CENTRAL_CAPTURABLE_GY] == TEAM_HORDE?1:0);
+  FillInitialWorldState(data, count, uint32(BG_SA_RIGHT_GY_HORDE), uint32(GraveyardStatus[BG_SA_RIGHT_CAPTURABLE_GY] == TEAM_HORDE?1:0));
+  FillInitialWorldState(data, count, uint32(BG_SA_LEFT_GY_HORDE), uint32(GraveyardStatus[BG_SA_LEFT_CAPTURABLE_GY] == TEAM_HORDE?1:0));
+  FillInitialWorldState(data, count, uint32(BG_SA_CENTER_GY_HORDE), uint32(GraveyardStatus[BG_SA_CENTRAL_CAPTURABLE_GY] == TEAM_HORDE?1:0));
 
-  data << uint32(BG_SA_RIGHT_GY_ALLIANCE) << uint32(GraveyardStatus[BG_SA_RIGHT_CAPTURABLE_GY] == TEAM_ALLIANCE?1:0);
-  data << uint32(BG_SA_LEFT_GY_ALLIANCE) << uint32(GraveyardStatus[BG_SA_LEFT_CAPTURABLE_GY] == TEAM_ALLIANCE?1:0);
-  data << uint32(BG_SA_CENTER_GY_ALLIANCE) << uint32(GraveyardStatus[BG_SA_CENTRAL_CAPTURABLE_GY] == TEAM_ALLIANCE?1:0);
+  FillInitialWorldState(data, count, uint32(BG_SA_RIGHT_GY_ALLIANCE), uint32(GraveyardStatus[BG_SA_RIGHT_CAPTURABLE_GY] == TEAM_ALLIANCE?1:0));
+  FillInitialWorldState(data, count, uint32(BG_SA_LEFT_GY_ALLIANCE), uint32(GraveyardStatus[BG_SA_LEFT_CAPTURABLE_GY] == TEAM_ALLIANCE?1:0));
+  FillInitialWorldState(data, count, uint32(BG_SA_CENTER_GY_ALLIANCE), uint32(GraveyardStatus[BG_SA_CENTRAL_CAPTURABLE_GY] == TEAM_ALLIANCE?1:0));
 
-  data << uint32(BG_SA_HORDE_DEFENCE_TOKEN) << ally_attacks;
-  data << uint32(BG_SA_ALLIANCE_DEFENCE_TOKEN) << horde_attacks;
+  FillInitialWorldState(data, count, uint32(BG_SA_HORDE_DEFENCE_TOKEN), ally_attacks);
+  FillInitialWorldState(data, count, uint32(BG_SA_ALLIANCE_DEFENCE_TOKEN), horde_attacks);
 
-  data << uint32(BG_SA_LEFT_ATT_TOKEN_HRD) << horde_attacks;
-  data << uint32(BG_SA_RIGHT_ATT_TOKEN_HRD) << horde_attacks;
-  data << uint32(BG_SA_RIGHT_ATT_TOKEN_ALL) <<  ally_attacks;
-  data << uint32(BG_SA_LEFT_ATT_TOKEN_ALL) <<  ally_attacks;
+  FillInitialWorldState(data, count, uint32(BG_SA_LEFT_ATT_TOKEN_HRD), horde_attacks);
+  FillInitialWorldState(data, count, uint32(BG_SA_RIGHT_ATT_TOKEN_HRD), horde_attacks);
+  FillInitialWorldState(data, count, uint32(BG_SA_RIGHT_ATT_TOKEN_ALL),  ally_attacks);
+  FillInitialWorldState(data, count, uint32(BG_SA_LEFT_ATT_TOKEN_ALL),  ally_attacks);
 }
 
 void BattleGroundSA::AddPlayer(Player *plr)
@@ -543,19 +543,19 @@ void BattleGroundSA::EventPlayerDamagedGO(Player* /*plr*/, GameObject* go, uint8
 {
     if (!go || !go->GetGOInfo())
         return;
-    
-    uint32 doorName = BG_SA_DoorNames[GetGateIDFromDestroyEventID(destroyedEvent)];
+
+    uint32 doorNameId = BG_SA_DoorNames[GetGateIDFromGoEntry(go->GetEntry())];
     switch(hitType)
     {
         case BG_OBJECT_DMG_HIT_TYPE_JUST_DAMAGED:   //under attack
-            SendMessage2ToAll(LANG_BG_SA_IS_UNDER_ATTACK, (Attackers == TEAM_ALLIANCE ? CHAT_MSG_BG_SYSTEM_ALLIANCE : CHAT_MSG_BG_SYSTEM_HORDE), NULL, doorName);
+            SendMessage2ToAll(LANG_BG_SA_IS_UNDER_ATTACK, (Attackers == TEAM_ALLIANCE ? CHAT_MSG_BG_SYSTEM_ALLIANCE : CHAT_MSG_BG_SYSTEM_HORDE), NULL, doorNameId);
             break;
         case BG_OBJECT_DMG_HIT_TYPE_DAMAGED:
             break;
         case BG_OBJECT_DMG_HIT_TYPE_JUST_HIGH_DAMAGED:
         {
-            SendWarningToAll(LANG_BG_SA_IS_UNDER_ATTACK, sObjectMgr.GetMangosStringForDBCLocale(doorName));
-            uint32 i = GetGateIDFromDestroyEventID(destroyedEvent);
+            SendWarningToAll(LANG_BG_SA_IS_UNDER_ATTACK, sObjectMgr.GetMangosStringForDBCLocale(doorNameId));
+            uint32 i = GetGateIDFromGoEntry(go->GetEntry());
             GateStatus[i] = BG_SA_GATE_DAMAGED;
             uint32 uws = GetWorldStateFromGateID(i);
             if (uws)
@@ -565,10 +565,10 @@ void BattleGroundSA::EventPlayerDamagedGO(Player* /*plr*/, GameObject* go, uint8
         case BG_OBJECT_DMG_HIT_TYPE_HIGH_DAMAGED:
             break;
         case BG_OBJECT_DMG_HIT_TYPE_JUST_DESTROYED: //handled at DestroyGate()
-            if (destroyedEvent == 19837)
+            if (go->GetEntry() == BG_SA_ObjEntries[BG_SA_ANCIENT_GATE])
                 SendWarningToAll(LANG_BG_SA_CHAMBER_BREACHED);
             else
-                SendWarningToAll(LANG_BG_SA_WAS_DESTROYED, sObjectMgr.GetMangosStringForDBCLocale(doorName));
+                SendWarningToAll(LANG_BG_SA_WAS_DESTROYED, sObjectMgr.GetMangosStringForDBCLocale(doorNameId));
             break;
     }
 }
@@ -656,7 +656,7 @@ void BattleGroundSA::DestroyGate(Player* pl, GameObject* /*go*/, uint32 destroye
 
         if (i < 5)
             DelObject(i+9);
-        UpdatePlayerScore(pl,SCORE_DESTROYED_WALL, 1);
+        UpdatePlayerScore(pl, SCORE_DESTROYED_WALL, 1);
         if (rewardHonor)
         {
             UpdatePlayerScore(pl,SCORE_BONUS_HONOR,(GetBonusHonorFromKill(1)));

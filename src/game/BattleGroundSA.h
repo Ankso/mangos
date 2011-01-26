@@ -401,13 +401,14 @@ const float BG_SA_GYOrientation[BG_SA_MAX_GY] =
     6.148f, //defender last GY
 };
 
-const uint32 BG_SA_DoorNames[5] = 
+const uint32 BG_SA_DoorNames[6] = 
 {
     20074, // Green
     20078, // Yellow
     20075, // Blue
     20077, // Red
     20076, // Purple
+    20102, // Ancients
 };
 
 struct BG_SA_RoundScore
@@ -445,7 +446,7 @@ class BattleGroundSA : public BattleGround
         virtual bool SetupBattleGround();
         virtual void Reset();
         /// Called for generate packet contain worldstate data
-        virtual void FillInitialWorldStates(WorldPacket& data);
+        virtual void FillInitialWorldStates(WorldPacket& data, uint32& count);
         /// Called when a player deal damage to building (door)
         virtual void EventPlayerDamagedGO(Player* plr, GameObject* go, uint8 hitType, uint32 destroyedEvent);
         /// Called when a player kill a unit in bg
@@ -457,6 +458,19 @@ class BattleGroundSA : public BattleGround
         /// Called when a player use a gamobject (relic)
         virtual void EventPlayerUsedGO(Player* Source, GameObject* object);
         /// Return gate id, relative to bg data, according to gameobject id
+        uint32 GetGateIDFromGoEntry(uint32 entry)
+        {
+            switch(entry)
+            {
+                case 190722: return BG_SA_GREEN_GATE;
+                case 190724: return BG_SA_BLUE_GATE;
+                case 190726: return BG_SA_RED_GATE;
+                case 190723: return BG_SA_PURPLE_GATE;
+                case 190727: return BG_SA_YELLOW_GATE;
+                case 192549: return BG_SA_ANCIENT_GATE;
+            }
+            return 0;
+        }
         uint32 GetGateIDFromDestroyEventID(uint32 id)
         {
             uint32 i = 0;
