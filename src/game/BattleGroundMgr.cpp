@@ -1368,8 +1368,8 @@ void BattleGroundMgr::BuildPvpLogDataPacket(WorldPacket *data, BattleGround *bg)
                 break;
             case BATTLEGROUND_IC:                           // wotlk
                 *data << uint32(0x00000002);                // count of next fields
-                *data << uint32(((BattlegroundICScore*)itr->second)->BasesAssaulted);       // bases asssulted
-                *data << uint32(((BattlegroundICScore*)itr->second)->BasesDefended);        // bases defended
+                *data << uint32(((BattleGroundICScore*)itr->second)->BasesAssaulted);       // bases asssulted
+                *data << uint32(((BattleGroundICScore*)itr->second)->BasesDefended);        // bases defended
                 break;
             case BATTLEGROUND_NA:
             case BATTLEGROUND_BE:
@@ -1486,6 +1486,8 @@ uint32 BattleGroundMgr::CreateClientVisibleInstanceId(BattleGroundTypeId bgTypeI
     return lastId + 1;
 }
 
+#define MIN_PLAYERS_FOR_ALL_BGS 80
+
 // create a new battleground that will really be used to play
 BattleGround * BattleGroundMgr::CreateNewBattleGround(BattleGroundTypeId bgTypeId, PvPDifficultyEntry const* bracketEntry, uint8 arenaType, bool isRated)
 {
@@ -1513,11 +1515,24 @@ BattleGround * BattleGroundMgr::CreateNewBattleGround(BattleGroundTypeId bgTypeI
 
     bool isRandom = false;
 
-    if(bgTypeId==BATTLEGROUND_RB)
+    if(bgTypeId == BATTLEGROUND_RB)
     {
-        BattleGroundTypeId random_bgs[] = {/*BATTLEGROUND_AV,*/ BATTLEGROUND_WS, BATTLEGROUND_AB, BATTLEGROUND_EY, BATTLEGROUND_SA/*, BATTLEGROUND_IC*/};
-        uint32 bg_num = urand(0, sizeof(random_bgs)/sizeof(BattleGroundTypeId)-1);
-        bgTypeId = random_bgs[bg_num];
+        // Custom - only select random BGs 40vs40 if a minimun amount of online players is reached:
+        if (sWorld.GetActiveSessionCount() > MIN_PLAYERS_FOR_ALL_BGS)
+        {
+            DEBUG_LOG("More than %u players online, selecting random BG including 40vs40 maps", MIN_PLAYERS_FOR_ALL_BGS);
+            BattleGroundTypeId random_bgs[] = {BATTLEGROUND_AV, BATTLEGROUND_WS, BATTLEGROUND_AB, BATTLEGROUND_EY, BATTLEGROUND_SA, BATTLEGROUND_IC};
+            uint32 bg_num = urand(0, sizeof(random_bgs)/sizeof(BattleGroundTypeId)-1);
+            bgTypeId = random_bgs[bg_num];
+        }
+        else
+        {
+            DEBUG_LOG("Less than %u players online, selecting random BG excluding 40vs40 maps", MIN_PLAYERS_FOR_ALL_BGS);
+            BattleGroundTypeId random_bgs[] = {/*BATTLEGROUND_AV,*/ BATTLEGROUND_WS, BATTLEGROUND_AB, BATTLEGROUND_EY, BATTLEGROUND_SA/*, BATTLEGROUND_IC*/};
+            uint32 bg_num = urand(0, sizeof(random_bgs)/sizeof(BattleGroundTypeId)-1);
+            bgTypeId = random_bgs[bg_num];
+        }
+
         bg_template = GetBattleGroundTemplate(bgTypeId);
         if (!bg_template)
         {
