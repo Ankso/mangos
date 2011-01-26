@@ -45,5 +45,7 @@ REPLACE INTO `mangos_string` (`entry`, `content_default`, `content_loc1`, `conte
 (20077,'Red Sun door',NULL,NULL,NULL,NULL,NULL,'puerta Sol Rojo','puerta Sol Rojo',NULL),
 (20078,'Yellow Moon door',NULL,NULL,NULL,NULL,NULL,'puerta Luna Amarilla','puerta Luna Amarilla',NULL),
 (20079,'$s has put a seforium charge!',NULL,NULL,NULL,NULL,NULL,'¡%s ha colocado una carga de seforio!','¡%s ha colocado una carga de seforio!',NULL);
+DELETE FROM mangos_string WHERE entry = 20102;
+INSERT INTO mangos_string VALUES (20102, 'Ancient\'s chamber door', NULL, NULL, NULL, NULL, NULL, 'puerta de la Cámara de las Reliquias', 'puerta de la Cámara de las Reliquias', NULL);
 
 UPDATE `gameobject_template` SET `ScriptName` = 'go_sa_def_portal' WHERE entry = 192819;
