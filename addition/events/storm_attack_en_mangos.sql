@@ -5,7 +5,7 @@
 -- EN-texts
 -- Game-event number - 77, length 60min(1hour), occurence 10080(1week). Day/time of event - Tuesday 20:00
 
-REPLACE INTO game_event VALUES ( 77, '2010-08-06 23:30:00', '2020-12-31 00:30:00', 10080, 60, 0, 'Stormwind City Under Attack');
+REPLACE INTO game_event VALUES ( 77, '2011-01-21 23:30:00', '2020-12-31 00:30:00', 10080, 60, 0, 'Stormwind City Under Attack');
 
 REPLACE INTO `creature_template` (`entry`, `modelid_1`, `modelid_2`, `modelid_3`, `modelid_4`, `name`, `subname`, `IconName`, `minlevel`, `maxlevel`, `minhealth`, `maxhealth`, `minmana`, `maxmana`, `armor`, `faction_A`, `faction_H`, `npcflag`, `speed_run`, `scale`, `rank`, `mindmg`, `maxdmg`, `dmgschool`, `attackpower`, `baseattacktime`, `rangeattacktime`, `unit_flags`, `dynamicflags`, `family`, `trainer_type`, `trainer_spell`, `trainer_class`, `trainer_race`, `minrangedmg`, `maxrangedmg`, `rangedattackpower`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `resistance1`, `resistance2`, `resistance3`, `resistance4`, `resistance5`, `resistance6`, `spell1`, `spell2`, `spell3`, `spell4`, `PetSpellDataId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `InhabitType`, `RacialLeader`, `RegenHealth`, `equipment_id`, `mechanic_immune_mask`, `flags_extra`, `ScriptName`) VALUES 
 (777000, 4259, 4602, 4260, 4601, 'Orgrimmar Grunt', 'Elite Legion', 'Directions', 70, 80, 35000, 55000, 1528, 1528, 7500, 85, 85, 268435457, 1, 1, 0, 950, 1500, 0, 1595, 2000, 2000, 0, 0, 0, 0, 0, 0, 0, 162.5, 227.5, 100, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 40505, 0, 0, 0, 0, 10000, 20000, '', 0, 3, 0, 1, 295, 0, 0, '');

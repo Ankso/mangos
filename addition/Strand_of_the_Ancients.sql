@@ -46,4 +46,4 @@ REPLACE INTO `mangos_string` (`entry`, `content_default`, `content_loc1`, `conte
 (20078,'Yellow Moon door',NULL,NULL,NULL,NULL,NULL,'puerta Luna Amarilla','puerta Luna Amarilla',NULL),
 (20079,'$s has put a seforium charge!',NULL,NULL,NULL,NULL,NULL,'¡%s ha colocado una carga de seforio!','¡%s ha colocado una carga de seforio!',NULL);
 
-UPDATE `gameobject_template` Set `ScriptName` = 'go_sa_def_portal' WHERE entry = 191575;
+UPDATE `gameobject_template` SET `ScriptName` = 'go_sa_def_portal' WHERE entry = 192819;

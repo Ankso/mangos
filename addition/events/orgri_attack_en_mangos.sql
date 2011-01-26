@@ -5,7 +5,7 @@
 -- EN-texts
 -- Game-event number - 78, length 60min(1hour), occurence 10080(1week). Day/time of event - Friday 20:00
 
-REPLACE INTO `game_event` (`entry`, `start_time`, `end_time`, `occurence`, `length`, `description`) VALUES (78, '2010-08-6 23:30:00', '2020-12-31 00:30:00', 10080, 60, 'Orgrimmar City Under Attack');
+REPLACE INTO `game_event` (`entry`, `start_time`, `end_time`, `occurence`, `length`, `description`) VALUES (78, '2011-01-21 23:30:00', '2020-12-31 00:30:00', 10080, 60, 'Orgrimmar City Under Attack');
 
 REPLACE INTO `creature_template` (`entry`, `modelid_1`, `modelid_2`, `modelid_3`, `modelid_4`, `name`, `subname`, `IconName`, `minlevel`, `maxlevel`, `minhealth`, `maxhealth`, `minmana`, `maxmana`, `armor`, `faction_A`, `faction_H`, `npcflag`, `speed_walk`, `scale`, `rank`, `mindmg`, `maxdmg`, `dmgschool`, `attackpower`, `baseattacktime`, `rangeattacktime`, `unit_flags`, `dynamicflags`, `family`, `trainer_type`, `trainer_spell`, `trainer_class`, `trainer_race`, `minrangedmg`, `maxrangedmg`, `rangedattackpower`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `resistance1`, `resistance2`, `resistance3`, `resistance4`, `resistance5`, `resistance6`, `spell1`, `spell2`, `spell3`, `spell4`, `PetSpellDataId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `InhabitType`, `RacialLeader`, `RegenHealth`, `equipment_id`, `mechanic_immune_mask`, `flags_extra`, `ScriptName`) VALUES 
 (900050, 3167, 0, 5446, 0, 'Aliance Soldiest', '', 'Elite Aliance', 70, 80, 35000, 55000, 0, 0, 1500, 11, 11, 1, 1.4, 1, 0, 2192, 3289, 2, 1967, 2000, 0, 561152, 0, 0, 0, 0, 0, 0, 401.34, 472.17, 150, 7, 0, 0, 0, 0, 10, 10, 10, 10, 10, 10, 0, 0, 0, 0, 0, 10000, 20000, '', 0, 3, 0, 1, 653, 0, 0, ''),
