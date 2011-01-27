@@ -9229,8 +9229,8 @@ bool Unit::CanHaveThreatList() const
     if (creature->GetCharmerGuid().IsPlayer())
         return false;
 
-    // Vehicles can't have threat list
-    if (creature->GetVehicleKit())
+    // BattleGround's vehicles can't have threat list
+    if (creature->GetVehicleKit() && (creature->GetMapId() == 607 || creature->GetMapId() == 628))
         return false;
 
     // Is it correct?

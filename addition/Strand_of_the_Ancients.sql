@@ -13,12 +13,12 @@ INSERT INTO `gameobject_template` (`entry`, `type`, `displayId`, `name`, `IconNa
 -- Demolisher
 UPDATE `creature_template` SET `npcflag` = '0', minhealth = '80000', maxhealth = '80000', `ScriptName` = '' WHERE `entry` = '28781';
 DELETE FROM `npc_spellclick_spells` WHERE npc_entry in (28781);
-INSERT INTO `npc_spellclick_spells` VALUES ('28781', '60968', '0', '0', '0', '0');
+INSERT INTO `npc_spellclick_spells` VALUES ('28781', '60968', '0', '0', '0', '1');
 
 -- AP Cannon
 UPDATE `creature_template` SET `npcflag` = '0', unit_flags = 32768, type_flags = 131080, dynamicflags = 8, minhealth = '60000', maxhealth = '60000', `faction_A` = '35', `faction_H` = '35', `ScriptName` = '' WHERE entry = '27894';
 DELETE FROM `npc_spellclick_spells` WHERE npc_entry in (27894);
-INSERT INTO `npc_spellclick_spells` VALUES ('27894', '60968', '0', '0', '0', '0');
+INSERT INTO `npc_spellclick_spells` VALUES ('27894', '60968', '0', '0', '0', '1');
 
 REPLACE INTO `mangos_string` (`entry`, `content_default`, `content_loc1`, `content_loc2`, `content_loc3`, `content_loc4`, `content_loc5`, `content_loc6`, `content_loc7`, `content_loc8`) VALUES
 (20056,'The battle for Strand of the Ancients begins in 2 minutes.',NULL,NULL,NULL,NULL,NULL,'La batalla por Playa de los Ancestros comenzará en 2 minutos.','La batalla por Playa de los Ancestros comenzará en 2 minutos.',NULL),

@@ -529,32 +529,32 @@ struct ICGo
 
 const ICGo BG_IC_Teleporters[MAX_FORTRESS_TELEPORTERS_SPAWNS] = 
 {
-    {BG_IC_GO_TELEPORTER_1_1, GO_TELEPORTER_1,1143.25f, -779.599f, 48.629f, 1.64061f}, // Teleporter
-    {BG_IC_GO_TELEPORTER_1_2, GO_TELEPORTER_1,1236.53f, -669.415f, 48.2729f, 0.104719f}, // Teleporter
+    {BG_IC_GO_TELEPORTER_1_1, GO_TELEPORTER_1,1143.25f, -779.599f, 48.629f, 1.64061f},     // Teleporter
+    {BG_IC_GO_TELEPORTER_1_2, GO_TELEPORTER_1,1236.53f, -669.415f, 48.2729f, 0.104719f},   // Teleporter
     {BG_IC_GO_TELEPORTER_2_1, GO_TELEPORTER_2,1233.27f, -844.526f, 48.8824f, -0.0174525f}, // Teleporter
-    {BG_IC_GO_TELEPORTER_3_1, GO_TELEPORTER_3,311.92f, -913.972f, 48.8159f, 3.08918f}, // Teleporter
-    {BG_IC_GO_TELEPORTER_2_2, GO_TELEPORTER_2,1235.53f, -683.872f, 49.304f, -3.08918f}, // Teleporter
-    {BG_IC_GO_TELEPORTER_4_1, GO_TELEPORTER_4,397.089f, -859.382f, 48.8993f, 1.64061f}, // Teleporter
-    {BG_IC_GO_TELEPORTER_3_2, GO_TELEPORTER_3,324.635f, -749.128f, 49.3602f, 0.0174525f}, // Teleporter
-    {BG_IC_GO_TELEPORTER_3_3, GO_TELEPORTER_3,425.675f, -857.09f, 48.5104f, -1.6057f}, // Teleporter
-    {BG_IC_GO_TELEPORTER_4_2, GO_TELEPORTER_4,323.54f, -888.361f, 48.9197f, 0.0349063f}, // Teleporter
-    {BG_IC_GO_TELEPORTER_4_3, GO_TELEPORTER_4,326.285f, -777.366f, 49.0208f, 3.12412f}, // Teleporter
-    {BG_IC_GO_TELEPORTER_1_3, GO_TELEPORTER_1,1235.09f, -857.898f, 48.9163f, 3.07177f}, // Teleporter
-    {BG_IC_GO_TELEPORTER_2_3, GO_TELEPORTER_2,1158.76f, -746.182f, 48.6277f, -1.51844f}, // Teleporter
+    {BG_IC_GO_TELEPORTER_3_1, GO_TELEPORTER_3,311.92f, -913.972f, 48.8159f, 3.08918f},     // Teleporter
+    {BG_IC_GO_TELEPORTER_2_2, GO_TELEPORTER_2,1235.53f, -683.872f, 49.304f, -3.08918f},    // Teleporter
+    {BG_IC_GO_TELEPORTER_4_1, GO_TELEPORTER_4,397.089f, -859.382f, 48.8993f, 1.64061f},    // Teleporter
+    {BG_IC_GO_TELEPORTER_3_2, GO_TELEPORTER_3,324.635f, -749.128f, 49.3602f, 0.0174525f},  // Teleporter
+    {BG_IC_GO_TELEPORTER_3_3, GO_TELEPORTER_3,425.675f, -857.09f, 48.5104f, -1.6057f},     // Teleporter
+    {BG_IC_GO_TELEPORTER_4_2, GO_TELEPORTER_4,323.54f, -888.361f, 48.9197f, 0.0349063f},   // Teleporter
+    {BG_IC_GO_TELEPORTER_4_3, GO_TELEPORTER_4,326.285f, -777.366f, 49.0208f, 3.12412f},    // Teleporter
+    {BG_IC_GO_TELEPORTER_1_3, GO_TELEPORTER_1,1235.09f, -857.898f, 48.9163f, 3.07177f},    // Teleporter
+    {BG_IC_GO_TELEPORTER_2_3, GO_TELEPORTER_2,1158.76f, -746.182f, 48.6277f, -1.51844f},   // Teleporter
 
-    {BG_IC_GO_TELEPORTER_EFFECTS_A_1, GO_TELEPORTER_EFFECTS_A, 425.686f, -857.092f, 48.51f, -1.62316f}, // Teleporter Effects (Alliance - left door outside)
-    {BG_IC_GO_TELEPORTER_EFFECTS_A_2, GO_TELEPORTER_EFFECTS_A, 324.634f, -749.148f, 49.359f, 0.0174525f}, // Teleporter Effects (Alliance - front door outside)
-    {BG_IC_GO_TELEPORTER_EFFECTS_A_3, GO_TELEPORTER_EFFECTS_A, 311.911f, -913.986f, 48.8157f, 3.08918f}, // Teleporter Effects (Alliance - right door outside)
-    {BG_IC_GO_TELEPORTER_EFFECTS_A_4, GO_TELEPORTER_EFFECTS_A, 326.266f, -777.347f, 49.0215f, 3.12412f}, // Teleporter Effects (Alliance - left door inside)
+    {BG_IC_GO_TELEPORTER_EFFECTS_A_1, GO_TELEPORTER_EFFECTS_A, 425.686f, -857.092f, 48.51f, -1.62316f},   // Teleporter Effects (Alliance - front door outside)
+    {BG_IC_GO_TELEPORTER_EFFECTS_A_2, GO_TELEPORTER_EFFECTS_A, 324.634f, -749.148f, 49.359f, 0.0174525f}, // Teleporter Effects (Alliance - left door outside)
+    {BG_IC_GO_TELEPORTER_EFFECTS_A_3, GO_TELEPORTER_EFFECTS_A, 311.911f, -913.986f, 48.8157f, 3.08918f},  // Teleporter Effects (Alliance - right door outside)
+    {BG_IC_GO_TELEPORTER_EFFECTS_A_4, GO_TELEPORTER_EFFECTS_A, 326.266f, -777.347f, 49.0215f, 3.12412f},  // Teleporter Effects (Alliance - left door inside)
     {BG_IC_GO_TELEPORTER_EFFECTS_A_5, GO_TELEPORTER_EFFECTS_A, 323.55f, -888.347f, 48.9198f, 0.0174525f}, // Teleporter Effects (Alliance - right door inside)
-    {BG_IC_GO_TELEPORTER_EFFECTS_A_6, GO_TELEPORTER_EFFECTS_A, 397.116f, -859.378f, 48.8989f, 1.64061f}, // Teleporter Effects (Alliance - front door inside)
+    {BG_IC_GO_TELEPORTER_EFFECTS_A_6, GO_TELEPORTER_EFFECTS_A, 397.116f, -859.378f, 48.8989f, 1.64061f},  // Teleporter Effects (Alliance - front door inside)
 
-    {BG_IC_GO_TELEPORTER_EFFECTS_H_1, GO_TELEPORTER_EFFECTS_H, 1143.25f, -779.623f, 48.6291f, 1.62316f}, // Teleporter Effects (Horde - front door outside)
-    {BG_IC_GO_TELEPORTER_EFFECTS_H_2, GO_TELEPORTER_EFFECTS_H, 1158.64f, -746.148f, 48.6277f, -1.50098f}, // Teleporter Effects (Horde - front door inside)
+    {BG_IC_GO_TELEPORTER_EFFECTS_H_1, GO_TELEPORTER_EFFECTS_H, 1143.25f, -779.623f, 48.6291f, 1.62316f},   // Teleporter Effects (Horde - front door outside)
+    {BG_IC_GO_TELEPORTER_EFFECTS_H_2, GO_TELEPORTER_EFFECTS_H, 1158.64f, -746.148f, 48.6277f, -1.50098f},  // Teleporter Effects (Horde - front door inside)
     {BG_IC_GO_TELEPORTER_EFFECTS_H_3, GO_TELEPORTER_EFFECTS_H, 1233.25f, -844.573f, 48.8836f, 0.0174525f}, // Teleporter Effects (Horde - left door inside)
-    {BG_IC_GO_TELEPORTER_EFFECTS_H_4, GO_TELEPORTER_EFFECTS_H, 1235.07f, -857.957f, 48.9163f, 3.05433f}, // Teleporter Effects (Horde - left door outside)
-    {BG_IC_GO_TELEPORTER_EFFECTS_H_5, GO_TELEPORTER_EFFECTS_H, 1236.46f, -669.344f, 48.2684f, 0.087266f}, // Teleporter Effects (Horde - right door outside)
-    {BG_IC_GO_TELEPORTER_EFFECTS_H_6, GO_TELEPORTER_EFFECTS_H, 1235.6f, -683.806f, 49.3028f, -3.07177f}, // Teleporter Effects (Horde - right door inside)
+    {BG_IC_GO_TELEPORTER_EFFECTS_H_4, GO_TELEPORTER_EFFECTS_H, 1235.07f, -857.957f, 48.9163f, 3.05433f},   // Teleporter Effects (Horde - left door outside)
+    {BG_IC_GO_TELEPORTER_EFFECTS_H_5, GO_TELEPORTER_EFFECTS_H, 1236.46f, -669.344f, 48.2684f, 0.087266f},  // Teleporter Effects (Horde - right door outside)
+    {BG_IC_GO_TELEPORTER_EFFECTS_H_6, GO_TELEPORTER_EFFECTS_H, 1235.6f, -683.806f, 49.3028f, -3.07177f},   // Teleporter Effects (Horde - right door inside)
 };
 
 const ICGo BG_IC_ObjSpawnlocs[MAX_NORMAL_GAMEOBJECTS_SPAWNS] =
@@ -893,7 +893,7 @@ class BattleGroundIC : public BattleGround
 
         void FillInitialWorldStates(WorldPacket& data, uint32& count);
 
-        virtual void DoAction(uint32 action, uint64 var);
+        virtual void DoAction(uint32 action, Player *plr);
 
         virtual void HandlePlayerResurrect(Player* player);
 

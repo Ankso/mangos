@@ -85,24 +85,25 @@ void BattleGroundIC::SendTransportInit(Player* player)
     player->GetSession()->SendPacket(&packet);
 }
 
-void BattleGroundIC::DoAction(uint32 action, uint64 var)
+void BattleGroundIC::DoAction(uint32 action, Player *plr)
 {
     if (action != ACTION_TELEPORT_PLAYER_TO_TRANSPORT)
         return;
 
-    Player* plr = sObjectMgr.GetPlayer(var);
-
     if (!plr || !gunshipAlliance || !gunshipHorde)
         return;
 
-    plr->CastSpell(plr, SPELL_PARACHUTE, true); // this must be changed, there is a trigger in each transport that casts the spell.
-    plr->CastSpell(plr, SPELL_SLOW_FALL, true);
-
-    plr->SetTransport(plr->GetTeamId() == TEAM_ALLIANCE ? gunshipAlliance : gunshipHorde);
-
-    plr->m_movementInfo.SetTransportData((plr->GetTeamId() == TEAM_ALLIANCE ? gunshipAlliance->GetObjectGuid() : gunshipHorde->GetObjectGuid()), TransportMovementInfo[0], TransportMovementInfo[1], TransportMovementInfo[2], TransportMovementInfo[3], 0, 0);
-    
-    plr->TeleportTo(GetMapId(), TeleportToTransportPosition[0], TeleportToTransportPosition[1], TeleportToTransportPosition[2], TeleportToTransportPosition[3], TELE_TO_NOT_LEAVE_TRANSPORT);
+    float x, y, z;
+    if (plr->GetTeamId() == TEAM_ALLIANCE)
+    {
+        gunshipAlliance->GetPosition(x, y, z);
+        plr->TeleportTo(GetMapId(), x, y, (z + 25.0f), (plr->GetTeamId() == TEAM_ALLIANCE ? gunshipAlliance : gunshipHorde)->GetOrientation(), TELE_TO_NOT_LEAVE_TRANSPORT);
+    }
+    else
+    {
+        // This is not the correct way to do this, but it seems that horde gunship has a problem with waypoints that cause unexpected behaviour when following the path.
+        plr->TeleportTo(GetMapId(), 660.453003f, -1236.030151, 288.643402, 1.6f);
+    }
 }
 
 void BattleGroundIC::Update(uint32 diff)
@@ -280,6 +281,21 @@ void BattleGroundIC::StartingEventOpenDoors()
         else
             SpawnBGObject(m_BgObjects[BG_IC_Teleporters[i].type], RESPAWN_IMMEDIATELY);
     }
+    for (uint8 i = 0; i < MAX_NORMAL_NPCS_SPAWNS; i++)
+    {
+        if (!AddCreature(BG_IC_NpcSpawnlocs[i].entry,BG_IC_NpcSpawnlocs[i].type,BG_IC_NpcSpawnlocs[i].team,
+            BG_IC_NpcSpawnlocs[i].x,BG_IC_NpcSpawnlocs[i].y,
+            BG_IC_NpcSpawnlocs[i].z,BG_IC_NpcSpawnlocs[i].o,
+            RESPAWN_ONE_DAY))
+            sLog.outError("Isle of Conquest: There was an error spawning creature %u",BG_IC_NpcSpawnlocs[i].entry);
+        else
+            SpawnBGCreature(m_BgCreatures[i], RESPAWN_IMMEDIATELY);
+    }
+    // setting correct factions for Keep Cannons
+    for (uint8 i = BG_IC_NPC_KEEP_CANNON_1; i < BG_IC_NPC_KEEP_CANNON_12; i++)
+        GetBGCreature(i)->setFaction(BG_IC_Factions[0]);
+    for (uint8 i = BG_IC_NPC_KEEP_CANNON_13; i < BG_IC_NPC_KEEP_CANNON_25; i++)
+        GetBGCreature(i)->setFaction(BG_IC_Factions[1]);
 }
 
 bool BattleGroundIC::IsAllNodesConrolledByTeam(uint32 team) const
@@ -379,20 +395,6 @@ bool BattleGroundIC::SetupBattleGround()
             SpawnBGObject(m_BgObjects[BG_IC_ObjSpawnlocs[i].type], RESPAWN_IMMEDIATELY);
     }
 
-    for (uint8 i = 0; i < MAX_NORMAL_NPCS_SPAWNS; i++)
-    {
-        if (!AddCreature(BG_IC_NpcSpawnlocs[i].entry,BG_IC_NpcSpawnlocs[i].type,BG_IC_NpcSpawnlocs[i].team,
-            BG_IC_NpcSpawnlocs[i].x,BG_IC_NpcSpawnlocs[i].y,
-            BG_IC_NpcSpawnlocs[i].z,BG_IC_NpcSpawnlocs[i].o,
-            RESPAWN_ONE_DAY))
-        {
-            sLog.outError("Isle of Conquest: There was an error spawning creature %u",BG_IC_NpcSpawnlocs[i].entry);
-            return false;      
-        }
-        else
-            SpawnBGCreature(m_BgCreatures[i], RESPAWN_IMMEDIATELY);
-    }
-
     if (!AddSpiritGuide(BG_IC_NPC_SPIRIT_GUIDE_1+5,BG_IC_SpiritGuidePos[5][0], BG_IC_SpiritGuidePos[5][1],BG_IC_SpiritGuidePos[5][2], BG_IC_SpiritGuidePos[5][3],ALLIANCE)
         || !AddSpiritGuide(BG_IC_NPC_SPIRIT_GUIDE_1+6,BG_IC_SpiritGuidePos[6][0], BG_IC_SpiritGuidePos[6][1],BG_IC_SpiritGuidePos[6][2], BG_IC_SpiritGuidePos[6][3],HORDE)
         || !AddSpiritGuide(BG_IC_NPC_SPIRIT_GUIDE_1+3,BG_IC_SpiritGuidePos[7][0], BG_IC_SpiritGuidePos[7][1],BG_IC_SpiritGuidePos[7][2], BG_IC_SpiritGuidePos[7][3],ALLIANCE)
@@ -417,12 +419,6 @@ bool BattleGroundIC::SetupBattleGround()
         if (Player* player = sObjectMgr.GetPlayer(itr->first))
             SendTransportInit(player);
     }
-
-    // setting correct factions for Keep Cannons
-    for (uint8 i = BG_IC_NPC_KEEP_CANNON_1; i < BG_IC_NPC_KEEP_CANNON_12; i++)
-        GetBGCreature(i)->setFaction(BG_IC_Factions[0]);
-    for (uint8 i = BG_IC_NPC_KEEP_CANNON_13; i < BG_IC_NPC_KEEP_CANNON_25; i++)
-        GetBGCreature(i)->setFaction(BG_IC_Factions[1]);
 
     // correcting spawn time for keeps bombs
     for (uint8 i = BG_IC_GO_HUGE_SEAFORIUM_BOMBS_A_1; i < BG_IC_GO_HUGE_SEAFORIUM_BOMBS_H_4; i++)
@@ -663,8 +659,6 @@ void BattleGroundIC::HandleCapturedNodes(ICNodePoint* nodePoint, bool recapture)
                 0,0,0,0,RESPAWN_ONE_DAY);
             SpawnBGObject(m_BgObjects[type], RESPAWN_IMMEDIATELY);
         }
-
-        //sLog->outError("BG_IC_GO_HANGAR_BANNER CAPTURED Faction: %u", nodePoint->faction);
 
         (nodePoint->faction == TEAM_ALLIANCE ? gunshipAlliance : gunshipHorde)->BuildStartMovePacket(GetBgMap());
         (nodePoint->faction == TEAM_ALLIANCE ? gunshipHorde : gunshipAlliance)->BuildStopMovePacket(GetBgMap());
@@ -924,6 +918,7 @@ Transport* BattleGroundIC::CreateTransport(uint32 goEntry, uint32 period)
     }
 
     std::set<uint32> mapsUsed;
+    t->m_period = period;
 
     if (!t->GenerateWaypoints(goinfo->moTransport.taxiPathId, mapsUsed))
         // skip transports with empty waypoints list
@@ -999,22 +994,22 @@ void BattleGroundIC::HandlePlayerUseTeleport(Player *player, GameObject *telepor
                     player->NearTeleportTo(323.55f, -888.347f, 48.9198f, 0.0174525f);
                     break;
                 case BG_IC_GO_TELEPORTER_2_2:
-                    player->NearTeleportTo(1235.07f, -857.957f, 48.9163f, 3.05433f);
+                    player->NearTeleportTo(1236.46f, -669.344f, 48.2684f, 0.087266f);
                     break;
                 case BG_IC_GO_TELEPORTER_4_1:
-                    player->NearTeleportTo(324.634f, -749.148f, 49.359f, 0.0174525f);
+                    player->NearTeleportTo(425.686f, -857.092f, 48.51f, -1.62316f);
                     break;
                 case BG_IC_GO_TELEPORTER_3_2:
-                    player->NearTeleportTo(397.116f, -859.378f, 48.8989f, 1.64061f);
+                    player->NearTeleportTo(326.285f, -777.366f, 49.0208f, 3.12412f);
                     break;
                 case BG_IC_GO_TELEPORTER_3_3:
-                    player->NearTeleportTo(326.266f, -777.347f, 49.0215f, 3.12412f);
+                    player->NearTeleportTo(397.116f, -859.378f, 48.8989f, 1.64061f);
                     break;
                 case BG_IC_GO_TELEPORTER_4_2:
                     player->NearTeleportTo(311.911f, -913.986f, 48.8157f, 3.08918f);
                     break;
                 case BG_IC_GO_TELEPORTER_4_3:
-                    player->NearTeleportTo(425.686f, -857.092f, 48.51f, -1.62316f);
+                    player->NearTeleportTo(324.635f, -749.128f, 49.3602f, 0.0174525f);
                     break;
                 case BG_IC_GO_TELEPORTER_1_3:
                     player->NearTeleportTo(1233.25f, -844.573f, 48.8836f, 0.0174525f);
@@ -1026,5 +1021,9 @@ void BattleGroundIC::HandlePlayerUseTeleport(Player *player, GameObject *telepor
                     break;
             }
         }
+        else if ((BG_IC_HangarTeleporters[0][0] == x && BG_IC_HangarTeleporters[0][1] == y && BG_IC_HangarTeleporters[0][2] == z)
+                || (BG_IC_HangarTeleporters[1][0] == x && BG_IC_HangarTeleporters[1][1] == y && BG_IC_HangarTeleporters[1][2] == z)
+                || (BG_IC_HangarTeleporters[2][0] == x && BG_IC_HangarTeleporters[2][1] == y && BG_IC_HangarTeleporters[2][2] == z))
+            DoAction(ACTION_TELEPORT_PLAYER_TO_TRANSPORT, player);
     }
 }

@@ -1,52 +1,84 @@
 DELETE FROM mangos_string WHERE entry > 20079 AND entry < 20102;
 INSERT INTO mangos_string (entry, content_default, content_loc1, content_loc2, content_loc3, content_loc4, content_loc5, content_loc6, content_loc7, content_loc8) VALUES
-(20080, 'The battle will begin in two minutes.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20081, 'The battle will begin in 1 minute.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20082, 'The battle has begun!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20083, 'The battle will begin in 30 seconds!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20084, 'the alliance keep', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20085, 'the horde keep', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20086, '%s wins!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20087, 'The west gate of %s is destroyed!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20088, 'The east gate of %s is destroyed!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20089, 'The south gate of %s is destroyed!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20090, 'The north gate of %s is destroyed!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20091, '$n has assaulted the %s', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20092, '$n has defended the %s', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20093, '$n claims the %s! If left unchallenged, the %s will control it in 1 minute!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20094, 'The %s has taken the %s', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20095, 'Workshop', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20096, 'Docks', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20097, 'Refinery', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20098, 'Quarry', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20099, 'Hangar', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+(20080, 'The battle will begin in two minutes.', NULL, NULL, NULL, NULL, NULL, 'La batalla comenzará en dos minutos.', 'La batalla comenzará en dos minutos.', NULL),
+(20081, 'The battle will begin in 1 minute.', NULL, NULL, NULL, NULL, NULL, 'La batalla comenzará en un minuto.', 'La batalla comenzará en un minuto.', NULL),
+(20082, 'The battle will begin in 30 seconds!', NULL, NULL, NULL, NULL, NULL, 'La batalla comenzará en 30 segundos. ¡Preparaos!', 'La batalla comenzará en 30 segundos. ¡Preparaos!', NULL),
+(20083, 'The battle has begun!', NULL, NULL, NULL, NULL, NULL,'¡La batalla ha comenzado!', '¡La batalla ha comenzado!', NULL),
+(20084, 'the alliance keep', NULL, NULL, NULL, NULL, NULL, 'la fortaleza de la Alianza', 'la fortaleza de la Alianza', NULL),
+(20085, 'the horde keep', NULL, NULL, NULL, NULL, NULL, 'la fortaleza de la Horda', 'la fortaleza de la Horda', NULL),
+(20086, '%s wins!', NULL, NULL, NULL, NULL, NULL, '¡%s gana!', '¡%s gana!', NULL),
+(20087, 'The west gate of %s is destroyed!', NULL, NULL, NULL, NULL, NULL, '¡La puerta Oeste de %s ha sido destruida!', '¡La puerta Oeste de %s ha sido destruida!', NULL),
+(20088, 'The east gate of %s is destroyed!', NULL, NULL, NULL, NULL, NULL, '¡La puerta Este de %s ha sido destruida!', '¡La puerta Este de %s ha sido destruida!', NULL),
+(20089, 'The south gate of %s is destroyed!', NULL, NULL, NULL, NULL, NULL, '¡La puerta Sur de %s ha sido destruida!', '¡La puerta Sur de %s ha sido destruida!', NULL),
+(20090, 'The north gate of %s is destroyed!', NULL, NULL, NULL, NULL, NULL, '¡La puerta Norte de %s ha sido destruida!', '¡La puerta Norte de %s ha sido destruida!', NULL),
+(20091, '$n has assaulted the %s', NULL, NULL, NULL, NULL, NULL, '¡$n ha asaltado %s!', '¡$n ha asaltado %s!', NULL),
+(20092, '$n has defended the %s', NULL, NULL, NULL, NULL, NULL, '¡$n ha defendido %s!', '¡$n ha defendido %s!', NULL),
+(20093, '$n claims the %s! If left unchallenged, the %s will control it in 1 minute!', NULL, NULL, NULL, NULL, NULL, '¡$n asalta %s! ¡Si no es defendido, %s lo controlará en un minuto!', '¡$n asalta %s! ¡Si no es defendido, %s lo controlará en un minuto!', NULL),
+(20094, 'The %s has taken the %s', NULL, NULL, NULL, NULL, NULL, '%s ha tomado %s.', '', NULL),
+(20095, 'Workshop', NULL, NULL, NULL, NULL, NULL, 'el Taller', 'el Taller', NULL),
+(20096, 'Docks', NULL, NULL, NULL, NULL, NULL, 'los Muelles', 'los Muelles', NULL),
+(20097, 'Refinery', NULL, NULL, NULL, NULL, NULL, 'la Refinería', 'la Refinería', NULL),
+(20098, 'Quarry', NULL, NULL, NULL, NULL, NULL, 'la Cantera', 'la Cantera', NULL),
+(20099, 'Hangar', NULL, NULL, NULL, NULL, NULL, 'el Hangar', 'el Hangar', NULL),
+(20100, 'Alliance', NULL, NULL, NULL, NULL, NULL, 'La Alianza', 'La Alianza', NULL),
+(20101, 'Horde', NULL, NULL, NULL, NULL, NULL, 'La Horda', 'La Horda', NULL),
 
 -- Alliance Gunship Cannon
-UPDATE `creature_template` SET `spell1`=69495,`VehicleId`=452 WHERE `entry`=34929;
+UPDATE `creature_template` SET `spell1`=69495,`VehicleId`=452, `iconName` = 'vehicleCursor' WHERE `entry`=34929;
+DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (34929);
+INSERT INTO `npc_spellclick_spells` VALUES ('34929', '60968', '0', '0', '0', '1');
 -- Horde Gunship Cannon
-UPDATE `creature_template` SET `spell1`=68825,`VehicleId`=453 WHERE `entry`=34935;
+UPDATE `creature_template` SET `spell1`=68825,`VehicleId`=453, `iconName` = 'vehicleCursor' WHERE `entry`=34935;
+DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (34935);
+INSERT INTO `npc_spellclick_spells` VALUES ('34935', '60968', '0', '0', '0', '1');
 -- Keep Cannon
-UPDATE `creature_template` SET `VehicleId`=160,`spell1`=67452,`spell2`=68169 WHERE `entry`=34944;
+UPDATE `creature_template` SET `VehicleId`=160,`spell1`=67452,`spell2`=68169, `iconName` = 'vehicleCursor' WHERE `entry`=34944;
+DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (34944);
+INSERT INTO `npc_spellclick_spells` VALUES ('34944', '60968', '0', '0', '0', '1');
 -- Catapult
-UPDATE `creature_template` SET `VehicleId`=438,`spell1`=66218,`spell2`=66296 WHERE `entry`=34793;
+UPDATE `creature_template` SET `VehicleId`=438,`spell1`=66218,`spell2`=66296, `iconName` = 'vehicleCursor' WHERE `entry`=34793;
+DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (34793);
+INSERT INTO `npc_spellclick_spells` VALUES ('34793', '60968', '0', '0', '0', '1');
 -- Demolisher
-UPDATE `creature_template` SET `VehicleId`=509,`spell1`=67442,`spell2`=68068 WHERE `entry`=34775;
+UPDATE `creature_template` SET `VehicleId`=509,`spell1`=67442,`spell2`=60206, `iconName` = 'vehicleCursor' WHERE `entry`=34775;
+DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (34775);
+INSERT INTO `npc_spellclick_spells` VALUES ('34775', '60968', '0', '0', '0', '1');
 -- Siege Engine
-UPDATE `creature_template` SET `VehicleId`=447,`spell1`=67816,`spell2`=69502 WHERE `entry`=34776;
+UPDATE `creature_template` SET `VehicleId`=447,`spell1`=67816,`spell2`=69502, `iconName` = 'vehicleCursor' WHERE `entry`=34776;
+DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (34776);
+INSERT INTO `npc_spellclick_spells` VALUES ('34776', '60968', '0', '0', '0', '1');
 -- Siege Engine
-UPDATE `creature_template` SET `VehicleId`=436,`spell1`=67816,`spell2`=69502 WHERE `entry`=35069;
+UPDATE `creature_template` SET `VehicleId`=436,`spell1`=67816,`spell2`=69502, `iconName` = 'vehicleCursor' WHERE `entry`=35069;
+DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (35069);
+INSERT INTO `npc_spellclick_spells` VALUES ('35069', '60968', '0', '0', '0', '1');
+DELETE FROM `vehicle_accessory` WHERE `entry` IN (35069, 34776);
+INSERT INTO `vehicle_accessory` VALUES
+(35069, 36355, 7, 1, 'Isle of Conquest Siege Engine'),
+(34776, 34777, 7, 1, 'Isle of Conquest Siege Engine');
 -- Glaive Thrower
-UPDATE `creature_template` SET `VehicleId`=447,`spell1`=68827,`spell2`=69515 WHERE `entry`=34802;
+UPDATE `creature_template` SET `VehicleId`=447,`spell1`=68827,`spell2`=69515, `iconName` = 'vehicleCursor' WHERE `entry`=34802;
+DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (34802);
+INSERT INTO `npc_spellclick_spells` VALUES ('34802', '60968', '0', '0', '0', '1');
 -- Glaive Thrower
-UPDATE `creature_template` SET `VehicleId`=447,`spell1`=68827,`spell2`=69515 WHERE `entry`=35273;
+UPDATE `creature_template` SET `VehicleId`=447,`spell1`=68827,`spell2`=69515, `iconName` = 'vehicleCursor' WHERE `entry`=35273;
+DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (35273);
+INSERT INTO `npc_spellclick_spells` VALUES ('35273', '60968', '0', '0', '0', '1');
 -- Flame Turret
-UPDATE `creature_template` SET `spell1`=68832 WHERE `entry`=34778;
+UPDATE `creature_template` SET `spell1`=68832, `iconName` = 'vehicleCursor' WHERE `entry`=34778;
+DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (34778);
+INSERT INTO `npc_spellclick_spells` VALUES ('34778', '60968', '0', '0', '0', '1');
 -- Flame Turret
-UPDATE `creature_template` SET `spell1`=68832 WHERE `entry`=36356;
+UPDATE `creature_template` SET `spell1`=68832, `iconName` = 'vehicleCursor' WHERE `entry`=36356;
+DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (36356);
+INSERT INTO `npc_spellclick_spells` VALUES ('36356', '60968', '0', '0', '0', '1');
 -- Siege Turret
-UPDATE `creature_template` SET `spell1`=67462,`spell2`=69505 WHERE `entry`=34777;
+UPDATE `creature_template` SET `spell1`=67462,`spell2`=69505, `iconName` = 'vehicleCursor' WHERE `entry`=34777;
+DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (34777);
+INSERT INTO `npc_spellclick_spells` VALUES ('34777', '60968', '0', '0', '0', '1');
 -- Siege Turret
-UPDATE `creature_template` SET `spell1`=67462,`spell2`=69505 WHERE `entry`=36355;
+UPDATE `creature_template` SET `spell1`=67462,`spell2`=69505, `iconName` = 'vehicleCursor' WHERE `entry`=36355;
+DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (36355);
+INSERT INTO `npc_spellclick_spells` VALUES ('36355', '60968', '0', '0', '0', '1');
 -- Catapult speed
 UPDATE `creature_template` SET `speed_run`=2.428571,`speed_walk`=2.8 WHERE `entry`=34793;
 
@@ -93,3 +125,21 @@ INSERT INTO `spell_area` (`spell`,`area`) VALUES
 (68720,4752),
 (68720,4710),
 (68720,4753);
+
+-- Spirit guides (This must be done with BG events - this is hacky way)
+DELETE FROM `creature` WHERE `guid` IN (300017,300018,300019,300020,300021,300022,300023,300024,300025,300026,300027,300028,300029,300030);
+INSERT INTO `creature` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `DeathState`, `MovementType`) VALUES
+(300017, 13117, 628, 1, 1, 0, 0, 629.57, -279.83, 11.33, 0.0, 25, 0, 0, 37420, 6310, 0, 0),
+(300018, 13116, 628, 1, 1, 0, 0, 629.57, -279.83, 11.33, 0.0, 25, 0, 0, 37890, 6310, 0, 0),
+(300019, 13117, 628, 1, 1, 0, 0, 780.729, -1103.08, 135.51, 2.27, 25, 0, 0, 37420, 6310, 0, 0),
+(300020, 13116, 628, 1, 1, 0, 0, 780.729, -1103.08, 135.51, 2.27, 25, 0, 0, 37890, 6310, 0, 0),
+(300021, 13117, 628, 1, 1, 0, 0, 775.74, -652.77, 9.31, 4.27, 25, 0, 0, 37420, 6310, 0, 0),
+(300022, 13116, 628, 1, 1, 0, 0, 775.74, -652.77, 9.31, 4.27, 25, 0, 0, 37890, 6310, 0, 0),
+(300023, 13117, 628, 1, 1, 0, 0, 278.42, -883.20, 49.89, 1.53, 25, 0, 0, 37420, 6310, 0, 0),
+(300024, 13116, 628, 1, 1, 0, 0, 278.42, -883.20, 49.89, 1.53, 25, 0, 0, 37890, 6310, 0, 0),
+(300025, 13117, 628, 1, 1, 0, 0, 1300.91, -834.04, 48.91, 1.69, 25, 0, 0, 37420, 6310, 0, 0),
+(300026, 13116, 628, 1, 1, 0, 0, 1300.91, -834.04, 48.91, 1.69, 25, 0, 0, 37890, 6310, 0, 0),
+(300027, 13116, 628, 1, 1, 0, 0, 438.86, -310.04, 51.81, 5.87, 25, 0, 0, 37890, 6310, 0, 0),
+(300028, 13116, 628, 1, 1, 0, 0, 438.86, -310.04, 51.81, 5.87, 25, 0, 0, 37890, 6310, 0, 0),
+(300029, 13116, 628, 1, 1, 0, 0, 1148.65, -1250.98, 16.60, 1.74, 25, 0, 0, 37890, 6310, 0, 0),
+(300030, 13116, 628, 1, 1, 0, 0, 1148.65, -1250.98, 16.60, 1.74, 25, 0, 0, 37890, 6310, 0, 0);
