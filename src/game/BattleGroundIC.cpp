@@ -63,10 +63,10 @@ BattleGroundIC::~BattleGroundIC()
 void BattleGroundIC::HandlePlayerResurrect(Player* player)
 {
     if (nodePoint[NODE_TYPE_QUARRY].nodeState == (player->GetTeamId() == TEAM_ALLIANCE ? NODE_STATE_CONTROLLED_A : NODE_STATE_CONTROLLED_H))
-        player->CastSpell(player,SPELL_QUARRY,true);
+        player->CastSpell(player, SPELL_QUARRY, true);
 
     if (nodePoint[NODE_TYPE_REFINERY].nodeState == (player->GetTeamId() == TEAM_ALLIANCE ? NODE_STATE_CONTROLLED_A : NODE_STATE_CONTROLLED_H))
-        player->CastSpell(player,SPELL_OIL_REFINERY,true);
+        player->CastSpell(player, SPELL_OIL_REFINERY, true);
 }
 
 void BattleGroundIC::SendTransportInit(Player* player)
@@ -304,10 +304,10 @@ void BattleGroundIC::AddPlayer(Player *plr)
     m_PlayerScores[plr->GetGUID()] = sc;
 
     if (nodePoint[NODE_TYPE_QUARRY].nodeState == (plr->GetTeamId() == TEAM_ALLIANCE ? NODE_STATE_CONTROLLED_A : NODE_STATE_CONTROLLED_H))
-        plr->CastSpell(plr,SPELL_QUARRY,true);
+        plr->CastSpell(plr, SPELL_QUARRY, true);
 
     if (nodePoint[NODE_TYPE_REFINERY].nodeState == (plr->GetTeamId() == TEAM_ALLIANCE ? NODE_STATE_CONTROLLED_A : NODE_STATE_CONTROLLED_H))
-        plr->CastSpell(plr,SPELL_OIL_REFINERY,true);
+        plr->CastSpell(plr, SPELL_OIL_REFINERY, true);
 
     SendTransportInit(plr);
 }
@@ -377,7 +377,7 @@ bool BattleGroundIC::SetupBattleGround()
         }
         else
             SpawnBGObject(m_BgObjects[BG_IC_ObjSpawnlocs[i].type], RESPAWN_IMMEDIATELY);
-    } 
+    }
 
     for (uint8 i = 0; i < MAX_NORMAL_NPCS_SPAWNS; i++)
     {
@@ -389,7 +389,9 @@ bool BattleGroundIC::SetupBattleGround()
             sLog.outError("Isle of Conquest: There was an error spawning creature %u",BG_IC_NpcSpawnlocs[i].entry);
             return false;      
         }
-    }  
+        else
+            SpawnBGCreature(m_BgCreatures[i], RESPAWN_IMMEDIATELY);
+    }
 
     if (!AddSpiritGuide(BG_IC_NPC_SPIRIT_GUIDE_1+5,BG_IC_SpiritGuidePos[5][0], BG_IC_SpiritGuidePos[5][1],BG_IC_SpiritGuidePos[5][2], BG_IC_SpiritGuidePos[5][3],ALLIANCE)
         || !AddSpiritGuide(BG_IC_NPC_SPIRIT_GUIDE_1+6,BG_IC_SpiritGuidePos[6][0], BG_IC_SpiritGuidePos[6][1],BG_IC_SpiritGuidePos[6][2], BG_IC_SpiritGuidePos[6][3],HORDE)
@@ -862,7 +864,11 @@ void BattleGroundIC::DestroyGate(Player* pl, GameObject* go, uint32 /*destroyedE
 
 void BattleGroundIC::EventPlayerDamagedGO(Player* /*plr*/, GameObject* /*go*/, uint8 /*hitType*/, uint32 /*destroyedEvent*/)
 {
-   
+}
+
+void BattleGroundIC::EventPlayerUsedGO(Player* Source, GameObject* object)
+{
+    HandlePlayerUseTeleport(Source, object);
 }
 
 WorldSafeLocsEntry const* BattleGroundIC::GetClosestGraveYard(Player* player)
@@ -962,6 +968,63 @@ void BattleGroundIC::HandleParachutes()
             float height = player->GetPositionZ();
             if (height < 180 && height > 140 && (!player->HasAura(66657)))
                 player->CastSpell(player, 66657, true);
+        }
+    }
+}
+
+void BattleGroundIC::HandlePlayerUseTeleport(Player *player, GameObject *teleport)
+{
+    if (!teleport || !player)
+        return;
+
+    float x, y, z;
+    teleport->GetPosition(x, y, z);
+
+    for (uint8 i = 0; i <= 12; ++i)
+    {
+        if (BG_IC_Teleporters[i].x == x && BG_IC_Teleporters[i].y == y && BG_IC_Teleporters[i].z == z)
+        {
+            switch(BG_IC_Teleporters[i].type)
+            {
+                case BG_IC_GO_TELEPORTER_1_1:
+                    player->NearTeleportTo(1158.64f, -746.148f, 48.6277f, -1.50098f);
+                    break;
+                case BG_IC_GO_TELEPORTER_1_2:
+                    player->NearTeleportTo(1235.6f, -683.806f, 49.3028f, -3.07177f);
+                    break;
+                case BG_IC_GO_TELEPORTER_2_1:
+                    player->NearTeleportTo(1235.07f, -857.957f, 48.9163f, 3.05433f);
+                    break;
+                case BG_IC_GO_TELEPORTER_3_1:
+                    player->NearTeleportTo(323.55f, -888.347f, 48.9198f, 0.0174525f);
+                    break;
+                case BG_IC_GO_TELEPORTER_2_2:
+                    player->NearTeleportTo(1235.07f, -857.957f, 48.9163f, 3.05433f);
+                    break;
+                case BG_IC_GO_TELEPORTER_4_1:
+                    player->NearTeleportTo(324.634f, -749.148f, 49.359f, 0.0174525f);
+                    break;
+                case BG_IC_GO_TELEPORTER_3_2:
+                    player->NearTeleportTo(397.116f, -859.378f, 48.8989f, 1.64061f);
+                    break;
+                case BG_IC_GO_TELEPORTER_3_3:
+                    player->NearTeleportTo(326.266f, -777.347f, 49.0215f, 3.12412f);
+                    break;
+                case BG_IC_GO_TELEPORTER_4_2:
+                    player->NearTeleportTo(311.911f, -913.986f, 48.8157f, 3.08918f);
+                    break;
+                case BG_IC_GO_TELEPORTER_4_3:
+                    player->NearTeleportTo(425.686f, -857.092f, 48.51f, -1.62316f);
+                    break;
+                case BG_IC_GO_TELEPORTER_1_3:
+                    player->NearTeleportTo(1233.25f, -844.573f, 48.8836f, 0.0174525f);
+                    break;
+                case BG_IC_GO_TELEPORTER_2_3:
+                    player->NearTeleportTo(1143.25f, -779.623f, 48.6291f, 1.62316f);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }
