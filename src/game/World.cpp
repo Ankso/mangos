@@ -1385,13 +1385,13 @@ void World::SetInitialWorldSettings()
     sBattleGroundMgr.CreateInitialBattleGrounds();
     sBattleGroundMgr.InitAutomaticArenaPointDistribution();
 
-    ///- Initialize outdoor pvp
-    sLog.outString( "Starting Outdoor PvP System" );
-    sOutdoorPvPMgr.InitOutdoorPvP();
-
     //Not sure if this can be moved up in the sequence (with static data loading) as it uses MapManager
     sLog.outString( "Loading Transports..." );
     sMapMgr.LoadTransports();
+
+    ///- Initialize outdoor pvp
+    sLog.outString( "Starting Outdoor PvP System" );
+    sOutdoorPvPMgr.InitOutdoorPvP();
 
     sLog.outString("Deleting expired bans..." );
     LoginDatabase.Execute("DELETE FROM ip_banned WHERE unbandate<=UNIX_TIMESTAMP() AND unbandate<>bandate");
