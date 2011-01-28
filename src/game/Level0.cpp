@@ -129,7 +129,7 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
     return true;
 }
 
-#define MAX_ALLOWED_QUESTS 27
+#define MAX_ALLOWED_QUESTS 28
 
 bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
 {
@@ -159,6 +159,7 @@ bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
         13829,
         12856,  // Hodir chain bugged quests (A/H)
         12851,
+        12996,  // The Warm-up (A/H)
         24451,  // An Audience With The Arcanist (A/H) (For Quel'delar)
         24560   // Tempering the Blade (A/H) (For Quel'delar)
     };
