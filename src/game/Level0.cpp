@@ -129,7 +129,7 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
     return true;
 }
 
-#define MAX_ALLOWED_QUESTS 28
+#define MAX_ALLOWED_QUESTS 29
 
 bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
 {
@@ -137,6 +137,7 @@ bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
         12733,  // Death's Challenge (Dks - Same problem as The Endless Hunger)
         12779,  // A End to All Things... (DKs)
         12848,  // The Endless Hunger (DKs - Sometimes works, sometimes not)
+        12687,  // Into the realm of Shadows (DKs)
         13625,  // Learning The Reins (H)
         13677,  //     "     "    "   (A)
         12727,  // Bloody breakout (DKs - Sometimes the script fails)
