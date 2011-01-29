@@ -3670,9 +3670,28 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
         Aur->SetAuraDuration(duration);
     }
 
-    if (m_spellInfo->Id == 71563)
-        for (uint8 i = 0; i < 5; ++i)
-            caster->CastSpell(caster, 71564, true);
+    switch(m_spellInfo->Id)
+    {
+        // Deadly Precision (Nevermelting Ice Crystal trinket)
+        case 71563:
+        {
+            for (uint8 i = 0; i < 5; ++i)
+                caster->CastSpell(caster, 71564, true);
+            break;
+        }
+        // Sap should remove stealth effects:
+        case 6770:   // Sap rank 1
+        case 2070:   // Sap rank 2
+        case 11297:  // Sap rank 3
+        case 51724:  // Sap rank 4
+        {
+            if (unitTarget->HasAuraType(SPELL_AURA_MOD_STEALTH))
+                unitTarget->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
+            break;
+        }
+        default:
+            break;
+    }
 
     spellAuraHolder->AddAura(Aur, eff_idx);
 }
