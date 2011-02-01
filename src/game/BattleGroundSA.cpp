@@ -816,6 +816,9 @@ void BattleGroundSA::CaptureGraveyard(BG_SA_Graveyards i, Player *Source)
 
 void BattleGroundSA::EventPlayerUsedGO(Player* Source, GameObject* object)
 {
+    if (!Source || !object)
+        return;
+
     if (object->GetEntry() == BG_SA_ObjEntries[BG_SA_TITAN_RELIC] && GateStatus[BG_SA_ANCIENT_GATE] == BG_SA_GATE_DESTROYED)
     {
         if (Source->GetTeamId() == Attackers)
@@ -824,19 +827,17 @@ void BattleGroundSA::EventPlayerUsedGO(Player* Source, GameObject* object)
                 SendMessageToAll(LANG_BG_SA_ALLIANCE_CAPTURED_RELIC, CHAT_MSG_BG_SYSTEM_NEUTRAL);
             else SendMessageToAll(LANG_BG_SA_HORDE_CAPTURED_RELIC, CHAT_MSG_BG_SYSTEM_NEUTRAL);
 
-            RewardXpToTeam(0, 0.6f, (Attackers == TEAM_ALLIANCE ? ALLIANCE : HORDE));
-
             if (Status == BG_SA_ROUND_ONE)
             {
                 RoundScores[0].winner = Attackers;
                 RoundScores[0].time = TotalTime;
                 //Achievement Storm the Beach (1310)
-                for (BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
+                /*for (BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
                 {
                     if (Player *plr = sObjectMgr.GetPlayer(itr->first))
                         if (plr->GetTeamId() == Attackers)
                             plr->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET, 65246);
-                }
+                }*/
 
                 Attackers = (Attackers == TEAM_ALLIANCE) ? TEAM_HORDE : TEAM_ALLIANCE;
                 Status = BG_SA_SECOND_WARMUP;
@@ -855,12 +856,12 @@ void BattleGroundSA::EventPlayerUsedGO(Player* Source, GameObject* object)
                 RoundScores[1].time = TotalTime;
                 ToggleTimer();
                 //Achievement Storm the Beach (1310)
-                for (BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
+                /*for (BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
                 {
                     if (Player *plr = sObjectMgr.GetPlayer(itr->first))
                         if (plr->GetTeamId() == Attackers && RoundScores[1].winner == Attackers)
                             plr->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET, 65246);
-                }
+                }*/
 
                 if (RoundScores[0].time == RoundScores[1].time)
                     EndBattleGround(NULL);
