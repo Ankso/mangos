@@ -103,7 +103,7 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
     else
         full = _FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,REVISION_ID);
 
-    SendSysMessage("Revision ReinoDeLaOscuridad: [R140] || Conoce los ultimos cambios entrando en www.reinodelaoscuridad.com");
+    SendSysMessage("Revision ReinoDeLaOscuridad: [R141] || Conoce los ultimos cambios entrando en www.reinodelaoscuridad.com");
     //Don't send revision info to normal players, for some hacks, you need the server rev. =/
     if(chr->isGameMaster())
     {
@@ -129,7 +129,7 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
     return true;
 }
 
-#define MAX_ALLOWED_QUESTS 29
+#define MAX_ALLOWED_QUESTS 30
 
 bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
 {
@@ -162,7 +162,8 @@ bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
         12851,
         12996,  // The Warm-up (A/H)
         24451,  // An Audience With The Arcanist (A/H) (For Quel'delar)
-        24560   // Tempering the Blade (A/H) (For Quel'delar)
+        24560,  // Tempering the Blade (A/H) (For Quel'delar)
+        24561   // The Halls of Reflection (A/H) (For Quel'delar)
     };
 
     Player* player = getSelectedPlayer();
