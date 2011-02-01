@@ -95,6 +95,22 @@ void BattleGroundDS::StartingEventOpenDoors()
         ActivateObjectEvent(253, 0, false);
     setWaterFallTimer(urand(BG_DS_WATERFALL_TIMER_MIN, BG_DS_WATERFALL_TIMER_MAX));
     setWaterFallActive(false);
+    // With mmaps, pets can't get out of the tube, so teleport it to the ground:
+    for (BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
+    {
+        Player *player = sObjectMgr.GetPlayer(itr->first);
+        if (!player)
+            continue;
+
+        Pet *pet = player->GetPet();
+        if (!pet)
+            continue;
+
+        if (player->GetPositionX() >= 100.0f) // Switch in function of owner's starting tube
+            pet->SetPosition(petTeleLocations[0][0], petTeleLocations[0][1], petTeleLocations[0][2], petTeleLocations[0][3], true);
+        else
+            pet->SetPosition(petTeleLocations[1][0], petTeleLocations[1][1], petTeleLocations[1][2], petTeleLocations[1][3], true);
+    }
 }
 
 void BattleGroundDS::AddPlayer(Player *plr)

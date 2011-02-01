@@ -36,6 +36,12 @@ class BattleGroundDSScore : public BattleGroundScore
         //TODO fix me
 };
 
+const float petTeleLocations[2][4] = 
+{
+    {0.0f, 0.0f, 0.0f, 0.0f},
+    {0.0f, 0.0f, 0.0f, 0.0f}
+};
+
 class BattleGroundDS : public BattleGround
 {
     friend class BattleGroundMgr;
