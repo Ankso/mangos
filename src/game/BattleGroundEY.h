@@ -25,6 +25,7 @@ class BattleGround;
 
 #define BG_EY_FLAG_RESPAWN_TIME         (10*IN_MILLISECONDS) //10 seconds
 #define BG_EY_FPOINTS_TICK_TIME         (2*IN_MILLISECONDS)  //2 seconds
+#define ILEGAL_POSITION_TIMER           (5*IN_MILLISECONDS)  //5 seconds
 
 enum BG_EY_WorldStates
 {
@@ -325,5 +326,7 @@ class BattleGroundEY : public BattleGround
 
         int32 m_PointAddingTimer;
         uint32 m_HonorTics;
+
+        uint32 ilegalPositionTimer;
 };
 #endif

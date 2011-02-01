@@ -42,6 +42,8 @@ BattleGroundEY::BattleGroundEY()
     m_StartMessageIds[BG_STARTING_EVENT_SECOND] = LANG_BG_EY_START_ONE_MINUTE;
     m_StartMessageIds[BG_STARTING_EVENT_THIRD]  = LANG_BG_EY_START_HALF_MINUTE;
     m_StartMessageIds[BG_STARTING_EVENT_FOURTH] = LANG_BG_EY_HAS_BEGUN;
+
+    ilegalPositionTimer = ILEGAL_POSITION_TIMER;
 }
 
 BattleGroundEY::~BattleGroundEY()
@@ -91,6 +93,37 @@ void BattleGroundEY::Update(uint32 diff)
             UpdatePointStatuses();
             m_TowerCapCheckTimer = BG_EY_FPOINTS_TICK_TIME;
         }
+    }
+    else
+    {
+        if (ilegalPositionTimer <= 0)
+        {
+            for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
+            {
+                Player *plr = sObjectMgr.GetPlayer(itr->first);
+                if (!plr)
+                    continue;
+
+                if (plr->GetPositionZ() < 100.0f)
+                {
+                    switch(plr->GetTeam())
+                    {
+                        case ALLIANCE:
+                            plr->TeleportTo(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+                            break;
+                        case HORDE:
+                            plr->TeleportTo(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+                            break;
+                        default:
+                            sLog.outError("BattleGroundEY: Unexpected team for player %s (cheater?)", plr->GetName());
+                            break;
+                    }
+                }
+            }
+            ilegalPositionTimer = ILEGAL_POSITION_TIMER;
+        }
+        else
+            ilegalPositionTimer -= diff;
     }
 }
 
