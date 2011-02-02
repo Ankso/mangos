@@ -94,7 +94,7 @@ void BattleGroundEY::Update(uint32 diff)
             m_TowerCapCheckTimer = BG_EY_FPOINTS_TICK_TIME;
         }
     }
-    else
+    else if (GetStatus() == STATUS_WAIT_JOIN)
     {
         if (ilegalPositionTimer <= 0)
         {
@@ -104,15 +104,15 @@ void BattleGroundEY::Update(uint32 diff)
                 if (!plr)
                     continue;
 
-                if (plr->GetPositionZ() < 100.0f)
+                if (plr->GetPositionZ() < MINIMUM_HEIGHT_AT_START)
                 {
                     switch(plr->GetTeam())
                     {
                         case ALLIANCE:
-                            plr->TeleportTo(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+                            plr->TeleportTo(GetMapId(), BG_EY_TeleportingLocs[0][0], BG_EY_TeleportingLocs[0][1], BG_EY_TeleportingLocs[0][2], BG_EY_TeleportingLocs[0][3]);
                             break;
                         case HORDE:
-                            plr->TeleportTo(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+                            plr->TeleportTo(GetMapId(), BG_EY_TeleportingLocs[1][0], BG_EY_TeleportingLocs[1][1], BG_EY_TeleportingLocs[1][2], BG_EY_TeleportingLocs[1][3]);
                             break;
                         default:
                             sLog.outError("BattleGroundEY: Unexpected team for player %s (cheater?)", plr->GetName());

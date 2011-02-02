@@ -38,8 +38,8 @@ class BattleGroundDSScore : public BattleGroundScore
 
 const float petTeleLocations[2][4] = 
 {
-    {0.0f, 0.0f, 0.0f, 0.0f},
-    {0.0f, 0.0f, 0.0f, 0.0f}
+    {1331.928223f, 817.040100f, 3.156383f, 3.163883f}, // Tube 1
+    {1251.075684f, 764.763550f, 3.155599f, 0.031425f}  // Tube 2
 };
 
 class BattleGroundDS : public BattleGround

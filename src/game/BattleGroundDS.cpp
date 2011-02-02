@@ -106,10 +106,10 @@ void BattleGroundDS::StartingEventOpenDoors()
         if (!pet)
             continue;
 
-        if (player->GetPositionX() >= 100.0f) // Switch in function of owner's starting tube
-            pet->SetPosition(petTeleLocations[0][0], petTeleLocations[0][1], petTeleLocations[0][2], petTeleLocations[0][3], true);
+        if (player->GetPositionX() > 1300.0f) // Switch in function of owner's starting tube
+            player->TeleportTo(GetMapId(), petTeleLocations[0][0], petTeleLocations[0][1], petTeleLocations[0][2], petTeleLocations[0][3]);
         else
-            pet->SetPosition(petTeleLocations[1][0], petTeleLocations[1][1], petTeleLocations[1][2], petTeleLocations[1][3], true);
+            player->TeleportTo(GetMapId(), petTeleLocations[1][0], petTeleLocations[1][1], petTeleLocations[1][2], petTeleLocations[1][3]);
     }
 }
 

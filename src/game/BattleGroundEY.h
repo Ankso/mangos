@@ -26,6 +26,7 @@ class BattleGround;
 #define BG_EY_FLAG_RESPAWN_TIME         (10*IN_MILLISECONDS) //10 seconds
 #define BG_EY_FPOINTS_TICK_TIME         (2*IN_MILLISECONDS)  //2 seconds
 #define ILEGAL_POSITION_TIMER           (5*IN_MILLISECONDS)  //5 seconds
+#define MINIMUM_HEIGHT_AT_START         1250.0f
 
 enum BG_EY_WorldStates
 {
@@ -233,6 +234,12 @@ const BattleGroundEYCapturingPointStruct CapturingPointTypes[BG_EY_NODES_MAX] =
     BattleGroundEYCapturingPointStruct(LANG_BG_EY_HAS_TAKEN_A_M_TOWER, LANG_BG_EY_HAS_TAKEN_H_M_TOWER, EY_GRAVEYARD_MAGE_TOWER)
 };
 
+const float BG_EY_TeleportingLocs[2][4] =
+{
+    {2522.573730f, 1596.592651f, 1268.835327f, 3.110087f}, // Alliance
+    {1810.632690f, 1539.422241f, 1266.304443f, 0.039179f}  // Horde
+};
+
 class BattleGroundEYScore : public BattleGroundScore
 {
     public:
@@ -327,6 +334,6 @@ class BattleGroundEY : public BattleGround
         int32 m_PointAddingTimer;
         uint32 m_HonorTics;
 
-        uint32 ilegalPositionTimer;
+        int32 ilegalPositionTimer;
 };
 #endif
