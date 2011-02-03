@@ -137,7 +137,7 @@ const float BG_EY_NodePositions[BG_EY_NODES_MAX][3] = {
     {2282.121582f, 1760.006958f, 1189.707153f}              // BG_EY_NODE_MAGE_TOWER
 };
 
-// used to check if player is near the Fel Reaver's flag's capture point
+// used to check if player is near the Fel Reaver's flag capture point
 const float BG_EY_FelReaverFlagCapturePoint[3] = {2043.875244f, 1729.625366f, 1189.870605f};
 
 enum EYBattleGroundObjectTypes
