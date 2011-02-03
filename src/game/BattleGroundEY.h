@@ -27,6 +27,7 @@ class BattleGround;
 #define BG_EY_FPOINTS_TICK_TIME         (2*IN_MILLISECONDS)  //2 seconds
 #define ILEGAL_POSITION_TIMER           (5*IN_MILLISECONDS)  //5 seconds
 #define MINIMUM_HEIGHT_AT_START         1250.0f
+#define BG_EY_DISTANCE_TO_CAPTURE_FLAG  5.0f
 
 enum BG_EY_WorldStates
 {
@@ -135,6 +136,9 @@ const float BG_EY_NodePositions[BG_EY_NODES_MAX][3] = {
     {2301.010498f, 1386.931641f, 1197.183472f},             // BG_EY_NODE_DRAENEI_RUINS
     {2282.121582f, 1760.006958f, 1189.707153f}              // BG_EY_NODE_MAGE_TOWER
 };
+
+// used to check if player is near the Fel Reaver's flag's capture point
+const float BG_EY_FelReaverFlagCapturePoint[3] = {2043.875244f, 1729.625366f, 1189.870605f};
 
 enum EYBattleGroundObjectTypes
 {
@@ -304,6 +308,9 @@ class BattleGroundEY : public BattleGround
         void CheckSomeoneLeftPoint();
         void CheckSomeoneJoinedPoint();
         void UpdatePointStatuses();
+
+        /* To allow drop flag on Fel Reaver */
+        void CheckFlagOnFelReaver();
 
         /* Scorekeeping */
         uint32 GetTeamScore(Team team) const { return m_TeamScores[GetTeamIndexByTeamId(team)]; }

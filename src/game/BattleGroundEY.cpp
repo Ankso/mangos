@@ -93,6 +93,7 @@ void BattleGroundEY::Update(uint32 diff)
             UpdatePointStatuses();
             m_TowerCapCheckTimer = BG_EY_FPOINTS_TICK_TIME;
         }
+        CheckFlagOnFelReaver();
     }
     else if (GetStatus() == STATUS_WAIT_JOIN)
     {
@@ -231,6 +232,25 @@ void BattleGroundEY::CheckSomeoneLeftPoint()
                 ++j;
             }
         }
+    }
+}
+
+void BattleGroundEY::CheckFlagOnFelReaver()
+{
+    uint8 i = 0;
+    while (i < m_PlayersNearPoint[BG_EY_NODE_FEL_REAVER].size())
+    {
+        Player *plr = sObjectMgr.GetPlayer(m_PlayersNearPoint[BG_EY_NODE_FEL_REAVER][i]);
+        if (!plr)
+        {
+            sLog.outError("BattleGroundEY::CheckFlagOnFelReaver(): Player %s not found!", m_PlayersNearPoint[BG_EY_NODE_FEL_REAVER][i].GetString().c_str());
+            continue;
+        }
+        if (plr->HasAura(BG_EY_NETHERSTORM_FLAG_SPELL) && plr->IsWithinDist3d(BG_EY_FelReaverFlagCapturePoint[0], BG_EY_FelReaverFlagCapturePoint[1], BG_EY_FelReaverFlagCapturePoint[2], BG_EY_DISTANCE_TO_CAPTURE_FLAG))
+            if (m_PointState[BG_EY_NODE_FEL_REAVER] == EY_POINT_UNDER_CONTROL && m_PointOwnedByTeam[BG_EY_NODE_FEL_REAVER] == plr->GetTeam())
+                if (m_FlagState && GetFlagPickerGuid() == plr->GetObjectGuid())
+                    EventPlayerCapturedFlag(plr, BG_EY_NODE_FEL_REAVER);
+        ++i;
     }
 }
 
