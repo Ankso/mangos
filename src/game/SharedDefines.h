@@ -558,6 +558,7 @@ enum Team
     //TEAM_SANCTUARY           = 936,
     //TEAM_OUTLAND             = 980,
 };
+
 const Team TeamId2Team[3] = {ALLIANCE, HORDE, TEAM_NONE};
 
 enum SpellEffects
