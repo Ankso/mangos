@@ -880,6 +880,11 @@ bool Player::Create( uint32 guidlow, const std::string& name, uint8 race, uint8 
         }
     }
     // all item positions resolved
+    
+    //Custom: Send a welcome in-game mail with external mail system. This must be moved to DB/Config.
+    std::ostringstream welcome_message;
+    welcome_message << "INSERT INTO `mail_external` (receiver, subject, message, money, item, item_count) VALUES ('" << GetGUIDLow() << "', '" << (getGender() == 0 ? "Bienvenido" : "Bienvenida") << "', 'Hola " << GetName() << ", " << (getGender() == 0 ? "Bienvenido" : "Bienvenida") << " a RdlO! No olvides probar exclusividades como las rates custom por PJ (comando .rates), eventos, todas las BGs/Arenas/mazmorras/raids, sistema de leveo en BG y un largo etc. Juega y disfruta de tus aventuras!', '0', '0', '0')";
+    CharacterDatabase.Execute(welcome_message.str().c_str());
 
     return true;
 }
