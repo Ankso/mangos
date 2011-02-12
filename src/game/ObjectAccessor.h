@@ -37,9 +37,7 @@
 #include <set>
 #include <list>
 
-class Creature;
 class Unit;
-class GameObject;
 class WorldObject;
 class Map;
 
@@ -175,20 +173,6 @@ class MANGOS_DLL_DECL ObjectAccessor : public MaNGOS::Singleton<ObjectAccessor, 
         LockType i_playerGuard;
         LockType i_corpseGuard;
 };
-
-inline Unit* ObjectAccessor::GetUnitInWorld(WorldObject const& obj, ObjectGuid guid)
-{
-    if(guid.IsEmpty())
-        return NULL;
-
-    if (guid.IsPlayer())
-        return FindPlayer(guid);
-
-    if (guid.IsPet())
-        return obj.IsInWorld() ? obj.GetMap()->GetPet(guid) : NULL;
-
-    return GetCreatureInWorld(guid);
-}
 
 #define sObjectAccessor ObjectAccessor::Instance()
 
