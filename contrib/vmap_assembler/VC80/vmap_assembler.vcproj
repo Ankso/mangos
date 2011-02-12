@@ -215,6 +215,7 @@
 			</File>
 			<File
 <<<<<<< HEAD
+<<<<<<< HEAD
 				RelativePath="..\..\..\src\game\vmap\TileAssembler.cpp"
 				>
 			</File>
@@ -227,6 +228,13 @@
 			<File
 				RelativePath="..\..\..\dep\include\g3dlite\G3D\CoordinateFrame.h"
 >>>>>>> d3510ad310e8dc4ebc15d1ec8c06c3e6f0db2da4
+=======
+				RelativePath="..\..\..\src\game\vmap\TileAssembler.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\game\vmap\TileAssembler.h"
+>>>>>>> 10c875751a14799761824f6e0f961ee968266436
 				>
 			</File>
 			<File
@@ -239,10 +247,14 @@
 			</File>
 			<File
 <<<<<<< HEAD
+<<<<<<< HEAD
 				RelativePath="..\..\..\src\game\vmap\VMapTools.h"
 =======
 				RelativePath="..\..\..\dep\include\g3dlite\G3D\format.h"
 >>>>>>> d3510ad310e8dc4ebc15d1ec8c06c3e6f0db2da4
+=======
+				RelativePath="..\..\..\src\game\vmap\VMapTools.h"
+>>>>>>> 10c875751a14799761824f6e0f961ee968266436
 				>
 			</File>
 			<File
