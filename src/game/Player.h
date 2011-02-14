@@ -2268,6 +2268,10 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint32 GetSaveTimer() const { return m_nextSave; }
         void   SetSaveTimer(uint32 timer) { m_nextSave = timer; }
 
+        /** World of Warcraft Armory **/
+        void WriteWowArmoryDatabaseLog(uint32 type, uint32 data);
+        /** World of Warcraft Armory **/
+
         // Recall position
         uint32 m_recallMap;
         float  m_recallX;
@@ -2281,9 +2285,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool TeleportToHomebind(uint32 options = 0) { return TeleportTo(m_homebindMapId, m_homebindX, m_homebindY, m_homebindZ, GetOrientation(), options); }
 
         Object* GetObjectByTypeMask(ObjectGuid guid, TypeMask typemask);
-        
-        /* WoWArmory Feed Log */
-        void WriteWowArmoryDatabaseLog(uint32 type, uint32 data);
 
         // currently visible objects at player client
         ObjectGuidSet m_clientGUIDs;

@@ -850,9 +850,10 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
             {
                 // FIXME: kept by compatibility. don't know in BG if the restriction apply.
                 bg->UpdatePlayerScore(killer, SCORE_DAMAGE_DONE, damage);
-                /* WoWArmory (arena game chart) */
-                if (BattleGround * bgV = ((Player*)pVictim)->GetBattleGround())
+                /** World of Warcraft Armory **/
+                if (BattleGround *bgV = ((Player*)pVictim)->GetBattleGround())
                     bgV->UpdatePlayerScore(((Player*)pVictim), SCORE_DAMAGE_TAKEN, damage);
+                /** World of Warcraft Armory **/
             }
         }
 
@@ -1065,9 +1066,12 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
                     {
                         if(cVictim->GetCreatureInfo()->flags_extra & CREATURE_FLAG_EXTRA_INSTANCE_BIND)
                         {
-						    ((DungeonMap *)m)->PermBindAllPlayers(creditedPlayer);
-						    creditedPlayer->WriteWowArmoryDatabaseLog(3, cVictim->GetCreatureInfo()->Entry);
-						}
+                            ((DungeonMap *)m)->PermBindAllPlayers(creditedPlayer);
+                            /** World of Warcraft Armory **/
+                            if (sWorld.getConfig(CONFIG_BOOL_ARMORY_SUPPORT))
+                                creditedPlayer->WriteWowArmoryDatabaseLog(3, cVictim->GetCreatureInfo()->Entry); // Difficulty will be defined in Player::WriteWowArmoryDatabaseLog();
+                            /** World of Warcraft Armory **/
+                        }
                     }
                     else
                     {
@@ -6331,6 +6335,9 @@ void Unit::Uncharm()
 
 float Unit::GetCombatDistance( const Unit* target ) const
 {
+    if (!target)
+        return 0.0f;
+
     float radius = target->GetFloatValue(UNIT_FIELD_COMBATREACH) + GetFloatValue(UNIT_FIELD_COMBATREACH);
     float dx = GetPositionX() - target->GetPositionX();
     float dy = GetPositionY() - target->GetPositionY();
@@ -6511,6 +6518,10 @@ int32 Unit::DealHeal(Unit *pVictim, uint32 addhealth, SpellEntry const *spellPro
 
         ((Player*)pVictim)->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_TOTAL_HEALING_RECEIVED, gain);
         ((Player*)pVictim)->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HIGHEST_HEALING_RECEIVED, addhealth);
+        /** World of Warcraft Armory **/
+        if (BattleGround *bgV = ((Player*)pVictim)->GetBattleGround())
+            bgV->UpdatePlayerScore(((Player*)pVictim), SCORE_HEALING_TAKEN, gain);
+        /** World of Warcraft Armory **/
     }
 
     return gain;

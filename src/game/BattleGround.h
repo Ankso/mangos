@@ -225,9 +225,10 @@ enum ScoreType
     //IC
     SCORE_BASE_ASSAULTED        = 18,
     SCORE_BASE_DEFENDED         = 19,
-    /* WoWArmory */
+    /** World of Warcraft Armory **/
     SCORE_DAMAGE_TAKEN          = 20,
     SCORE_HEALING_TAKEN         = 21
+    /** World of Warcraft Armory **/
 };
 
 enum ArenaType
@@ -326,8 +327,10 @@ class BattleGroundScore
         uint32 BonusHonor;
         uint32 DamageDone;
         uint32 HealingDone;
+        /** World of Warcraft Armory **/
         uint32 DamageTaken;
         uint32 HealingTaken;
+        /** World of Warcraft Armory **/
 };
 
 /*
