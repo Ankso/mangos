@@ -2634,7 +2634,7 @@ void Player::GiveXP(uint32 xp, Unit* victim)
         return;
 
     // Apply now custom xp rate, loaded from db.
-    xp = xp * xp_rate;
+    xp = xp * GetXpRate();
 
     if(victim)
     {
@@ -16416,10 +16416,13 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder *holder )
     }
 
     // Custom experience rate for each player
-    xp_rate = fields[66].GetUInt8();
-    if (xp_rate > 10)
-        xp_rate = 10; // Preventive
-    DETAIL_LOG("Custom experience rate for player %s is: %u", m_name.c_str(), xp_rate);
+    SetXpRate(fields[66].GetUInt8());
+    if (GetXpRate() > MAX_PLAYER_XP_RATES)
+    {
+        sLog.outError("Player %s has xp_rate > 10, setting his/her rates to default max: %u", GetName(), MAX_PLAYER_XP_RATES);
+        SetXpRate(MAX_PLAYER_XP_RATES); // Preventive
+    }
+    DETAIL_LOG("Custom experience rate for player %s is: %u", m_name.c_str(), GetXpRate());
 
     DEBUG_FILTER_LOG(LOG_FILTER_PLAYER_STATS, "The value of player %s after load item and aura is: ", m_name.c_str());
     outDebugStatsValues();
@@ -17895,7 +17898,7 @@ void Player::SaveToDB()
     ss << ", ";
     ss << uint32(m_GrantableLevelsCount);
     ss << ", ";
-    ss << uint32(xp_rate);
+    ss << uint32(GetXpRate());
     ss << ")";
 
     CharacterDatabase.BeginTransaction();

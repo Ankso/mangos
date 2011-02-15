@@ -203,8 +203,7 @@ bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
             Quest const* pQuest = sObjectMgr.GetQuestTemplate(ALLOWED_QUESTS[i]);
             if (!pQuest)
                 break;
-            std::string questName = pQuest->GetTitle();
-            PSendSysMessage("%s (ID: %u)", questName.c_str(), pQuest->GetQuestId());
+            PSendSysMessage("%s (ID: %u)", pQuest->GetTitle().c_str(), pQuest->GetQuestId());
         }
         SetSentErrorMessage(true);
         return false;
@@ -453,8 +452,15 @@ bool ChatHandler::HandleServerMotdCommand(char* /*args*/)
 
 bool ChatHandler::HandleRatesCommand(char* args)
 {
-    if (!*args)
+    Player *plr = m_session->GetPlayer();
+    if (!plr)
         return false;
+
+    if (!*args)
+    {
+        PSendSysMessage("Las rates de experiencia del personaje %s son actualmente: %u", plr->GetName(), plr->GetXpRate());
+        return false;
+    }
 
     uint8 new_rates = (uint8)atof(args);
     if (new_rates > 10 || new_rates < 1)
@@ -464,11 +470,7 @@ bool ChatHandler::HandleRatesCommand(char* args)
         return false;
     }
 
-    Player *plr = m_session->GetPlayer();
-    if (!plr)
-        return false;
-
-    plr->xp_rate = new_rates;
+    plr->SetXpRate(new_rates);
     PSendSysMessage("Las rates de experiencia de %s se han establecido a %u", plr->GetName(), new_rates);
     
     return true;
