@@ -48,17 +48,10 @@ void BattleGroundDS::Update(uint32 diff)
 {
     BattleGround::Update(diff);
 
-    /*if (GetStatus() == STATUS_IN_PROGRESS)
-    {
-        if (GetStartTime() >= 47*MINUTE*IN_MILLISECONDS)    // after 47 minutes without one team losing, the arena closes with no winner and no rating change
-        {
-            UpdateArenaWorldState();
-            CheckArenaAfterTimerConditions();
-        }
-    }*/
-
     if (GetStatus() == STATUS_IN_PROGRESS)
     {
+        if (GetStartTime() >= 47*MINUTE*IN_MILLISECONDS)    // after 47 minutes without one team losing, the arena closes with no winner and no rating change
+            EndBattleGround(TEAM_NONE);
         // knockback
         if(m_uiKnockback < diff)
         {
@@ -142,8 +135,6 @@ void BattleGroundDS::AddPlayer(Player *plr)
     BattleGroundDSScore* sc = new BattleGroundDSScore;
 
     m_PlayerScores[plr->GetGUID()] = sc;
-
-    // UpdateArenaWorldState();
 }
 
 void BattleGroundDS::RemovePlayer(Player * /*plr*/, ObjectGuid /*guid*/)
@@ -151,7 +142,6 @@ void BattleGroundDS::RemovePlayer(Player * /*plr*/, ObjectGuid /*guid*/)
     if (GetStatus() == STATUS_WAIT_LEAVE)
         return;
 
-    // UpdateArenaWorldState();
     CheckArenaWinConditions();
 }
 
@@ -167,8 +157,6 @@ void BattleGroundDS::HandleKillPlayer(Player* player, Player* killer)
     }
 
     BattleGround::HandleKillPlayer(player,killer);
-
-    // UpdateArenaWorldState();
     CheckArenaWinConditions();
 }
 
@@ -184,7 +172,6 @@ void BattleGroundDS::HandleAreaTrigger(Player *Source, uint32 Trigger)
             break;
         default:
             sLog.outError("WARNING: Unhandled AreaTrigger in BattleGround: %u", Trigger);
-            // Source->GetSession()->SendAreaTriggerMessage("Warning: Unhandled AreaTrigger in BattleGround: %u", Trigger);
             break;
     }
 }
@@ -198,7 +185,6 @@ bool BattleGroundDS::HandlePlayerUnderMap(Player *player)
 void BattleGroundDS::FillInitialWorldStates(WorldPacket &data)
 {
     data << uint32(3610) << uint32(1);                                              // 9 show
-    // UpdateArenaWorldState();
 }
 
 void BattleGroundDS::Reset()
