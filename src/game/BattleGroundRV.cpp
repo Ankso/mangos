@@ -248,5 +248,9 @@ bool BattleGroundRV::SetupBattleGround()
         sLog.outErrorDb("BatteGroundRV: Failed to spawn some object!");
         return false;
     }
+
+    for (uint32 i = BG_RV_OBJECT_FIRE_1; i <= BG_RV_OBJECT_FENCE_2; ++i)
+        SpawnBGObject(m_BgObjects[i], RESPAWN_IMMEDIATELY);
+    
     return true;
 }

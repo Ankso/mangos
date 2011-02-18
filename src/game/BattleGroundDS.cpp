@@ -75,14 +75,14 @@ void BattleGroundDS::Update(uint32 diff)
         {
             setWaterFallTimer(urand(BG_DS_WATERFALL_TIMER_MIN, BG_DS_WATERFALL_TIMER_MAX));
             for (uint32 i = BG_DS_OBJECT_WATER_1; i <= BG_DS_OBJECT_WATER_2; ++i)
-                SpawnBGObject(m_BgObjects[i], getWaterFallTimer());
+                DoorOpen(m_BgObjects[i]);
             setWaterFallActive(false);
         }
         else
         {
             setWaterFallTimer(BG_DS_WATERFALL_DURATION);
             for (uint32 i = BG_DS_OBJECT_WATER_1; i <= BG_DS_OBJECT_WATER_2; ++i)
-                SpawnBGObject(m_BgObjects[i], RESPAWN_IMMEDIATELY);
+                DoorOpen(m_BgObjects[i]);
             setWaterFallActive(true);
         }
     }
@@ -108,7 +108,7 @@ void BattleGroundDS::StartingEventOpenDoors()
     setWaterFallActive(false);
 
     for (uint32 i = BG_DS_OBJECT_WATER_1; i <= BG_DS_OBJECT_WATER_2; ++i)
-        SpawnBGObject(m_BgObjects[i], getWaterFallTimer());
+        DoorOpen(m_BgObjects[i]);
 
     // With mmaps, pets can't get out of the tube, so teleport it to the ground:
     for (BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
@@ -211,5 +211,7 @@ bool BattleGroundDS::SetupBattleGround()
         return false;
     }
 
+    for (uint32 i = BG_DS_OBJECT_WATER_1; i <= BG_DS_OBJECT_WATER_2; ++i)
+        SpawnBGObject(m_BgObjects[i], RESPAWN_IMMEDIATELY);
     return true;
 }

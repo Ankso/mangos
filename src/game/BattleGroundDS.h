@@ -45,9 +45,9 @@ enum BattleGroundDSObjects
 enum BattleGroundDSData
 { 
     // These values are NOT blizzlike... need the correct data!
-    BG_DS_WATERFALL_TIMER_MIN                    = 30000,
+    BG_DS_WATERFALL_TIMER_MIN                    = 40000,
     BG_DS_WATERFALL_TIMER_MAX                    = 60000,
-    BG_DS_WATERFALL_DURATION                     = 10000,
+    BG_DS_WATERFALL_DURATION                     = 20000,
 };
 
 const float petTeleLocations[2][4] = 
