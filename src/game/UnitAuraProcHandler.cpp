@@ -2764,7 +2764,6 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
             if (dummySpell->SpellIconID == 3065)
             {
                 triggered_spell_id = 52759;
-                basepoints[0] = triggerAmount * damage / 100;
                 target = this;
                 break;
             }
