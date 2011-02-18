@@ -1798,7 +1798,10 @@ GameObject* WorldObject::SummonGameobject(uint32 id, float x, float y, float z, 
 
     Map *map = GetMap();
 
-    if(!pGameObj->Create(pGameObj->GetMap()->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT), id, map,
+    if (!map)
+        return NULL;
+
+    if(!pGameObj->Create(map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT), id, map,
         GetPhaseMask(), x, y, z, angle, 0.0f, 0.0f, 0.0f, 0.0f, 100, GO_STATE_READY))
     {
         delete pGameObj;
@@ -2065,6 +2068,19 @@ void WorldObject::PlayDirectSound( uint32 sound_id, Player* target /*= NULL*/ )
         target->SendDirectMessage( &data );
     else
         SendMessageToSet( &data, true );
+}
+
+void WorldObject::GetCreatureListWithEntryInGrid(std::list<Creature*>& lList, uint32 uiEntry, float fMaxSearchRange)
+{
+    CellPair pair(MaNGOS::ComputeCellPair(GetPositionX(), GetPositionY()));
+    Cell cell(pair);
+    cell.SetNoCreate();
+
+    MaNGOS::AllCreaturesOfEntryInRange check(this, uiEntry, fMaxSearchRange);
+    MaNGOS::CreatureListSearcher<MaNGOS::AllCreaturesOfEntryInRange> searcher(lList, check);
+    TypeContainerVisitor<MaNGOS::CreatureListSearcher<MaNGOS::AllCreaturesOfEntryInRange>, GridTypeMapContainer> visitor(searcher);
+
+    GetMap()->Visit(cell, visitor);
 }
 
 void WorldObject::UpdateObjectVisibility()

@@ -29,8 +29,6 @@
 #define BG_EVENT_NONE 255
 // those generic events should get a high event id
 #define BG_EVENT_DOOR 254
-// Used to activate/disable generic gameobjects, like Dalaran's waterfall.
-#define BG_EVENT_ACTIVATE_GAMEOBJECT 253
 // only arena event
 // cause this buff apears 90sec after start in every bg i implement it here
 #define ARENA_BUFF_EVENT 253
@@ -225,9 +223,10 @@ enum ScoreType
     //IC
     SCORE_BASE_ASSAULTED        = 18,
     SCORE_BASE_DEFENDED         = 19,
-    /* WoWArmory */
+    /** World of Warcraft Armory **/
     SCORE_DAMAGE_TAKEN          = 20,
     SCORE_HEALING_TAKEN         = 21
+    /** World of Warcraft Armory **/
 };
 
 enum ArenaType
@@ -326,8 +325,10 @@ class BattleGroundScore
         uint32 BonusHonor;
         uint32 DamageDone;
         uint32 HealingDone;
+        /** World of Warcraft Armory **/
         uint32 DamageTaken;
         uint32 HealingTaken;
+        /** World of Warcraft Armory **/
 };
 
 /*
@@ -573,7 +574,6 @@ class BattleGround
         void OnObjectDBLoad(GameObject* /*obj*/);
         // (de-)spawns creatures and gameobjects from an event
         void SpawnEvent(uint8 event1, uint8 event2, bool spawn);
-        void ActivateObjectEvent(uint8 event1, uint8 event2, bool spawn);
         bool IsActiveEvent(uint8 event1, uint8 event2)
         {
             if (m_ActiveEvents.find(event1) == m_ActiveEvents.end())
@@ -603,8 +603,6 @@ class BattleGround
 
         void DoorOpen(ObjectGuid guid);
         void DoorClose(ObjectGuid guid);
-        void DeactivateGameObject(ObjectGuid guid);
-        void ActivateGameObject(ObjectGuid guid);
 
         virtual bool HandlePlayerUnderMap(Player * /*plr*/) { return false; }
 
