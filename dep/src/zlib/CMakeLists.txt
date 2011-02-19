@@ -38,3 +38,6 @@ include_directories(
 add_library(zlib STATIC
   ${zlib_SRCS}
 )
+
+## Additional files to include when running 'make dist'
+#  Nothing yet.
