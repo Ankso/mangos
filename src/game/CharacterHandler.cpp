@@ -797,6 +797,10 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder *holder)
     pCurrChar->UpdateHonorFields();
 
     m_playerLoading = false;
+
+    // Handle Login-Achievements (should be handled after loading)
+    pCurrChar->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_ON_LOGIN, 1);
+
     delete holder;
 }
 
