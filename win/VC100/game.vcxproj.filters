@@ -451,18 +451,22 @@
     <ClCompile Include="..\..\src\game\CharacterDatabaseCleaner.cpp">
       <Filter>Tool</Filter>
     </ClCompile>
+<<<<<<< HEAD
     <ClCompile Include="..\..\src\game\PathFinder.cpp">
       <Filter>Motion generators</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\MoveMap.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
+=======
+>>>>>>> 4c43e35... drop VC* support. use cmake instead.
     <ClCompile Include="..\..\src\game\Camera.cpp">
       <Filter>Object</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\UnitAuraProcHandler.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
+<<<<<<< HEAD
     <ClCompile Include="..\..\src\game\ChatLexicsCutter.cpp">
       <Filter>Object</Filter>
     </ClCompile>
@@ -470,6 +474,15 @@
       <Filter>Object</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\VehicleHandler.cpp">
+=======
+    <ClCompile Include="..\..\src\game\ChatLexicsCutter.cpp" >
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\ChatLog.cpp" >
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\VehicleHandler.cpp" >
+>>>>>>> 4c43e35... drop VC* support. use cmake instead.
       <Filter>Object</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\AuctionHouseBot.cpp">
@@ -496,12 +509,15 @@
     <ClCompile Include="..\..\src\game\vmap\WorldModel.cpp">
       <Filter>vmaps</Filter>
     </ClCompile>
+<<<<<<< HEAD
     <ClCompile Include="..\..\src\game\LFGMgr.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\MapUpdater.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
+=======
+>>>>>>> 4c43e35... drop VC* support. use cmake instead.
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">
@@ -898,6 +914,7 @@
     <ClInclude Include="..\..\src\game\CharacterDatabaseCleaner.h">
       <Filter>Tool</Filter>
     </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="..\..\src\game\PathFinder.h">
       <Filter>Motion generators</Filter>
     </ClInclude>
@@ -908,17 +925,29 @@
       <Filter>Object</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\ChatLog.h">
+=======
+    <ClInclude Include="..\..\src\game\Camera.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\ChatLexicsCutter.h" >
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\ChatLog.h" >
+>>>>>>> 4c43e35... drop VC* support. use cmake instead.
       <Filter>Object</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\AuctionHouseBot.h">
       <Filter>Object</Filter>
     </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="..\..\src\game\MoveMap.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\MoveMapSharedDefines.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
+=======
+>>>>>>> 4c43e35... drop VC* support. use cmake instead.
     <ClInclude Include="..\..\src\game\vmap\BIH.h">
       <Filter>vmaps</Filter>
     </ClInclude>
@@ -949,6 +978,7 @@
     <ClInclude Include="..\..\src\game\vmap\WorldModel.h">
       <Filter>vmaps</Filter>
     </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="..\..\src\game\LFG.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
@@ -958,5 +988,7 @@
     <ClInclude Include="..\..\src\game\MapUpdater.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
+=======
+>>>>>>> 4c43e35... drop VC* support. use cmake instead.
   </ItemGroup>
 </Project>

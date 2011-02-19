@@ -879,6 +879,7 @@
 				>
 			</File>
 			<File
+<<<<<<< HEAD
 				RelativePath="..\..\src\game\MoveMap.cpp"
 				>
 			</File>
@@ -891,6 +892,8 @@
 				>
 			</File>
 			<File
+=======
+>>>>>>> 4c43e35... drop VC* support. use cmake instead.
 				RelativePath="..\..\src\game\MovementHandler.cpp"
 				>
 			</File>
@@ -1127,6 +1130,7 @@
 				>
 			</File>
 			<File
+<<<<<<< HEAD
 				RelativePath="..\..\src\game\PathFinder.cpp"
 				>
 			</File>
@@ -1135,6 +1139,8 @@
 				>
 			</File>
 			<File
+=======
+>>>>>>> 4c43e35... drop VC* support. use cmake instead.
 				RelativePath="..\..\src\game\PointMovementGenerator.cpp"
 				>
 			</File>

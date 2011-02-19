@@ -92,6 +92,26 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+<<<<<<< HEAD
+=======
+    <None Include="..\..\dep\include\g3dlite\G3D\g3dmath.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\dep\include\g3dlite\G3D\Quat.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\dep\include\g3dlite\G3D\Vector2.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\dep\include\g3dlite\G3D\Vector3.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\dep\include\g3dlite\G3D\Vector4.inl">
+      <Filter>Header Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+>>>>>>> 4c43e35... drop VC* support. use cmake instead.
     <ClCompile Include="..\..\dep\src\g3dlite\AABox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -122,6 +142,7 @@
     <ClCompile Include="..\..\dep\src\g3dlite\Vector4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+<<<<<<< HEAD
     <ClCompile Include="..\..\dep\src\g3dlite\RegistryUtil.cpp" />
     <ClCompile Include="..\..\dep\src\g3dlite\debugAssert.cpp" />
     <ClCompile Include="..\..\dep\src\g3dlite\fileutils.cpp" />
@@ -151,5 +172,7 @@
     <ClCompile Include="..\..\dep\src\g3dlite\TextOutput.cpp" />
     <ClCompile Include="..\..\dep\src\g3dlite\UprightFrame.cpp" />
     <ClCompile Include="..\..\dep\src\g3dlite\Vector2.cpp" />
+=======
+>>>>>>> 4c43e35... drop VC* support. use cmake instead.
   </ItemGroup>
 </Project>

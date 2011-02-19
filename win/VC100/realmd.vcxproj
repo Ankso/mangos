@@ -51,8 +51,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{A3A04E47-43A2-4C08-90B3-029CEF558594}</ProjectGUID>
-    <RootNamespace>mangosd</RootNamespace>
+    <ProjectGUID>{563E9905-3657-460C-AE63-0AC39D162E23}</ProjectGUID>
+    <RootNamespace>realmd</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -96,33 +96,33 @@
   <PropertyGroup>
     <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\bin\$(Platform)_$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\mangosd__$(Platform)_$(Configuration)\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">mangosd</TargetName>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\realmd__$(Platform)_$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">realmd</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.exe</TargetExt>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|X64'">..\..\bin\$(Platform)_$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|X64'">.\mangosd__$(Platform)_$(Configuration)\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|X64'">mangosd</TargetName>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|X64'">.\realmd__$(Platform)_$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|X64'">realmd</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|X64'">.exe</TargetExt>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|X64'">false</LinkIncremental>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\bin\$(Platform)_$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\mangosd__$(Platform)_$(Configuration)\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">mangosd</TargetName>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\realmd__$(Platform)_$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">realmd</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.exe</TargetExt>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkIncremental>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">..\..\bin\$(Platform)_$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">.\mangosd__$(Platform)_$(Configuration)\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">mangosd</TargetName>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">.\realmd__$(Platform)_$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">realmd</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">.exe</TargetExt>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">false</LinkIncremental>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|Win32'">..\..\bin\$(Platform)_$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|Win32'">.\mangosd__$(Platform)_$(Configuration)\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|Win32'">mangosd</TargetName>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|Win32'">.\realmd__$(Platform)_$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|Win32'">realmd</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|Win32'">.exe</TargetExt>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|Win32'">false</LinkIncremental>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|X64'">..\..\bin\$(Platform)_$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|X64'">.\mangosd__$(Platform)_$(Configuration)\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|X64'">mangosd</TargetName>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|X64'">.\realmd__$(Platform)_$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|X64'">realmd</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|X64'">.exe</TargetExt>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|X64'">false</LinkIncremental>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
@@ -146,22 +146,22 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Midl>
-      <TypeLibraryName>.\..\..\bin\Release\mangosd.tlb</TypeLibraryName>
+      <TypeLibraryName>.\realmd__$(Platform)_$(Configuration)\realmd.tlb</TypeLibraryName>
     </Midl>
     <ClCompile>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\..\dep\include\gsoap;..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\game;..\..\src\mangosd;..\..\dep\ACE_wrappers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>VERSION="0.17.0-DEV";WIN32;NDEBUG;_CONSOLE;ENABLE_CLI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\realmd;..\..\dep\ACE_wrappers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>VERSION="0.17.0-DEV";WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <PrecompiledHeaderOutputFile>.\mangosd__$(Platform)_$(Configuration)\mangosd.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\mangosd__$(Platform)_$(Configuration)\</AssemblerListingLocation>
-      <ObjectFileName>.\mangosd__$(Platform)_$(Configuration)\</ObjectFileName>
-      <ProgramDataBaseFileName>.\mangosd__$(Platform)_$(Configuration)\</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>.\realmd__$(Platform)_$(Configuration)\realmd.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\realmd__$(Platform)_$(Configuration)\</AssemblerListingLocation>
+      <ObjectFileName>.\realmd__$(Platform)_$(Configuration)\</ObjectFileName>
+      <ProgramDataBaseFileName>.\realmd__$(Platform)_$(Configuration)\</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -174,45 +174,39 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>libmySQL.lib;libeay32.lib;ws2_32.lib;winmm.lib;odbc32.lib;odbccp32.lib;advapi32.lib;dbghelp.lib;framework.lib;msvcrt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libmySQL.lib;libeay32.lib;ws2_32.lib;winmm.lib;odbc32.lib;odbccp32.lib;advapi32.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>..\..\dep\lib\$(Platform)_$(Configuration);.\framework__$(Platform)_$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\dep\lib\$(Platform)_$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(TargetDir)$(TargetName).pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapFileName>$(TargetDir)$(TargetName).map</MapFileName>
       <SubSystem>Console</SubSystem>
       <LargeAddressAware>true</LargeAddressAware>
-      <LinkTimeCodeGeneration>
-      </LinkTimeCodeGeneration>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-      <ImportLibrary>$(IntDir)mangosd.lib</ImportLibrary>
     </Link>
-    <PostBuildEvent>
-      <Command>copy ..\..\dep\lib\$(Platform)_$(Configuration)\*.dll ..\..\bin\$(Platform)_$(Configuration)</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'">
     <Midl>
       <TargetEnvironment>X64</TargetEnvironment>
-      <TypeLibraryName>.\..\..\bin\Release\mangosd.tlb</TypeLibraryName>
+      <TypeLibraryName>.\realmd__$(Platform)_$(Configuration)\realmd.tlb</TypeLibraryName>
     </Midl>
     <ClCompile>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\..\dep\include\gsoap;..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\game;..\..\src\mangosd;..\..\dep\ACE_wrappers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>VERSION="0.17.0-DEV";WIN32;NDEBUG;_CONSOLE;ENABLE_CLI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\realmd;..\..\dep\ACE_wrappers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>VERSION="0.17.0-DEV";WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <PrecompiledHeaderOutputFile>.\mangosd__$(Platform)_$(Configuration)\mangosd.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\mangosd__$(Platform)_$(Configuration)\</AssemblerListingLocation>
-      <ObjectFileName>.\mangosd__$(Platform)_$(Configuration)\</ObjectFileName>
-      <ProgramDataBaseFileName>.\mangosd__$(Platform)_$(Configuration)\</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>.\realmd__$(Platform)_$(Configuration)\realmd.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\realmd__$(Platform)_$(Configuration)\</AssemblerListingLocation>
+      <ObjectFileName>.\realmd__$(Platform)_$(Configuration)\</ObjectFileName>
+      <ProgramDataBaseFileName>.\realmd__$(Platform)_$(Configuration)\</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -224,44 +218,38 @@
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>libmySQL.lib;libeay32.lib;ws2_32.lib;winmm.lib;odbc32.lib;odbccp32.lib;advapi32.lib;dbghelp.lib;framework.lib;msvcrt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libmySQL.lib;libeay32.lib;ws2_32.lib;winmm.lib;odbc32.lib;odbccp32.lib;advapi32.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>..\..\dep\lib\$(Platform)_$(Configuration);.\framework__$(Platform)_$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\dep\lib\$(Platform)_$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(TargetDir)$(TargetName).pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapFileName>$(TargetDir)$(TargetName).map</MapFileName>
       <SubSystem>Console</SubSystem>
-      <LinkTimeCodeGeneration>
-      </LinkTimeCodeGeneration>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-      <ImportLibrary>$(IntDir)mangosd.lib</ImportLibrary>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
-    <PostBuildEvent>
-      <Command>copy ..\..\dep\lib\$(Platform)_$(Configuration)\*.dll ..\..\bin\$(Platform)_$(Configuration)</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
-      <TypeLibraryName>.\mangosd__$(Platform)_$(Configuration)\mangosd.tlb</TypeLibraryName>
+      <TypeLibraryName>.\realmd__$(Platform)_$(Configuration)\realmd.tlb</TypeLibraryName>
     </Midl>
     <ClCompile>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\dep\include\gsoap;..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\game;..\..\src\mangosd;..\..\dep\ACE_wrappers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>VERSION="0.17.0-DEV";WIN32;_DEBUG;MANGOS_DEBUG;_CONSOLE;ENABLE_CLI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\realmd;..\..\dep\ACE_wrappers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>VERSION="0.17.0-DEV";WIN32;_DEBUG;MANGOS_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <PrecompiledHeaderOutputFile>.\mangosd__$(Platform)_$(Configuration)\mangosd.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\mangosd__$(Platform)_$(Configuration)\</AssemblerListingLocation>
-      <ObjectFileName>.\mangosd__$(Platform)_$(Configuration)\</ObjectFileName>
-      <ProgramDataBaseFileName>.\mangosd__$(Platform)_$(Configuration)\</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>.\realmd__$(Platform)_$(Configuration)\realmd.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\realmd__$(Platform)_$(Configuration)\</AssemblerListingLocation>
+      <ObjectFileName>.\realmd__$(Platform)_$(Configuration)\</ObjectFileName>
+      <ProgramDataBaseFileName>.\realmd__$(Platform)_$(Configuration)\</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -274,11 +262,9 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>libmySQL.lib;libeay32.lib;ws2_32.lib;winmm.lib;odbc32.lib;odbccp32.lib;advapi32.lib;dbghelp.lib;framework.lib;msvcrtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <Version>
-      </Version>
+      <AdditionalDependencies>libmySQL.lib;libeay32.lib;ws2_32.lib;winmm.lib;odbc32.lib;odbccp32.lib;advapi32.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>..\..\dep\lib\$(Platform)_$(Configuration);.\framework__$(Platform)_$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\dep\lib\$(Platform)_$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(TargetDir)$(TargetName).pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
@@ -289,31 +275,27 @@
       <FixedBaseAddress>false</FixedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-      <ImportLibrary>$(IntDir)mangosd.lib</ImportLibrary>
     </Link>
-    <PostBuildEvent>
-      <Command>copy ..\..\dep\lib\$(Platform)_$(Configuration)\*.dll ..\..\bin\$(Platform)_$(Configuration)</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">
     <Midl>
       <TargetEnvironment>X64</TargetEnvironment>
-      <TypeLibraryName>.\mangosd__$(Platform)_$(Configuration)\mangosd.tlb</TypeLibraryName>
+      <TypeLibraryName>.\realmd__$(Platform)_$(Configuration)\realmd.tlb</TypeLibraryName>
     </Midl>
     <ClCompile>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\dep\include\gsoap;..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\game;..\..\src\mangosd;..\..\dep\ACE_wrappers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>VERSION="0.17.0-DEV";WIN32;_DEBUG;MANGOS_DEBUG;_CONSOLE;ENABLE_CLI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\realmd;..\..\dep\ACE_wrappers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>VERSION="0.17.0-DEV";WIN32;_DEBUG;MANGOS_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <PrecompiledHeaderOutputFile>.\mangosd__$(Platform)_$(Configuration)\mangosd.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\mangosd__$(Platform)_$(Configuration)\</AssemblerListingLocation>
-      <ObjectFileName>.\mangosd__$(Platform)_$(Configuration)\</ObjectFileName>
-      <ProgramDataBaseFileName>.\mangosd__$(Platform)_$(Configuration)\</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>.\realmd__$(Platform)_$(Configuration)\realmd.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\realmd__$(Platform)_$(Configuration)\</AssemblerListingLocation>
+      <ObjectFileName>.\realmd__$(Platform)_$(Configuration)\</ObjectFileName>
+      <ProgramDataBaseFileName>.\realmd__$(Platform)_$(Configuration)\</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -325,11 +307,9 @@
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>libmySQL.lib;libeay32.lib;ws2_32.lib;winmm.lib;odbc32.lib;odbccp32.lib;advapi32.lib;dbghelp.lib;framework.lib;msvcrtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <Version>
-      </Version>
+      <AdditionalDependencies>libmySQL.lib;libeay32.lib;ws2_32.lib;winmm.lib;odbc32.lib;odbccp32.lib;advapi32.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>..\..\dep\lib\$(Platform)_$(Configuration);.\framework__$(Platform)_$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\dep\lib\$(Platform)_$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(TargetDir)$(TargetName).pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
@@ -339,31 +319,27 @@
       <FixedBaseAddress>false</FixedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-      <ImportLibrary>$(IntDir)mangosd.lib</ImportLibrary>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
-    <PostBuildEvent>
-      <Command>copy ..\..\dep\lib\$(Platform)_$(Configuration)\*.dll ..\..\bin\$(Platform)_$(Configuration)</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|Win32'">
     <Midl>
-      <TypeLibraryName>.\mangosd__$(Platform)_$(Configuration)\mangosd.tlb</TypeLibraryName>
+      <TypeLibraryName>.\realmd__$(Platform)_$(Configuration)\realmd.tlb</TypeLibraryName>
     </Midl>
     <ClCompile>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\dep\include\gsoap;..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\game;..\..\src\mangosd;..\..\dep\ACE_wrappers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>VERSION="0.17.0-DEV";WIN32;_DEBUG;MANGOS_DEBUG;_CONSOLE;ENABLE_CLI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\realmd;..\..\dep\ACE_wrappers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>VERSION="0.17.0-DEV";WIN32;_DEBUG;MANGOS_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <PrecompiledHeaderOutputFile>.\mangosd__$(Platform)_$(Configuration)\mangosd.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\mangosd__$(Platform)_$(Configuration)\</AssemblerListingLocation>
-      <ObjectFileName>.\mangosd__$(Platform)_$(Configuration)\</ObjectFileName>
-      <ProgramDataBaseFileName>.\mangosd__$(Platform)_$(Configuration)\</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>.\realmd__$(Platform)_$(Configuration)\realmd.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\realmd__$(Platform)_$(Configuration)\</AssemblerListingLocation>
+      <ObjectFileName>.\realmd__$(Platform)_$(Configuration)\</ObjectFileName>
+      <ProgramDataBaseFileName>.\realmd__$(Platform)_$(Configuration)\</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -376,11 +352,9 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>libmySQL.lib;libeay32.lib;ws2_32.lib;winmm.lib;odbc32.lib;odbccp32.lib;advapi32.lib;dbghelp.lib;framework.lib;msvcrtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <Version>
-      </Version>
+      <AdditionalDependencies>libmySQL.lib;libeay32.lib;ws2_32.lib;winmm.lib;odbc32.lib;odbccp32.lib;advapi32.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>..\..\dep\lib\$(Platform)_debug;.\framework__$(Platform)_$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\dep\lib\$(Platform)_debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(TargetDir)$(TargetName).pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
@@ -391,31 +365,27 @@
       <FixedBaseAddress>false</FixedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-      <ImportLibrary>$(IntDir)mangosd.lib</ImportLibrary>
     </Link>
-    <PostBuildEvent>
-      <Command>copy ..\..\dep\lib\$(Platform)_debug\*.dll ..\..\bin\$(Platform)_$(Configuration)</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|X64'">
     <Midl>
       <TargetEnvironment>X64</TargetEnvironment>
-      <TypeLibraryName>.\mangosd__$(Platform)_$(Configuration)\mangosd.tlb</TypeLibraryName>
+      <TypeLibraryName>.\realmd__$(Platform)_$(Configuration)\realmd.tlb</TypeLibraryName>
     </Midl>
     <ClCompile>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\dep\include\gsoap;..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\game;..\..\src\mangosd;..\..\dep\ACE_wrappers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>VERSION="0.17.0-DEV";WIN32;_DEBUG;MANGOS_DEBUG;_CONSOLE;ENABLE_CLI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\realmd;..\..\dep\ACE_wrappers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>VERSION="0.17.0-DEV";WIN32;_DEBUG;MANGOS_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <PrecompiledHeaderOutputFile>.\mangosd__$(Platform)_$(Configuration)\mangosd.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\mangosd__$(Platform)_$(Configuration)\</AssemblerListingLocation>
-      <ObjectFileName>.\mangosd__$(Platform)_$(Configuration)\</ObjectFileName>
-      <ProgramDataBaseFileName>.\mangosd__$(Platform)_$(Configuration)\</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>.\realmd__$(Platform)_$(Configuration)\realmd.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\realmd__$(Platform)_$(Configuration)\</AssemblerListingLocation>
+      <ObjectFileName>.\realmd__$(Platform)_$(Configuration)\</ObjectFileName>
+      <ProgramDataBaseFileName>.\realmd__$(Platform)_$(Configuration)\</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -427,11 +397,9 @@
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>libmySQL.lib;libeay32.lib;ws2_32.lib;winmm.lib;odbc32.lib;odbccp32.lib;advapi32.lib;dbghelp.lib;framework.lib;msvcrtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <Version>
-      </Version>
+      <AdditionalDependencies>libmySQL.lib;libeay32.lib;ws2_32.lib;winmm.lib;odbc32.lib;odbccp32.lib;advapi32.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>..\..\dep\lib\$(Platform)_debug;.\framework__$(Platform)_$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\dep\lib\$(Platform)_debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(TargetDir)$(TargetName).pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
@@ -441,62 +409,29 @@
       <FixedBaseAddress>false</FixedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-      <ImportLibrary>$(IntDir)mangosd.lib</ImportLibrary>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
-    <PostBuildEvent>
-      <Command>copy ..\..\dep\lib\$(Platform)_debug\*.dll ..\..\bin\$(Platform)_$(Configuration)</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="..\..\AUTHORS" />
-    <None Include="..\..\ChangeLog" />
-    <None Include="..\..\COPYING" />
-    <None Include="..\..\INSTALL" />
-    <None Include="..\..\NEWS" />
-    <None Include="..\..\README" />
-    <None Include="..\..\THANKS" />
-    <None Include="..\..\WARNING" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\dep\src\gsoap\stdsoap2.cpp" />
-    <ClCompile Include="..\..\src\mangosd\soapServer.cpp" />
-    <ClCompile Include="..\..\src\mangosd\soapC.cpp" />
-    <ClCompile Include="..\..\src\mangosd\MaNGOSsoap.cpp" />
-    <ClCompile Include="..\..\src\mangosd\CliRunnable.cpp" />
-    <ClCompile Include="..\..\src\mangosd\Main.cpp" />
-    <ClCompile Include="..\..\src\mangosd\Master.cpp" />
-    <ClCompile Include="..\..\src\mangosd\RASocket.cpp" />
-    <ClCompile Include="..\..\src\mangosd\WorldRunnable.cpp" />
-    <ClCompile Include="..\..\src\shared\WheatyExceptionReport.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\dep\include\gsoap\stdsoap2.h" />
-    <ClInclude Include="..\..\src\mangosd\soapStub.h" />
-    <ClInclude Include="..\..\src\mangosd\soapH.h" />
-    <ClInclude Include="..\..\src\mangosd\MaNGOSsoap.h" />
-    <ClInclude Include="..\..\src\mangosd\CliRunnable.h" />
-    <ClInclude Include="..\..\src\mangosd\Master.h" />
-    <ClInclude Include="..\..\src\mangosd\RASocket.h" />
-    <ClInclude Include="..\..\src\mangosd\WorldRunnable.h" />
+    <ClInclude Include="..\..\src\realmd\AuthCodes.h" />
+    <ClInclude Include="..\..\src\realmd\AuthSocket.h" />
+    <ClInclude Include="..\..\src\realmd\BufferedSocket.h" />
+    <ClInclude Include="..\..\src\realmd\PatchHandler.h" />
+    <ClInclude Include="..\..\src\realmd\RealmList.h" />
     <ClInclude Include="..\..\src\shared\WheatyExceptionReport.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\src\mangosd\mangosd.rc" />
+    <ClCompile Include="..\..\src\realmd\AuthSocket.cpp" />
+    <ClCompile Include="..\..\src\realmd\BufferedSocket.cpp" />
+    <ClCompile Include="..\..\src\realmd\Main.cpp" />
+    <ClCompile Include="..\..\src\realmd\PatchHandler.cpp" />
+    <ClCompile Include="..\..\src\realmd\RealmList.cpp" />
+    <ClCompile Include="..\..\src\shared\WheatyExceptionReport.cpp" />
   </ItemGroup>
   <ItemGroup>
-<<<<<<< HEAD
-    <ProjectReference Include="..\..\dep\recastnavigation\Detour\win\VC100\Detour.vcxproj">
-      <Project>{72bdf975-4d4a-42c7-b2c4-f9ed90a2abb6}</Project>
-    </ProjectReference>
-=======
->>>>>>> 4c43e35... drop VC* support. use cmake instead.
-    <ProjectReference Include="game.vcxproj">
-      <Project>{1dc6c4da-a028-41f3-877d-d5400c594f88}</Project>
-    </ProjectReference>
-    <ProjectReference Include="realmd.vcxproj">
-      <Project>{563e9905-3657-460c-ae63-0ac39d162e23}</Project>
-    </ProjectReference>
+    <ResourceCompile Include="..\..\src\realmd\realmd.rc" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="shared.vcxproj">
       <Project>{90297c34-f231-4df4-848e-a74bcc0e40ed}</Project>
     </ProjectReference>

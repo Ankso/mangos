@@ -434,18 +434,27 @@
     <ClCompile Include="..\..\src\game\Level2.cpp" />
     <ClCompile Include="..\..\src\game\Level3.cpp" />
     <ClCompile Include="..\..\src\game\LFGHandler.cpp" />
+<<<<<<< HEAD
     <ClCompile Include="..\..\src\game\LFGMgr.cpp" />
+=======
+>>>>>>> 4c43e35... drop VC* support. use cmake instead.
     <ClCompile Include="..\..\src\game\LootHandler.cpp" />
     <ClCompile Include="..\..\src\game\LootMgr.cpp" />
     <ClCompile Include="..\..\src\game\Mail.cpp" />
     <ClCompile Include="..\..\src\game\Map.cpp" />
     <ClCompile Include="..\..\src\game\MapManager.cpp" />
     <ClCompile Include="..\..\src\game\MapPersistentStateMgr.cpp" />
+<<<<<<< HEAD
     <ClCompile Include="..\..\src\game\MapUpdater.cpp" />
     <ClCompile Include="..\..\src\game\MassMailMgr.cpp" />
     <ClCompile Include="..\..\src\game\MiscHandler.cpp" />
     <ClCompile Include="..\..\src\game\MotionMaster.cpp" />
     <ClCompile Include="..\..\src\game\MoveMap.cpp" />
+=======
+    <ClCompile Include="..\..\src\game\MassMailMgr.cpp" />
+    <ClCompile Include="..\..\src\game\MiscHandler.cpp" />
+    <ClCompile Include="..\..\src\game\MotionMaster.cpp" />
+>>>>>>> 4c43e35... drop VC* support. use cmake instead.
     <ClCompile Include="..\..\src\game\MovementGenerator.cpp" />
     <ClCompile Include="..\..\src\game\MovementHandler.cpp" />
     <ClCompile Include="..\..\src\game\NPCHandler.cpp" />
@@ -457,7 +466,10 @@
     <ClCompile Include="..\..\src\game\ObjectGuid.cpp" />
     <ClCompile Include="..\..\src\game\ObjectPosSelector.cpp" />
     <ClCompile Include="..\..\src\game\Opcodes.cpp" />
+<<<<<<< HEAD
     <ClCompile Include="..\..\src\game\PathFinder.cpp" />
+=======
+>>>>>>> 4c43e35... drop VC* support. use cmake instead.
     <ClCompile Include="..\..\src\game\pchdef.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pchdef.h</PrecompiledHeaderFile>
@@ -599,8 +611,11 @@
     <ClInclude Include="..\..\src\game\ItemEnchantmentMgr.h" />
     <ClInclude Include="..\..\src\game\ItemPrototype.h" />
     <ClInclude Include="..\..\src\game\Language.h" />
+<<<<<<< HEAD
     <ClInclude Include="..\..\src\game\LFG.h" />
     <ClInclude Include="..\..\src\game\LFGMgr.h" />
+=======
+>>>>>>> 4c43e35... drop VC* support. use cmake instead.
     <ClInclude Include="..\..\src\game\LootMgr.h" />
     <ClInclude Include="..\..\src\game\Mail.h" />
     <ClInclude Include="..\..\src\game\Map.h" />
@@ -608,11 +623,16 @@
     <ClInclude Include="..\..\src\game\MapPersistentStateMgr.h" />
     <ClInclude Include="..\..\src\game\MapReference.h" />
     <ClInclude Include="..\..\src\game\MapRefManager.h" />
+<<<<<<< HEAD
     <ClInclude Include="..\..\src\game\MapUpdater.h" />
     <ClInclude Include="..\..\src\game\MassMailMgr.h" />
     <ClInclude Include="..\..\src\game\MotionMaster.h" />
     <ClInclude Include="..\..\src\game\MoveMap.h" />
     <ClInclude Include="..\..\src\game\MoveMapSharedDefines.h" />
+=======
+    <ClInclude Include="..\..\src\game\MassMailMgr.h" />
+    <ClInclude Include="..\..\src\game\MotionMaster.h" />
+>>>>>>> 4c43e35... drop VC* support. use cmake instead.
     <ClInclude Include="..\..\src\game\MovementGenerator.h" />
     <ClInclude Include="..\..\src\game\NPCHandler.h" />
     <ClInclude Include="..\..\src\game\NullCreatureAI.h" />
@@ -624,7 +644,10 @@
     <ClInclude Include="..\..\src\game\ObjectPosSelector.h" />
     <ClInclude Include="..\..\src\game\Opcodes.h" />
     <ClInclude Include="..\..\src\game\Path.h" />
+<<<<<<< HEAD
     <ClInclude Include="..\..\src\game\PathFinder.h" />
+=======
+>>>>>>> 4c43e35... drop VC* support. use cmake instead.
     <ClInclude Include="..\..\src\game\pchdef.h" />
     <ClInclude Include="..\..\src\game\Pet.h" />
     <ClInclude Include="..\..\src\game\PetAI.h" />
@@ -678,9 +701,12 @@
     <ClInclude Include="..\..\src\game\vmap\WorldModel.h" />
   </ItemGroup>
   <ItemGroup>
+<<<<<<< HEAD
     <ProjectReference Include="..\..\dep\recastnavigation\Detour\win\VC100\Detour.vcxproj">
       <Project>{72bdf975-4d4a-42c7-b2c4-f9ed90a2abb6}</Project>
     </ProjectReference>
+=======
+>>>>>>> 4c43e35... drop VC* support. use cmake instead.
     <ProjectReference Include="shared.vcxproj">
       <Project>{90297c34-f231-4df4-848e-a74bcc0e40ed}</Project>
     </ProjectReference>
