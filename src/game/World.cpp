@@ -1103,13 +1103,6 @@ void World::SetInitialWorldSettings()
     sLog.outString( ">>> Game Event Data loaded" );
     sLog.outString();
 
-<<<<<<< HEAD
-    sLog.outString("Loading Dungeon boss data...");
-    sLFGMgr.LoadDungeonEncounters();
-
-    sLog.outString("Loading LFG rewards...");
-    sLFGMgr.LoadRewards();
-=======
     sLog.outString( "Creating map persistent states for non-instanceable maps..." );   // must be after PackInstances(), LoadCreatures(), sPoolMgr.LoadFromDB(), sGameEventMgr.LoadFromDB();
     sMapPersistentStateMgr.InitWorldMaps();
 
@@ -1118,7 +1111,12 @@ void World::SetInitialWorldSettings()
 
     sLog.outString( "Loading Gameobject Respawn Data..." ); // must be after LoadGameobjects(), and sMapPersistentStateMgr.InitWorldMaps()
     sMapPersistentStateMgr.LoadGameobjectRespawnTimes();
->>>>>>> a530b44750ea8af55e0d2be67748f8ca1b67cada
+
+    sLog.outString("Loading Dungeon boss data...");
+    sLFGMgr.LoadDungeonEncounters();
+
+    sLog.outString("Loading LFG rewards...");
+    sLFGMgr.LoadRewards();
 
     sLog.outString( "Loading UNIT_NPC_FLAG_SPELLCLICK Data..." );
     sObjectMgr.LoadNPCSpellClickSpells();

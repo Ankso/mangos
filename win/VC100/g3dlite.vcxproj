@@ -198,10 +198,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CallingConvention>Cdecl</CallingConvention>
-<<<<<<< HEAD
       <FloatingPointModel>Fast</FloatingPointModel>
-=======
->>>>>>> 4c43e35... drop VC* support. use cmake instead.
     </ClCompile>
     <Lib>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>

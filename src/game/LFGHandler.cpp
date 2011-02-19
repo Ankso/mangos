@@ -466,7 +466,7 @@ void WorldSession::SendLfgRoleCheckUpdate(LfgRoleCheck* pRoleCheck)
 
         roles = itPlayers->second;
         //guid = MAKE_NEW_GUID(itPlayers->first, 0, HIGHGUID_PLAYER);
-        ObjectGuid guid =  ObjectGuid(HIGHGUID_PLAYER, 0, itPlayers->first);
+        ObjectGuid guid =  ObjectGuid(HIGHGUID_PLAYER, 0, uint32(itPlayers->first));
         data << guid;                               // Guid
         data << uint8(roles > 0);                           // Ready
         data << uint32(roles);                              // Roles
