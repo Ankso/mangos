@@ -520,11 +520,22 @@ void LoadDBCStores(const std::string& dataPath)
 
     // DBC Hacks
 
-    //Throw Passanger
+    // The Beast Within - Similar to PvP trinket except for Daze effects and slow attack
+    SpellEntry *sfix2 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(34471));
+    sfix2->EffectApplyAuraName[EFFECT_INDEX_2] = SPELL_AURA_MECHANIC_IMMUNITY_MASK;
+    sfix2->EffectMiscValue[EFFECT_INDEX_2] = ( \
+    (1<<(MECHANIC_CHARM   -1))|(1<<(MECHANIC_DISORIENTED-1))|(1<<(MECHANIC_FEAR  -1))| \
+    (1<<(MECHANIC_ROOT    -1))|(1<<(MECHANIC_SLEEP -1))| \
+    (1<<(MECHANIC_SNARE   -1))|(1<<(MECHANIC_STUN       -1))|(1<<(MECHANIC_FREEZE-1))| \
+    (1<<(MECHANIC_KNOCKOUT-1))|(1<<(MECHANIC_POLYMORPH  -1))|(1<<(MECHANIC_BANISH-1))| \
+    (1<<(MECHANIC_SHACKLE -1))|(1<<(MECHANIC_TURN       -1))|(1<<(MECHANIC_HORROR-1))| \
+    (1<<(MECHANIC_SAPPED     -1)));
+
+    // Throw Passanger
     SpellEntry *sfix3 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62324));
     sfix3->Targets |= TARGET_FLAG_UNIT_UNK;
 
-    //Twilight Torment - relly dunno what blizzard intended to do
+    // Twilight Torment - relly dunno what blizzard intended to do
     SpellEntry *sfix4 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(57935));
     sfix4->AttributesEx = 0;
     sfix4->AttributesEx4 = SPELL_ATTR_EX4_NOT_STEALABLE;
