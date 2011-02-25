@@ -1978,7 +1978,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         }
         case TARGET_CHAIN_DAMAGE:
         {
-            if (EffectChainTarget <= 1)
+            if (EffectChainTarget <= 1 && (m_spellInfo->Effect[EFFECT_INDEX_0] != SPELL_EFFECT_CHARGE && m_spellInfo->Effect[EFFECT_INDEX_1] != SPELL_EFFECT_CHARGE && m_spellInfo->Effect[EFFECT_INDEX_2] != SPELL_EFFECT_CHARGE))
             {
                 if(Unit* pUnitTarget = m_caster->SelectMagnetTarget(m_targets.getUnitTarget(), this, effIndex))
                 {
