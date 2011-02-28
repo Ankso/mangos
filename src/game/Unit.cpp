@@ -651,18 +651,21 @@ void Unit::DealDamageMods(Unit *pVictim, uint32 &damage, uint32* absorb)
         return;
     }
 
-    // For allow duels in dalaran and custom event on my server
-    bool isDuel = false;
-    if (pVictim->GetTypeId() == TYPEID_PLAYER)
-        isDuel = ((Player*)pVictim)->duel;
-
-
     //You don't lose health from damage taken from another player while in a sanctuary
     //You still see it in the combat log though
     if (!IsAllowedDamageInArea(pVictim))
     {
         const AreaTableEntry *area = GetAreaEntryByAreaID(pVictim->GetAreaId());
-        float height = pVictim->GetPositionZ();
+        // For allow duels in dalaran and custom event on my server
+        bool isDuel = false;
+        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+            isDuel = ((Player*)pVictim)->duel;
+        else if (pVictim->GetTypeId() == TYPEID_UNIT && (((Creature*)pVictim)->IsPet() || ((Creature*)pVictim)->IsTemporarySummon()))
+        {
+            Unit *owner = pVictim->GetOwner();
+            if (owner && owner->GetTypeId() == TYPEID_PLAYER)
+                isDuel = ((Player*)owner)->duel;
+        }
         if(area && (area->flags & AREA_FLAG_SANCTUARY) && !isDuel)       //sanctuary, but allow duels in Dalaran.
         {
             if(absorb)
@@ -1577,17 +1580,21 @@ void Unit::DealSpellDamage(SpellNonMeleeDamage *damageInfo, bool durabilityLoss)
         return;
     }
 
-    // For allow duels in dalaran and custom event on my server
-    bool isDuel =false;
-    if (pVictim->GetTypeId() == TYPEID_PLAYER)
-        isDuel = ((Player*)pVictim)->duel;
-
     //You don't lose health from damage taken from another player while in a sanctuary
     //You still see it in the combat log though
     if (pVictim != this && IsCharmerOrOwnerPlayerOrPlayerItself() && pVictim->IsCharmerOrOwnerPlayerOrPlayerItself())
     {
         const AreaTableEntry *area = GetAreaEntryByAreaID(pVictim->GetAreaId());
-        float height = pVictim->GetPositionZ();
+        // For allow duels in dalaran and custom event on my server
+        bool isDuel = false;
+        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+            isDuel = ((Player*)pVictim)->duel;
+        else if (pVictim->GetTypeId() == TYPEID_UNIT && (((Creature*)pVictim)->IsPet() || ((Creature*)pVictim)->IsTemporarySummon()))
+        {
+            Unit *owner = pVictim->GetOwner();
+            if (owner && owner->GetTypeId() == TYPEID_PLAYER)
+                isDuel = ((Player*)owner)->duel;
+        }
         if(area && area->flags & AREA_FLAG_SANCTUARY && !isDuel)       //sanctuary, but allow duels in Dalaran.
             return;
     }
@@ -1908,18 +1915,22 @@ void Unit::DealMeleeDamage(CalcDamageInfo *damageInfo, bool durabilityLoss)
 
     if (!pVictim->isAlive() || pVictim->IsTaxiFlying() || (pVictim->GetTypeId() == TYPEID_UNIT && ((Creature*)pVictim)->IsInEvadeMode()))
         return;
-
-    // For allow duels in dalaran and custom event on my server
-    bool isDuel = false;
-    if (pVictim->GetTypeId() == TYPEID_PLAYER)
-        isDuel = ((Player*)pVictim)->duel;
     
     //You don't lose health from damage taken from another player while in a sanctuary
     //You still see it in the combat log though
     if (pVictim != this && IsCharmerOrOwnerPlayerOrPlayerItself() && pVictim->IsCharmerOrOwnerPlayerOrPlayerItself())
     {
         const AreaTableEntry *area = GetAreaEntryByAreaID(pVictim->GetAreaId());
-        float height = pVictim->GetPositionZ();
+        // For allow duels in dalaran and custom event on my server
+        bool isDuel = false;
+        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+            isDuel = ((Player*)pVictim)->duel;
+        else if (pVictim->GetTypeId() == TYPEID_UNIT && (((Creature*)pVictim)->IsPet() || ((Creature*)pVictim)->IsTemporarySummon()))
+        {
+            Unit *owner = pVictim->GetOwner();
+            if (owner && owner->GetTypeId() == TYPEID_PLAYER)
+                isDuel = ((Player*)owner)->duel;
+        }
         if(area && area->flags & AREA_FLAG_SANCTUARY && !isDuel)       //sanctuary, but allow duels in Dalaran.
             return;
     }
@@ -12229,16 +12240,17 @@ bool Unit::IsAllowedDamageInArea(Unit* pVictim) const
     if (!pVictim->IsCharmerOrOwnerPlayerOrPlayerItself())
         return true;
 
-    // can't damage player controlled unit by player controlled unit in sanctuary
+    // can't damage player controlled unit by player controlled unit in sanctuary...
     AreaTableEntry const* area = GetAreaEntryByAreaID(pVictim->GetAreaId());
-    // For allow duels in dalaran and custom event on my server
+    // but you can duel in Dalaran underground. 
     bool isDuel = false;
     if (pVictim->GetTypeId() == TYPEID_PLAYER)
         isDuel = ((Player*)pVictim)->duel;
-    else if (pVictim->isCharmed())
+    else if (pVictim->GetTypeId() == TYPEID_UNIT && (((Creature*)pVictim)->IsPet() || ((Creature*)pVictim)->IsTemporarySummon()))
     {
-        if (pVictim->GetCharmerOrOwner()->GetTypeId() == TYPEID_PLAYER)
-            isDuel = ((Player*)pVictim->GetCharmerOrOwner())->duel;
+        Unit *owner = pVictim->GetOwner();
+        if (owner && owner->GetTypeId() == TYPEID_PLAYER)
+            isDuel = ((Player*)owner)->duel;
     }
     if (area && area->flags & AREA_FLAG_SANCTUARY && !isDuel)
         return false;
