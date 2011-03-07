@@ -1992,13 +1992,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             if (EffectChainTarget <= 1)
             {
                 if(Unit* pUnitTarget = m_caster->SelectMagnetTarget(m_targets.getUnitTarget(), this, effIndex))
-                {
-                    // Target can be a totem if 1) the totem is the player's target 2) is a grounding totem
-                    if (m_spellInfo->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_CHARGE || m_spellInfo->Effect[EFFECT_INDEX_1] == SPELL_EFFECT_CHARGE || m_spellInfo->Effect[EFFECT_INDEX_2] == SPELL_EFFECT_CHARGE)
-                        // The grounding totem should not absorb charge effects
-                        if (pUnitTarget->GetTypeId() == TYPEID_UNIT && ((Creature*)pUnitTarget)->IsTotem() && pUnitTarget != m_targets.getUnitTarget())
-                            pUnitTarget = m_targets.getUnitTarget();
-
+				{
                     m_targets.setUnitTarget(pUnitTarget);
                     targetUnitMap.push_back(pUnitTarget);
                 }
