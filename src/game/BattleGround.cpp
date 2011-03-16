@@ -1624,7 +1624,8 @@ Creature* BattleGround::AddCreature(uint32 entry, uint32 type, uint32 teamval, f
         return NULL;
 
     Creature* pCreature = new Creature;
-    if (!pCreature->Create(GetBgMap()->GenerateLocalLowGuid(HIGHGUID_UNIT), map, PHASEMASK_NORMAL, entry, TEAM_NONE))
+	CreatureCreatePos pos(map, x, y, z, o, PHASEMASK_NORMAL);
+    if (!pCreature->Create(GetBgMap()->GenerateLocalLowGuid(HIGHGUID_UNIT), pos, entry, TEAM_NONE))
     {
         sLog.outError("Can't create creature entry: %u",entry);
         delete pCreature;

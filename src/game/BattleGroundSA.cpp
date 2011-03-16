@@ -138,6 +138,7 @@ bool BattleGroundSA::ResetObjs()
               BG_SA_NpcSpawnlocs[i][2],BG_SA_NpcSpawnlocs[i][3],600))
         return false;
         
+		// May be you are interested in what's the fucking reason to make this. Me too, don't know why, the demolishers now are spawning with 774ks, but why?
         if (i >= BG_SA_DEMOLISHER_1 && i <= BG_SA_DEMOLISHER_4)
         {
             Creature *demolisher = GetBGCreature(i);
@@ -753,7 +754,8 @@ void BattleGroundSA::CaptureGraveyard(BG_SA_Graveyards i, Player *Source)
     GraveyardStatus[i] = Source->GetTeamId();
     WorldSafeLocsEntry const *sg = NULL;
     sg = sWorldSafeLocsStore.LookupEntry(BG_SA_GYEntries[i]);
-    AddCreature(GraveyardStatus[i] == TEAM_ALLIANCE ? BG_CREATURE_ENTRY_A_SPIRITGUIDE : BG_CREATURE_ENTRY_H_SPIRITGUIDE, i + BG_SA_MAXNPC, GraveyardStatus[i] == TEAM_ALLIANCE ? ALLIANCE : HORDE, sg->x, sg->y, sg->z, BG_SA_GYOrientation[i]);
+	// This must be done with game events
+    // AddCreature(GraveyardStatus[i] == TEAM_ALLIANCE ? BG_CREATURE_ENTRY_A_SPIRITGUIDE : BG_CREATURE_ENTRY_H_SPIRITGUIDE, i + BG_SA_MAXNPC, GraveyardStatus[i] == TEAM_ALLIANCE ? ALLIANCE : HORDE, sg->x, sg->y, sg->z, BG_SA_GYOrientation[i]);
     uint32 npc = 0;
     uint32 flag = 0;
 
@@ -938,6 +940,7 @@ void BattleGroundSA::UpdateDemolisherSpawns()
                                   BG_SA_NpcSpawnlocs[i][2], BG_SA_NpcSpawnlocs[i][3]);
 
                             Demolisher->Respawn();
+							Demolisher->SetMaxHealth(80000);
                             DemoliserRespawnList.erase(i);
                         }
                     }
