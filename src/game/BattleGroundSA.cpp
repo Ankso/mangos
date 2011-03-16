@@ -137,6 +137,12 @@ bool BattleGroundSA::ResetObjs()
               BG_SA_NpcSpawnlocs[i][0],BG_SA_NpcSpawnlocs[i][1],
               BG_SA_NpcSpawnlocs[i][2],BG_SA_NpcSpawnlocs[i][3],600))
         return false;
+        
+        if (i >= BG_SA_DEMOLISHER_1 && i <= BG_SA_DEMOLISHER_4)
+        {
+            Creature *demolisher = GetBGCreature(i);
+            demolisher->SetMaxHealth(80000);
+        }
     }
 
     OverrideGunFaction();
