@@ -128,7 +128,7 @@ bool ChatHandler::HandleReloadAllQuestCommand(char* /*args*/)
 
 bool ChatHandler::HandleReloadAllScriptsCommand(char* /*args*/)
 {
-    if (sWorld.IsScriptScheduled())
+    if (sScriptMgr.IsScriptScheduled())
     {
         PSendSysMessage("DB scripts used currently, please attempt reload later.");
         SetSentErrorMessage(true);
@@ -290,7 +290,7 @@ bool ChatHandler::HandleReloadGossipMenuOptionCommand(char* /*args*/)
 
 bool ChatHandler::HandleReloadGossipScriptsCommand(char* args)
 {
-    if (sWorld.IsScriptScheduled())
+    if (sScriptMgr.IsScriptScheduled())
     {
         SendSysMessage("DB scripts used currently, please attempt reload later.");
         SetSentErrorMessage(true);
@@ -703,7 +703,7 @@ bool ChatHandler::HandleReloadBattleEventCommand(char* /*args*/)
 
 bool ChatHandler::HandleReloadGameObjectScriptsCommand(char* args)
 {
-    if (sWorld.IsScriptScheduled())
+    if (sScriptMgr.IsScriptScheduled())
     {
         SendSysMessage("DB scripts used currently, please attempt reload later.");
         SetSentErrorMessage(true);
@@ -723,7 +723,7 @@ bool ChatHandler::HandleReloadGameObjectScriptsCommand(char* args)
 
 bool ChatHandler::HandleReloadEventScriptsCommand(char* args)
 {
-    if(sWorld.IsScriptScheduled())
+    if (sScriptMgr.IsScriptScheduled())
     {
         SendSysMessage("DB scripts used currently, please attempt reload later.");
         SetSentErrorMessage(true);
@@ -768,7 +768,7 @@ bool ChatHandler::HandleReloadEventAIScriptsCommand(char* /*args*/)
 
 bool ChatHandler::HandleReloadQuestEndScriptsCommand(char* args)
 {
-    if (sWorld.IsScriptScheduled())
+    if (sScriptMgr.IsScriptScheduled())
     {
         SendSysMessage("DB scripts used currently, please attempt reload later.");
         SetSentErrorMessage(true);
@@ -788,7 +788,7 @@ bool ChatHandler::HandleReloadQuestEndScriptsCommand(char* args)
 
 bool ChatHandler::HandleReloadQuestStartScriptsCommand(char* args)
 {
-    if (sWorld.IsScriptScheduled())
+    if (sScriptMgr.IsScriptScheduled())
     {
         SendSysMessage("DB scripts used currently, please attempt reload later.");
         SetSentErrorMessage(true);
@@ -808,7 +808,7 @@ bool ChatHandler::HandleReloadQuestStartScriptsCommand(char* args)
 
 bool ChatHandler::HandleReloadSpellScriptsCommand(char* args)
 {
-    if (sWorld.IsScriptScheduled())
+    if (sScriptMgr.IsScriptScheduled())
     {
         SendSysMessage("DB scripts used currently, please attempt reload later.");
         SetSentErrorMessage(true);
