@@ -4410,7 +4410,7 @@ void Spell::EffectEnergize(SpellEffectIndex eff_idx)
         case 67545:                                         // Empowered Fire
         case 68082:                                         // Glyph of Seal of Command
         case 71132:                                         // Glyph of Shadow Word: Pain
-            damage = damage * unitTarget->GetCreateMana() / 100;
+            damage = unitTarget->GetCreateMana() / 100;
             break;
         case 67487:                                         // Mana Potion Injector
         case 67490:                                         // Runic Mana Injector
@@ -5468,14 +5468,14 @@ void Spell::DoSummonGuardian(SpellEffectIndex eff_idx, uint32 forceFaction)
             pos = CreatureCreatePos(m_caster, m_caster->GetOrientation());
 
         // Mirror Image
-        if (pet_entry == 31216)
+        /*if (pet_entry == 31216)
         {
                 // Set correct health and mana
                 spawnCreature->SetMaxHealth(m_caster->GetMaxHealth()/3.0f);
                 spawnCreature->SetHealth(m_caster->GetHealth()/3.0f);
                 spawnCreature->SetMaxPower(POWER_MANA, m_caster->GetMaxPower(POWER_MANA));
                 spawnCreature->SetPower(POWER_MANA, m_caster->GetPower(POWER_MANA));
-        }
+        }*/
 
         if (!spawnCreature->Create(0, pos, m_spellInfo->EffectMiscValue[eff_idx], 0, m_caster))
         {

@@ -27,7 +27,6 @@
 #include "AccountMgr.h"
 #include "ScriptMgr.h"
 #include "SystemConfig.h"
-#include "revision.h"
 #include "revision_nr.h"
 #include "Util.h"
 #include "ObjectMgr.h"
@@ -99,11 +98,11 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
 
     char const* full;
     if(m_session)
-        full = _FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,"|cffffffff|Hurl:" REVISION_ID "|h" REVISION_ID "|h|r");
+        full = " "; //_FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,"|cffffffff|Hurl:" REVISION_ID "|h" REVISION_ID "|h|r");
     else
-        full = _FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,REVISION_ID);
+        full = " "; //_FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,REVISION_ID);
 
-    SendSysMessage("Revision ReinoDeLaOscuridad: [R154] || Conoce los ultimos cambios entrando en www.reinodelaoscuridad.com");
+    SendSysMessage("Revision ReinoDeLaOscuridad: [R155] || Conoce los ultimos cambios entrando en www.reinodelaoscuridad.com");
     //Don't send revision info to normal players, for some hacks, you need the server rev. =/
     if(chr->isGameMaster())
     {
