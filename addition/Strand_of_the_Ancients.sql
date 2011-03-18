@@ -49,3 +49,7 @@ DELETE FROM mangos_string WHERE entry = 20102;
 INSERT INTO mangos_string VALUES (20102, 'Ancient\'s chamber door', NULL, NULL, NULL, NULL, NULL, 'puerta de la Cámara de las Reliquias', 'puerta de la Cámara de las Reliquias', NULL);
 
 UPDATE `gameobject_template` SET `ScriptName` = 'go_sa_def_portal' WHERE entry = 192819;
+
+-- Needed in some DBs to correct wrong data
+UPDATE creature_template SET minhealth = '80000', maxhealth = '80000' WHERE entry = '32796';
+UPDATE creature_template SET minhealth = '60000', maxhealth = '60000' WHERE entry = '32795';
