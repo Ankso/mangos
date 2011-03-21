@@ -281,6 +281,8 @@ Unit::Unit()
 
     m_comboPoints = 0;
 
+    m_originalFaction = 0;
+
     // Frozen Mod
     m_spoofSamePlayerFaction = false;
     // Frozen Mod
@@ -1061,7 +1063,7 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
             if(cVictim->GetInstanceId())
             {
                 Map *m = cVictim->GetMap();
-                Player *creditedPlayer = GetCharmerOrOwnerPlayerOrPlayerItself();
+                Player* creditedPlayer = GetCharmerOrOwnerPlayerOrPlayerItself();
                 // TODO: do instance binding anyway if the charmer/owner is offline
 
                 if(m->IsDungeon() && creditedPlayer)
@@ -1086,6 +1088,9 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
                         if (save->GetResetTime() < resettime)
                             save->SetResetTime(resettime);
                     }
+
+                    if (DungeonPersistentState* state = ((DungeonMap*)m)->GetPersistanceState())
+                        state->UpdateEncounterState(ENCOUNTER_CREDIT_KILL_CREATURE, ((Creature*)cVictim)->GetEntry(), creditedPlayer);
                 }
             }
         }
@@ -12372,12 +12377,6 @@ ObjectGuid const& Unit::GetCreatorGuid() const
 
         case HIGHGUID_PLAYER:
             return ObjectGuid();
-
-        case HIGHGUID_GAMEOBJECT:
-            return ObjectGuid();
-
-        case HIGHGUID_CORPSE:
-            return GetObjectGuid();
 
         default:
             return ObjectGuid();
