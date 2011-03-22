@@ -1909,7 +1909,14 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                     basepoints[0] = int32( basepoints[0] / 2);
                     triggered_spell_id = 71023;
                     break;
-                } 
+                }
+                // Item - Druid T10 Restoration Relic (Rejuvenation)
+                case 71178:
+                {
+                    target = this;
+                    triggered_spell_id = 71184;
+                    break;
+                }
             }
             // King of the Jungle
             if (dummySpell->SpellIconID == 2850)
