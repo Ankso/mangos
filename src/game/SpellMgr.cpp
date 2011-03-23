@@ -1854,6 +1854,17 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
     if ((spellInfo_1->Attributes & SPELL_ATTR_PASSIVE)!=(spellInfo_2->Attributes & SPELL_ATTR_PASSIVE))
         return false;
 
+	// Mangle and Trauma 
+    if (spellInfo_1->EffectApplyAuraName[EFFECT_INDEX_1] == SPELL_AURA_MOD_MECHANIC_DAMAGE_TAKEN_PERCENT && 
+        spellInfo_1->EffectMiscValue[EFFECT_INDEX_1] == MECHANIC_BLEED &&
+        spellInfo_2->EffectApplyAuraName[EFFECT_INDEX_0] == SPELL_AURA_MOD_MECHANIC_DAMAGE_TAKEN_PERCENT &&
+        spellInfo_2->EffectMiscValue[EFFECT_INDEX_0] == MECHANIC_BLEED || 
+        spellInfo_2->EffectApplyAuraName[EFFECT_INDEX_1] == SPELL_AURA_MOD_MECHANIC_DAMAGE_TAKEN_PERCENT && 
+        spellInfo_2->EffectMiscValue[EFFECT_INDEX_1] == MECHANIC_BLEED &&
+        spellInfo_1->EffectApplyAuraName[EFFECT_INDEX_0] == SPELL_AURA_MOD_MECHANIC_DAMAGE_TAKEN_PERCENT &&
+        spellInfo_1->EffectMiscValue[EFFECT_INDEX_0] == MECHANIC_BLEED ) 
+        return true;
+
     // Specific spell family spells
     switch(spellInfo_1->SpellFamilyName)
     {
@@ -2126,6 +2137,13 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     ((spellInfo_2->SpellFamilyFlags & UI64LIT(0x800000)) && (spellInfo_1->SpellFamilyFlags & UI64LIT(0x800000))))
                     return true;
             }
+			else if (spellInfo_2->SpellFamilyName == SPELLFAMILY_ROGUE)
+            {
+                // Sunder Armor and Expose Armor
+                if (spellInfo_1->EffectApplyAuraName[EFFECT_INDEX_0] == SPELL_AURA_MOD_RESISTANCE_PCT &&
+                    spellInfo_2->EffectApplyAuraName[EFFECT_INDEX_0] == SPELL_AURA_MOD_RESISTANCE_PCT)
+                    return true;
+            }
 
             // Hamstring -> Improved Hamstring (multi-family check)
             if ((spellInfo_1->SpellFamilyFlags & UI64LIT(0x2)) && spellInfo_2->Id == 23694)
@@ -2139,7 +2157,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
             if (spellInfo_2->Id == 2825 && spellInfo_1->SpellIconID == 38 && spellInfo_1->SpellVisual[0] == 0)
                 return false;
 
-                // Taste of Blood and Sudden Death
+            // Taste of Blood and Sudden Death
             if( (spellInfo_1->Id == 52437 && spellInfo_2->Id == 60503) ||
                 (spellInfo_2->Id == 52437 && spellInfo_1->Id == 60503) )
                 return false;
@@ -2259,6 +2277,14 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 if (spellId_1 == 52916 && spellId_2 == 51699)
                     return false;
             }
+			else if (spellInfo_2->SpellFamilyName == SPELLFAMILY_WARRIOR)
+            {
+                // Sunder Armor and Expose Armor
+                if (spellInfo_1->EffectApplyAuraName[EFFECT_INDEX_0] == SPELL_AURA_MOD_RESISTANCE_PCT &&
+                    spellInfo_2->EffectApplyAuraName[EFFECT_INDEX_0] == SPELL_AURA_MOD_RESISTANCE_PCT)
+                    return true;
+            }
+
             //Overkill
             if (spellInfo_1->SpellIconID == 2285 && spellInfo_2->SpellIconID == 2285)
                 return false;
