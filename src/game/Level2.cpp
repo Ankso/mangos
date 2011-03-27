@@ -2529,7 +2529,7 @@ bool ChatHandler::HandlePInfoCommand(char* args)
         username = fields[0].GetCppString();
         security = (AccountTypes)fields[1].GetUInt32();
 
-        if (GetAccessLevel() >= security)
+        if (GetAccessLevel() >= 4)
         {
             last_ip = fields[2].GetCppString();
             last_login = fields[3].GetCppString();
