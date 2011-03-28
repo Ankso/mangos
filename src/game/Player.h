@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,7 +52,8 @@ class PlayerMenu;
 class UpdateMask;
 class SpellCastTargets;
 class PlayerSocial;
-class InstanceSave;
+class Vehicle;
+class DungeonPersistentState;
 class Spell;
 class Item;
 
@@ -781,6 +782,34 @@ enum TransferAbortReason
     TRANSFER_ABORT_MAP_NOT_ALLOWED              = 0x10,     // Map can't be entered at this time.
 };
 
+#define MAX_PLAYER_XP_RATES 10
+
+enum ReferAFriendError
+{
+    ERR_REFER_A_FRIEND_NONE                          = 0x00,
+    ERR_REFER_A_FRIEND_NOT_REFERRED_BY               = 0x01,
+    ERR_REFER_A_FRIEND_TARGET_TOO_HIGH               = 0x02,
+    ERR_REFER_A_FRIEND_INSUFFICIENT_GRANTABLE_LEVELS = 0x03,
+    ERR_REFER_A_FRIEND_TOO_FAR                       = 0x04,
+    ERR_REFER_A_FRIEND_DIFFERENT_FACTION             = 0x05,
+    ERR_REFER_A_FRIEND_NOT_NOW                       = 0x06,
+    ERR_REFER_A_FRIEND_GRANT_LEVEL_MAX_I             = 0x07,
+    ERR_REFER_A_FRIEND_NO_TARGET                     = 0x08,
+    ERR_REFER_A_FRIEND_NOT_IN_GROUP                  = 0x09,
+    ERR_REFER_A_FRIEND_SUMMON_LEVEL_MAX_I            = 0x0A,
+    ERR_REFER_A_FRIEND_SUMMON_COOLDOWN               = 0x0B,
+    ERR_REFER_A_FRIEND_INSUF_EXPAN_LVL               = 0x0C,
+    ERR_REFER_A_FRIEND_SUMMON_OFFLINE_S              = 0x0D
+};
+
+enum AccountLinkedState
+{
+    STATE_NOT_LINKED = 0x00,
+    STATE_REFER      = 0x01,
+    STATE_REFERRAL   = 0x02,
+    STATE_DUAL       = 0x04,
+};
+
 enum InstanceResetWarningType
 {
     RAID_INSTANCE_WARNING_HOURS     = 1,                    // WARNING! %s is scheduled to reset in %d hour(s).
@@ -906,12 +935,13 @@ enum ReputationSource
 
 struct InstancePlayerBind
 {
-    InstanceSave *save;
+    DungeonPersistentState *state;
     bool perm;
+    bool extend;
     /* permanent PlayerInstanceBinds are created in Raid/Heroic instances for players
        that aren't already permanently bound when they are inside when a boss is killed
        or when they enter an instance that the group leader is permanently bound to. */
-    InstancePlayerBind() : save(NULL), perm(false) {}
+    InstancePlayerBind() : state(NULL), perm(false), extend(false) {}
 };
 
 class MANGOS_DLL_SPEC PlayerTaxi
@@ -1087,7 +1117,7 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         bool Create( uint32 guidlow, const std::string& name, uint8 race, uint8 class_, uint8 gender, uint8 skin, uint8 face, uint8 hairStyle, uint8 hairColor, uint8 facialHair, uint8 outfitId );
 
-        void Update( uint32 time );
+        void Update( uint32 update_diff, uint32 time );
 
         static bool BuildEnumData( QueryResult * result,  WorldPacket * p_data );
 
@@ -1292,6 +1322,9 @@ class MANGOS_DLL_SPEC Player : public Unit
         void AddItemToBuyBackSlot( Item *pItem );
         Item* GetItemFromBuyBackSlot( uint32 slot );
         void RemoveItemFromBuyBackSlot( uint32 slot, bool del );
+
+        void TakeExtendedCost(uint32 extendedCostId, uint32 count);
+
         uint32 GetMaxKeyringSize() const { return KEYRING_SLOT_END-KEYRING_SLOT_START; }
         void SendEquipError( uint8 msg, Item* pItem, Item *pItem2 = NULL, uint32 itemid = 0 ) const;
         void SendBuyError( uint8 msg, Creature* pCreature, uint32 item, uint32 param );
@@ -1329,7 +1362,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void UpdateItemDuration(uint32 time, bool realtimeonly = false);
         void AddEnchantmentDurations(Item *item);
         void RemoveEnchantmentDurations(Item *item);
-        void RemoveAllEnchantments(EnchantmentSlot slot);
+        void RemoveAllEnchantments(EnchantmentSlot slot, bool isArenaRemove = false);
         void AddEnchantmentDuration(Item *item,EnchantmentSlot slot,uint32 duration);
         void ApplyEnchantment(Item *item,EnchantmentSlot slot,bool apply, bool apply_dur = true, bool ignore_condition = false);
         void ApplyEnchantment(Item *item,bool apply);
@@ -1543,12 +1576,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         ObjectGuid const& GetSelectionGuid( ) const { return m_curSelectionGuid; }
         void SetSelectionGuid(ObjectGuid guid) { m_curSelectionGuid = guid; SetTargetGuid(guid); }
 
-        uint8 GetComboPoints() { return m_comboPoints; }
-        ObjectGuid const& GetComboTargetGuid() const { return m_comboTargetGuid; }
-
-        void AddComboPoints(Unit* target, int8 count);
-        void ClearComboPoints();
-        void SendComboPoints();
+        void SendComboPoints(ObjectGuid targetGuid, uint8 combopoints);
+        void SendPetComboPoints(Unit* pet, ObjectGuid targetGuid, uint8 combopoints);
 
         void SendCalendarResult(CalendarResponseResult result, std::string str);
 
@@ -1606,7 +1635,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool HasActiveSpell(uint32 spell) const;            // show in spellbook
         TrainerSpellState GetTrainerSpellState(TrainerSpell const* trainer_spell) const;
         bool IsSpellFitByClassAndRace( uint32 spell_id ) const;
-        bool IsNeedCastPassiveSpellAtLearn(SpellEntry const* spellInfo) const;
+        bool IsNeedCastPassiveLikeSpellAtLearn(SpellEntry const* spellInfo) const;
         bool IsImmuneToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex index) const;
 
         void SendProficiency(ItemClass itemClass, uint32 itemSubclassMask);
@@ -1727,12 +1756,14 @@ class MANGOS_DLL_SPEC Player : public Unit
         void removeActionButton(uint8 spec, uint8 button);
         void SendActionButtons(uint32 state) const;
         void SendInitialActionButtons() const { SendActionButtons(1); }
+        void SendLockActionButtons() const;
         ActionButton const* GetActionButton(uint8 button);
 
         PvPInfo pvpInfo;
         void UpdatePvP(bool state, bool ovrride=false);
         void UpdateZone(uint32 newZone,uint32 newArea);
         void UpdateArea(uint32 newArea);
+        uint32 GetCachedZoneId() const { return m_zoneUpdateId; }
 
         void UpdateZoneDependentAuras();
         void UpdateAreaDependentAuras();                    // subzones
@@ -1832,7 +1863,7 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         void UpdateDefenseBonusesMod();
         float GetMeleeCritFromAgility();
-        float GetDodgeFromAgility();
+        void GetDodgeFromAgility(float &diminishing, float &nondiminishing);
         float GetSpellCritFromIntellect();
         float OCTRegenHPPerSpirit();
         float OCTRegenMPPerSpirit();
@@ -1867,7 +1898,7 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         void BuildCreateUpdateBlockForPlayer( UpdateData *data, Player *target ) const;
         void DestroyForPlayer( Player *target, bool anim = false ) const;
-        void SendLogXPGain(uint32 GivenXP,Unit* victim,uint32 RestXP);
+        void SendLogXPGain(uint32 GivenXP,Unit* victim,uint32 BonusXP, bool ReferAFriend);
 
         // notifiers
         void SendAttackSwingCantAttack();
@@ -1953,6 +1984,7 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         static Team TeamForRace(uint8 race);
         Team GetTeam() const { return m_team; }
+        TeamId GetTeamId() const { return m_team == ALLIANCE ? TEAM_ALLIANCE : TEAM_HORDE; }
         static uint32 getFactionForRace(uint8 race);
         void setFactionForRace(uint8 race);
 
@@ -1981,10 +2013,13 @@ class MANGOS_DLL_SPEC Player : public Unit
         void UpdateArenaFields();
         void UpdateHonorFields();
         bool RewardHonor(Unit *pVictim, uint32 groupsize, float honor = -1);
-        uint32 GetHonorPoints() { return GetUInt32Value(PLAYER_FIELD_HONOR_CURRENCY); }
-        uint32 GetArenaPoints() { return GetUInt32Value(PLAYER_FIELD_ARENA_CURRENCY); }
-        void ModifyHonorPoints( int32 value );
-        void ModifyArenaPoints( int32 value );
+        uint32 GetHonorPoints() const { return GetUInt32Value(PLAYER_FIELD_HONOR_CURRENCY); }
+        uint32 GetArenaPoints() const { return GetUInt32Value(PLAYER_FIELD_ARENA_CURRENCY); }
+        void SetHonorPoints(uint32 value);
+        void SetArenaPoints(uint32 value);
+        void ModifyHonorPoints(int32 value);
+        void ModifyArenaPoints(int32 value);
+
         uint32 GetMaxPersonalArenaRatingRequirement(uint32 minarenaslot);
 
         //End of PvP System
@@ -2018,6 +2053,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void _ApplyAllStatBonuses();
         void _RemoveAllStatBonuses();
         float GetArmorPenetrationPct() const { return m_armorPenetrationPct; }
+        int32 GetSpellPenetrationItemMod() const { return m_spellPenetrationItemMod; }
 
         void _ApplyWeaponDependentAuraMods(Item *item, WeaponAttackType attackType, bool apply);
         void _ApplyWeaponDependentAuraCritMod(Item *item, WeaponAttackType attackType, Aura* aura, bool apply);
@@ -2192,6 +2228,22 @@ class MANGOS_DLL_SPEC Player : public Unit
         void ChangeSpeakTime(int utime);
 
         /*********************************************************/
+        /*** REFER-A-FRIEND SYSTEM ***/
+        /*********************************************************/
+        void SendReferFriendError(ReferAFriendError err, Player * target = NULL);
+        ReferAFriendError GetReferFriendError(Player * target, bool summon);
+        void AccessGrantableLevel(ObjectGuid guid) { m_curGrantLevelGiverGuid = guid; }
+        bool IsAccessGrantableLevel(ObjectGuid guid) { return m_curGrantLevelGiverGuid == guid; }
+        uint32 GetGrantableLevels() { return m_GrantableLevelsCount; }
+        void ChangeGrantableLevels(uint8 increase = 0);
+        bool CheckRAFConditions();
+        AccountLinkedState GetAccountLinkedState();
+        bool IsReferAFriendLinked(Player * target);
+        void LoadAccountLinkedState();
+        std::vector<uint32> m_referredAccounts;
+        std::vector<uint32> m_referalAccounts;
+
+        /*********************************************************/
         /***                 VARIOUS SYSTEMS                   ***/
         /*********************************************************/
         bool HasMovementFlag(MovementFlags f) const;        // for script access to m_movementInfo.HasMovementFlag
@@ -2203,7 +2255,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         }
         void HandleFall(MovementInfo const& movementInfo);
 
-        void BuildTeleportAckMsg( WorldPacket *data, float x, float y, float z, float ang) const;
+        void BuildTeleportAckMsg(WorldPacket& data, float x, float y, float z, float ang) const;
 
         bool isMoving() const { return m_movementInfo.HasMovementFlag(movementFlagsMask); }
         bool isMovingOrTurning() const { return m_movementInfo.HasMovementFlag(movementOrTurningFlagsMask); }
@@ -2225,6 +2277,10 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint32 GetSaveTimer() const { return m_nextSave; }
         void   SetSaveTimer(uint32 timer) { m_nextSave = timer; }
 
+        /** World of Warcraft Armory **/
+        void WriteWowArmoryDatabaseLog(uint32 type, uint32 data);
+        /** World of Warcraft Armory **/
+
         // Recall position
         uint32 m_recallMap;
         float  m_recallX;
@@ -2238,9 +2294,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool TeleportToHomebind(uint32 options = 0) { return TeleportTo(m_homebindMapId, m_homebindX, m_homebindY, m_homebindZ, GetOrientation(), options); }
 
         Object* GetObjectByTypeMask(ObjectGuid guid, TypeMask typemask);
-        
-        /* WoWArmory Feed Log */
-        void WriteWowArmoryDatabaseLog(uint32 type, uint32 data);
 
         // currently visible objects at player client
         ObjectGuidSet m_clientGUIDs;
@@ -2297,11 +2350,14 @@ class MANGOS_DLL_SPEC Player : public Unit
         BoundInstancesMap& GetBoundInstances(Difficulty difficulty) { return m_boundInstances[difficulty]; }
         void UnbindInstance(uint32 mapid, Difficulty difficulty, bool unload = false);
         void UnbindInstance(BoundInstancesMap::iterator &itr, Difficulty difficulty, bool unload = false);
-        InstancePlayerBind* BindToInstance(InstanceSave *save, bool permanent, bool load = false);
+        void BindToInstance();
+        void SetPendingBind(DungeonPersistentState* save, uint32 bindTimer) { _pendingBind = save; _pendingBindTimer = bindTimer; }
+        bool HasPendingBind() const { return _pendingBind != NULL; }
+        InstancePlayerBind* BindToInstance(DungeonPersistentState *save, bool permanent, bool load = false, bool extend = false);
         void SendRaidInfo();
         void SendSavedInstances();
         static void ConvertInstancesToGroup(Player *player, Group *group = NULL, ObjectGuid player_guid = ObjectGuid());
-        InstanceSave* GetBoundInstanceSaveForSelfOrGroup(uint32 mapid);
+        DungeonPersistentState* GetBoundInstanceSaveForSelfOrGroup(uint32 mapid);
 
         /*********************************************************/
         /***                   GROUP SYSTEM                    ***/
@@ -2370,8 +2426,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         void CompletedAchievement(uint32 uiAchievementID);
         void StartTimedAchievementCriteria(AchievementCriteriaTypes type, uint32 timedRequirementId, time_t startTime = 0);
 
-        bool HasTitle(uint32 bitIndex);
-        bool HasTitle(CharTitlesEntry const* title) { return HasTitle(title->bit_index); }
+        bool HasTitle(uint32 bitIndex) const;
+        bool HasTitle(CharTitlesEntry const* title) const { return HasTitle(title->bit_index); }
         void SetTitle(CharTitlesEntry const* title, bool lost = false);
 
         bool canSeeSpellClickOn(Creature const* creature) const;
@@ -2387,6 +2443,10 @@ class MANGOS_DLL_SPEC Player : public Unit
         LfgState GetLfgState() { return m_LookingForGroup.state; }
         void SetLfgState(LfgState state) { m_LookingForGroup.state = state; }
         bool isUsingLfg() { return GetLfgState() != LFG_STATE_NONE; }
+
+        // Custom xp rating system
+        uint8 GetXpRate() { return m_xpRate; }
+        void SetXpRate(uint8 xp) { m_xpRate = xp; }
 
     protected:
 
@@ -2509,9 +2569,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint32 m_ExtraFlags;
         ObjectGuid m_curSelectionGuid;
 
-        ObjectGuid m_comboTargetGuid;
-        int8 m_comboPoints;
-
         QuestStatusMap mQuestStatus;
 
         SkillStatusMap mSkillStatus;
@@ -2540,6 +2597,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint16 m_baseFeralAP;
         uint16 m_baseManaRegen;
         float m_armorPenetrationPct;
+        int32 m_spellPenetrationItemMod;
 
         SpellModList m_spellMods[MAX_SPELLMOD];
         int32 m_SpellModRemoveCount;
@@ -2624,7 +2682,15 @@ class MANGOS_DLL_SPEC Player : public Unit
         DeclinedName *m_declinedname;
         Runes *m_runes;
         EquipmentSets m_EquipmentSets;
+        // Refer-A-Friend
+        ObjectGuid m_curGrantLevelGiverGuid;
+
+        int32 m_GrantableLevelsCount;
+        // Custom xp rating system
+        uint8 m_xpRate;
+
     private:
+        void _HandleDeadlyPoison(Unit* Target, WeaponAttackType attType, SpellEntry const *spellInfo);
         // internal common parts for CanStore/StoreItem functions
         uint8 _CanStoreItem_InSpecificSlot( uint8 bag, uint8 slot, ItemPosCountVec& dest, ItemPrototype const *pProto, uint32& count, bool swap, Item *pSrcItem ) const;
         uint8 _CanStoreItem_InBag( uint8 bag, ItemPosCountVec& dest, ItemPrototype const *pProto, uint32& count, bool merge, bool non_specialized, Item *pSrcItem, uint8 skip_bag, uint8 skip_slot ) const;
@@ -2701,6 +2767,9 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint32 m_timeSyncServer;
 
         LookingForGroup m_LookingForGroup;
+
+        DungeonPersistentState* _pendingBind;
+        uint32 _pendingBindTimer;
 };
 
 void AddItemsSetItem(Player*player,Item *item);

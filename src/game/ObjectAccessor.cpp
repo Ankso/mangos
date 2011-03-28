@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,10 +20,6 @@
 #include "ObjectMgr.h"
 #include "Policies/SingletonImp.h"
 #include "Player.h"
-#include "Creature.h"
-#include "GameObject.h"
-#include "DynamicObject.h"
-#include "Vehicle.h"
 #include "WorldPacket.h"
 #include "Item.h"
 #include "Corpse.h"
@@ -32,7 +28,6 @@
 #include "Map.h"
 #include "CellImpl.h"
 #include "GridNotifiersImpl.h"
-#include "Opcodes.h"
 #include "ObjectGuid.h"
 #include "World.h"
 
@@ -41,8 +36,6 @@
 #define CLASS_LOCK MaNGOS::ClassLevelLockable<ObjectAccessor, ACE_Thread_Mutex>
 INSTANTIATE_SINGLETON_2(ObjectAccessor, CLASS_LOCK);
 INSTANTIATE_CLASS_MUTEX(ObjectAccessor, ACE_Thread_Mutex);
-
-ACE_Thread_Mutex ObjectAccessor::m_Lock;
 
 ObjectAccessor::ObjectAccessor() {}
 ObjectAccessor::~ObjectAccessor()

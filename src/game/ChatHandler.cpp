@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,8 +29,6 @@
 #include "ChannelMgr.h"
 #include "Group.h"
 #include "Guild.h"
-#include "ObjectAccessor.h"
-#include "ScriptCalls.h"
 #include "Player.h"
 #include "SpellAuras.h"
 #include "Language.h"
@@ -66,6 +64,48 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
     uint32 lang;
 
     recv_data >> type;
+    // no language for AFK and DND messages
+    if(type == CHAT_MSG_AFK)
+    {
+        
+        std::string msg;
+        recv_data >> msg;
+
+        if ((msg.empty() || !_player->isAFK()) && !_player->isInCombat())
+        {
+            if (!_player->isAFK())
+            {
+                if (msg.empty())
+                    msg  = GetMangosString(LANG_PLAYER_AFK_DEFAULT);
+                _player->afkMsg = msg;
+            }
+
+            _player->ToggleAFK();
+            if (_player->isAFK() && _player->isDND())
+                _player->ToggleDND();
+        }
+        return;
+    }
+    else if(type == CHAT_MSG_DND)
+    {
+        std::string msg;
+        recv_data >> msg;
+
+        if (msg.empty() || !_player->isDND())
+        {
+            if (!_player->isDND())
+            {
+                if (msg.empty())
+                    msg  = GetMangosString(LANG_PLAYER_DND_DEFAULT);
+                _player->dndMsg = msg;
+            }
+
+            _player->ToggleDND();
+            if (_player->isDND() && _player->isAFK())
+                _player->ToggleAFK();
+        }
+        return;
+    }
     recv_data >> lang;
 
     if(type >= MAX_CHAT_MSG_TYPE)
@@ -147,15 +187,17 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
                 lang = ModLangAuras.front()->GetModifier()->m_miscvalue;
         }
 
-        if (!_player->CanSpeak())
-        {
-            std::string timeStr = secsToTimeString(m_muteTime - time(NULL));
-            SendNotification(GetMangosString(LANG_WAIT_BEFORE_SPEAKING), timeStr.c_str());
-            return;
-        }
-
         if (type != CHAT_MSG_AFK && type != CHAT_MSG_DND)
+        {
+            if (!_player->CanSpeak())
+            {
+                std::string timeStr = secsToTimeString(m_muteTime - time(NULL));
+                SendNotification(GetMangosString(LANG_WAIT_BEFORE_SPEAKING), timeStr.c_str());
+                return;
+            }
+
             GetPlayer()->UpdateSpeakTime();
+        }
     }
 
     switch(type)
@@ -463,6 +505,12 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             recv_data >> channel;
             recv_data >> msg;
 
+            if (msg.empty())
+                break;
+
+            if (ChatHandler(this).ParseCommands(msg.c_str()) > 0)
+                break;
+
             if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
                 return;
 
@@ -474,49 +522,6 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if(ChannelMgr* cMgr = channelMgr(_player->GetTeam()))
                 if(Channel *chn = cMgr->GetChannel(channel, _player))
                     chn->Say(_player->GetGUID(), msg.c_str(), lang);
-        } break;
-
-        case CHAT_MSG_AFK:
-        {
-            std::string msg;
-            recv_data >> msg;
-
-            if (!_player->isInCombat())
-            {
-                if (!msg.empty() || !_player->isAFK())
-                {
-                    if (msg.empty())
-                        _player->afkMsg = GetMangosString(LANG_PLAYER_AFK_DEFAULT);
-                    else
-                        _player->afkMsg = msg;
-                }
-                if (msg.empty() || !_player->isAFK())
-                {
-                    _player->ToggleAFK();
-                    if (_player->isAFK() && _player->isDND())
-                        _player->ToggleDND();
-                }
-            }
-        } break;
-
-        case CHAT_MSG_DND:
-        {
-            std::string msg;
-            recv_data >> msg;
-
-            if (!msg.empty() || !_player->isDND())
-            {
-                if (msg.empty())
-                    _player->dndMsg = GetMangosString(LANG_PLAYER_DND_DEFAULT);
-                else
-                    _player->dndMsg = msg;
-            }
-            if (msg.empty() || !_player->isDND())
-            {
-                _player->ToggleDND();
-                if (_player->isDND() && _player->isAFK())
-                    _player->ToggleAFK();
-            }
         } break;
 
         default:

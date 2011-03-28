@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,7 +88,9 @@ enum MangosStrings
     LANG_RA_PASS                        = 62,
     LANG_GM_ACCEPTS_WHISPER             = 63,
     LANG_GM_NO_WHISPER                  = 64,
-    // Room for more level 0              65-99 not used
+    LANG_USING_SCRIPT_LIB_UNKNOWN       = 65,
+    LANG_USING_SCRIPT_LIB_NONE          = 66,
+    // Room for more level 0              67-99 not used
 
     // level 1 chat
     LANG_GLOBAL_NOTIFY                  = 100,
@@ -364,10 +366,34 @@ enum MangosStrings
     LANG_COMMAND_TICKETRESPONSE         = 373,
     LANG_COMMAND_TICKETCOUNT_CONSOLE    = 374,
     LANG_COMMAND_TICKETNOTEXIST_NAME    = 375,
-    // Room for more level 2              376-399 not used
+    LANG_POOL_ENTRY_LIST_CHAT           = 376,
+    LANG_NO_POOL_FOR_MAP                = 377,
+    LANG_POOL_LIST_NON_INSTANCE         = 378,
+    LANG_POOL_SPAWNS_NON_INSTANCE       = 379,
+    LANG_POOL_CHANCE_CREATURE_LIST_CHAT = 380,
+    LANG_POOL_CHANCE_CREATURE_LIST_CONSOLE = 381,
+    LANG_POOL_CREATURE_LIST_CHAT        = 382,
+    LANG_POOL_CREATURE_LIST_CONSOLE     = 383,
+    LANG_POOL_CHANCE_GO_LIST_CHAT       = 384,
+    LANG_POOL_CHANCE_GO_LIST_CONSOLE    = 385,
+    LANG_POOL_GO_LIST_CHAT              = 386,
+    LANG_POOL_GO_LIST_CONSOLE           = 387,
+    LANG_POOL_CHANCE_CREATURE_LIST_HEADER = 388,
+    LANG_POOL_CREATURE_LIST_HEADER      = 389,
+    LANG_POOL_CHANCE_GO_LIST_HEADER     = 390,
+    LANG_POOL_GO_LIST_HEADER            = 391,
+    LANG_POOL_INFO_HEADER_CHAT          = 392,
+    LANG_POOL_INFO_HEADER_CONSOLE       = 393,
+    LANG_POOL_INFO_HEADER               = 394,
+    LANG_NO_POOL                        = 395,
+    LANG_POOL_ENTRY_LIST_CONSOLE        = 396,
+    LANG_POOL_CHANCE_POOL_LIST_HEADER   = 397,
+    LANG_POOL_POOL_LIST_HEADER          = 398,
+    LANG_POOL_CHANCE_POOL_LIST_CHAT     = 399,
+    // End Level 2 list, continued at 1500
 
     // level 3 chat
-    LANG_SCRIPTS_RELOADED               = 400,
+    LANG_SCRIPTS_RELOADED_ANNOUNCE      = 400,
     LANG_YOU_CHANGE_SECURITY            = 401,
     LANG_YOURS_SECURITY_CHANGED         = 402,
     LANG_YOURS_SECURITY_IS_LOW          = 403,
@@ -885,18 +911,33 @@ enum MangosStrings
     LANG_ACHIEVEMENT_NOT_EXIST          = 1163,
     LANG_ACHIEVEMENT_CRITERIA_NOT_EXIST = 1164,
     LANG_SPELL_NO_HAVE_AURAS            = 1165,
-    // Room for more level 3              1166-1199 not used
+    LANG_SCRIPTS_NOT_FOUND              = 1166,
+    LANG_SCRIPTS_WRONG_API              = 1167,
+    LANG_SCRIPTS_RELOADED_OK            = 1168,
+    LANG_SCRIPTS_OUTDATED               = 1169,
+    // Room for more level 3              1170-1199 not used
 
     // Debug commands
     LANG_CINEMATIC_NOT_EXIST            = 1200,
     LANG_MOVIE_NOT_EXIST                = 1201,
-    // Room for more debug                1202-1299 not used
+    LANG_SPELLCOEFS                     = 1202,
+    LANG_DIRECT_HEAL                    = 1203,
+    LANG_DIRECT_DAMAGE                  = 1204,
+    LANG_DOT_HEAL                       = 1205,
+    LANG_DOT_DAMAGE                     = 1206,
+    // Room for more debug                1207-1299 not used
 
     // Reserved for old client release branches specific strings
     // Room for old clients 2.x           1300-1399 not used
     // Room for old clients 1.x           1400-1499 not used
 
-    // FREE IDS                           1500-9999
+    // Level 2 (continue)
+    LANG_POOL_CHANCE_POOL_LIST_CONSOLE  = 1500,
+    LANG_POOL_POOL_LIST_CHAT            = 1501,
+    LANG_POOL_POOL_LIST_CONSOLE         = 1502,
+    // Room for more Level 2              1503-1599 not used
+
+    // FREE IDS                           1600-9999
 
     // Broadcaster
     LANG_AUTO_BROADCAST                 = 1300,
@@ -905,71 +946,59 @@ enum MangosStrings
     //                                    10000-10999
 
     // Use for custom patches             11000-11999
+    LANG_COMMAND_FRIEND                 = 11133,
+    LANG_COMMAND_FRIEND_ERROR           = 11134,
 
-///////////////////////////// Battle Ground Strand of the Ancients /////////////////////////////
-    LANG_BG_SA_START_TWO_MINUTE				= 20000,
-    LANG_BG_SA_START_ONE_MINUTE				= 20001,
-    LANG_BG_SA_START_HALF_MINUTE			= 20002,
-    LANG_BG_SA_HAS_BEGUN					= 20003,
+    // Strand of the Ancients
+    LANG_BG_SA_START_TWO_MINUTES            = 20056,
+    LANG_BG_SA_START_ONE_MINUTE             = 20057,
+    LANG_BG_SA_START_HALF_MINUTE            = 20058,
+    LANG_BG_SA_HAS_BEGUN                    = 20059,
+    LANG_BG_SA_IS_UNDER_ATTACK              = 20060, //The %s is under attack!
+    LANG_BG_SA_WAS_DESTROYED                = 20061, //The %s was destroyed!
+    LANG_BG_SA_ROUND_ONE_END                = 20062, //Round 1 - finished!
+    LANG_BG_SA_ALLIANCE_CAPTURED_RELIC      = 20063, //The Alliance captured the titan portal!
+    LANG_BG_SA_HORDE_CAPTURED_RELIC         = 20064, //The Horde captured the titan portal!
+    LANG_BG_SA_ROUND_TWO_ONE_MINUTE         = 20065, //Round 2 of the Battle for the Strand of the Ancients begins in 1 minute.
+    LANG_BG_SA_ROUND_TWO_START_HALF_MINUTE  = 20066, //Round 2 begins in 30 seconds. Prepare yourselves!
+    LANG_BG_SA_CHAMBER_BREACHED             = 20067, //The chamber has been breached! The titan relic is vulnerable!
+    LANG_BG_SA_A_GY_SOUTH                   = 20068, //The Alliance captured the South Graveyard!
+    LANG_BG_SA_A_GY_WEST                    = 20069, //The Alliance captured the West Graveyard!
+    LANG_BG_SA_A_GY_EAST                    = 20070, //The Alliance captured the East Graveyard!
+    LANG_BG_SA_H_GY_SOUTH                   = 20071, //The Horde captured the South Graveyard!
+    LANG_BG_SA_H_GY_WEST                    = 20072, //The Horde captured the West Graveyard!
+    LANG_BG_SA_H_GY_EAST                    = 20073, //The Horde captured the East Graveyard!
+    LANG_BG_SA_GREEN_DOOR                   = 20074, //Green Emerald door
+    LANG_BG_SA_BLUE_DOOR                    = 20075, //Blue Saphire door
+    LANG_BG_SA_PURPLE_DOOR                  = 20076, //Purple Ametist door
+    LANG_BG_SA_RED_DOOR                     = 20077, //Red Sun door
+    LANG_BG_SA_YELLOW_DOOR                  = 20078, //Yellow Moon door
+    LANG_BG_SA_PUT_SEFORIUM_CHARGE          = 20079, //%s has put a seforium charge!
+    LANG_BG_SA_ANCIENTS_DOOR                = 20102, //Ancient's door
 
-	LANG_BG_SA_GATE_ATTACK					= 20004,
-	LANG_BG_SA_GATE_DAMAGE					= 20005,
-	LANG_BG_SA_GATE_DETROYED				= 20006,
-
-	LANG_BG_SA_GATE_GREEN_EMERALD			= 20007,
-	LANG_BG_SA_GATE_BLUE_SAPHIRE			= 20008,
-	LANG_BG_SA_GATE_MAUVE_AMETHYST			= 20009,
-	LANG_BG_SA_GATE_RED_SUN_				= 20010,
-	LANG_BG_SA_GATE_YELLOW_MOON				= 20011,
-	LANG_BG_SA_GATE_ROOM_ANCIENT_SHRINE		= 20012,
-
-	LANG_BG_SA_AH_PRECIPITATES_GRAVEYARD	= 20013,
-	LANG_BG_SA_AH_SEIZES_GRAVEYARD			= 20014,
-
-	LANG_BG_SA_EAST_GRAVEYARD				= 20015,
-	LANG_BG_SA_WEST_GRAVEYARD				= 20016,
-	LANG_BG_SA_SOUTH_GRAVEYARD				= 20017,
-
-	LANG_BG_SA_INSTALL_BOMB					= 20018,
-
-	LANG_BG_SA_ALLIANCE_END_1ROUND			= 20019,
-	LANG_BG_SA_HORDE_END_2ROUND				= 20020,
-	LANG_BG_SA_NETRALL_END_1ROUND			= 20021,
-	LANG_BG_SA_NETRALL_END_2ROUND			= 20022,
-    /*##############################################
-    #          Strings for SendWarningToAll        #
-    ##############################################*/
-    LANG_BG_SA_HORDE_EAST_CLAIMED           = 20024,
-    LANG_BG_SA_HORDE_WEST_CLAIMED           = 20025,
-    LANG_BG_SA_HORDE_SOUTH_CLAIMED          = 20026,
-    LANG_BG_SA_ALLIANCE_EAST_CLAIMED        = 20027,
-    LANG_BG_SA_ALLIANCE_WEST_CLAIMED        = 20028,
-    LANG_BG_SA_ALLIANCE_SOUTH_CLAIMED       = 20029,
-    LANG_BG_SA_HORDE_EAST_CONQUESTED        = 20030,
-    LANG_BG_SA_HORDE_WEST_CONQUESTED        = 20031,
-    LANG_BG_SA_HORDE_SOUTH_CONQUESTED       = 20032,
-    LANG_BG_SA_ALLIANCE_EAST_CONQUESTED     = 20033,
-    LANG_BG_SA_ALLIANCE_WEST_CONQUESTED     = 20034,
-    LANG_BG_SA_ALLIANCE_SOUTH_CONQUESTED    = 20035,
-    
-    LANG_BG_SA_GATE_ROOM_ANCIENT_SHRINE_DESTROYED = 20036,
-    LANG_BG_SA_GATE_GREEN_EMERALD_DESTROYED       = 20037,
-    LANG_BG_SA_GATE_BLUE_SAPHIRE_DESTROYED        = 20038,
-    LANG_BG_SA_GATE_MAUVE_AMETHYST_DESTROYED      = 20039,
-    LANG_BG_SA_GATE_RED_SUN_DESTROYED             = 20040,
-    LANG_BG_SA_GATE_YELLOW_MOON_DESTROYED         = 20041,
-    LANG_BG_SA_GATE_ROOM_ANCIENT_SHRINE_DAMAGED   = 20042,
-    LANG_BG_SA_GATE_GREEN_EMERALD_DAMAGED         = 20043,
-    LANG_BG_SA_GATE_BLUE_SAPHIRE_DAMAGED          = 20044,
-    LANG_BG_SA_GATE_MAUVE_AMETHYST_DAMAGED        = 20045,
-    LANG_BG_SA_GATE_RED_SUN_DAMAGED               = 20046,
-    LANG_BG_SA_GATE_YELLOW_MOON_DAMAGED           = 20047
-    
-    /*##############################################
-    #                End of strings                #
-    ##############################################*/
-
-/////////////////////////// Battle Ground Strand of the Ancients end ///////////////////////////
+    // Isle of Conquest
+    LANG_BG_IC_START_TWO_MINUTES        = 20080,
+    LANG_BG_IC_START_ONE_MINUTE         = 20081,
+    LANG_BG_IC_START_HALF_MINUTE        = 20082,
+    LANG_BG_IC_HAS_BEGUN                = 20083,
+    LANG_BG_IC_ALLIANCE_KEEP            = 20084,
+    LANG_BG_IC_HORDE_KEEP               = 20085,
+    LANG_BG_IC_TEAM_WINS                = 20086,
+    LANG_BG_IC_WEST_GATE_DESTROYED      = 20087,
+    LANG_BG_IC_EAST_GATE_DESTROYED      = 20088,
+    LANG_BG_IC_SOUTH_GATE_DESTROYED     = 20089,
+    LANG_BG_IC_NORTH_GATE_DESTROYED     = 20090,
+    LANG_BG_IC_TEAM_ASSAULTED_NODE_1    = 20091,
+    LANG_BG_IC_TEAM_DEFENDED_NODE       = 20092,
+    LANG_BG_IC_TEAM_ASSAULTED_NODE_2    = 20093,
+    LANG_BG_IC_TEAM_HAS_TAKEN_NODE      = 20094,
+    LANG_BG_IC_WORKSHOP                 = 20095,
+    LANG_BG_IC_DOCKS                    = 20096,
+    LANG_BG_IC_REFINERY                 = 20097,
+    LANG_BG_IC_QUARRY                   = 20098,
+    LANG_BG_IC_HANGAR                   = 20099,
+    LANG_BG_IC_ALLIANCE                 = 20100,
+    LANG_BG_IC_HORDE                    = 20101,
 
     // NOT RESERVED IDS                   12000-1999999999
     // `db_script_string` table index     2000000000-2000009999 (MIN_DB_SCRIPT_STRING_ID-MAX_DB_SCRIPT_STRING_ID)

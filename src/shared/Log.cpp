@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +48,7 @@ LogFilterData logFilterData[LOG_FILTER_COUNT] =
     { "combat",              "LogFilter_Combat",             false },
     { "spell_cast",          "LogFilter_SpellCast",          false },
     { "db_stricted_check",   "LogFilter_DbStrictedCheck",    true  },
+    { "pathfinding",         "LogFilter_Pathfinding",        true },
 };
 
 enum LogType

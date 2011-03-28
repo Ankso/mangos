@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ class MANGOS_DLL_SPEC SpellAuraHolder
         void ApplyAuraModifiers(bool apply, bool real = false);
         void _AddSpellAuraHolder();
         void _RemoveSpellAuraHolder();
-        void SendAuraUpdate(bool remove);
+        void SendAuraUpdate(bool remove) const;
         void HandleSpellSpecificBoosts(bool apply);
                void HandleIgnoreUnitState(bool Apply, bool Real);
         void CleanupTriggeredSpells();
@@ -61,7 +61,7 @@ class MANGOS_DLL_SPEC SpellAuraHolder
         void setDiminishGroup(DiminishingGroup group) { m_AuraDRGroup = group; }
         DiminishingGroup getDiminishGroup() const { return m_AuraDRGroup; }
 
-        uint32 GetStackAmount() { return m_stackAmount; }
+        uint32 GetStackAmount() const { return m_stackAmount; }
         void SetStackAmount(uint32 stackAmount);
         bool ModStackAmount(int32 num); // return true if last charge dropped
 
@@ -79,13 +79,13 @@ class MANGOS_DLL_SPEC SpellAuraHolder
         void SetTarget(Unit* target) { m_target = target; }
 
         bool IsPermanent() const { return m_permanent; }
-        void SetPermanent (bool permanent) { m_permanent = permanent; }
+        void SetPermanent(bool permanent) { m_permanent = permanent; }
         bool IsPassive() const { return m_isPassive; }
         bool IsDeathPersistent() const { return m_isDeathPersist; }
         bool IsPersistent() const;
         bool IsPositive() const;
         bool IsAreaAura() const;                            // if one from auras of holder applied as area aura
-        bool IsWeaponBuffCoexistableWith(SpellAuraHolder* ref);
+        bool IsWeaponBuffCoexistableWith(SpellAuraHolder const* ref) const;
         bool IsNeedVisibleSlot(Unit const* caster) const;
         bool IsRemovedOnShapeLost() const { return m_isRemovedOnShapeLost; }
         bool IsInUse() const { return m_in_use;}
@@ -109,7 +109,7 @@ class MANGOS_DLL_SPEC SpellAuraHolder
         void Update(uint32 diff);
         void RefreshHolder();
 
-        bool IsSingleTarget() {return m_isSingleTarget; }
+        bool IsSingleTarget() const {return m_isSingleTarget; }
         void SetIsSingleTarget(bool val) { m_isSingleTarget = val; }
         void UnregisterSingleCastHolder();
 
@@ -131,12 +131,6 @@ class MANGOS_DLL_SPEC SpellAuraHolder
         {
             if (m_procCharges == 0)
                 return false;
-
-            // exist spells that have maxStack > 1 and m_procCharges > 0 (==1 in fact)
-            // all like stacks have 1 value in one from this fields
-            // so return true for allow remove one aura from stacks as expired
-            if (GetStackAmount() > 1)
-                return true;
 
             m_procCharges--;
             SendAuraUpdate(false);
@@ -372,6 +366,8 @@ class MANGOS_DLL_SPEC Aura
         void HandleAuraLinked(bool Apply, bool Real);
         void HandleAuraOpenStable(bool apply, bool Real);
         void HandleAuraAddMechanicAbilities(bool apply, bool Real);
+        void HandleAuraSetVehicle(bool apply, bool Real);
+        void HandleAuraFactionChange(bool apply, bool real);
 
         virtual ~Aura();
 
@@ -416,6 +412,7 @@ class MANGOS_DLL_SPEC Aura
         bool IsAreaAura() const { return m_isAreaAura; }
         bool IsPeriodic() const { return m_isPeriodic; }
         bool IsInUse() const { return m_in_use; }
+        bool IsStacking() const { return m_stacking;}
 
         void SetInUse(bool state)
         {
@@ -448,6 +445,8 @@ class MANGOS_DLL_SPEC Aura
         SpellAuraHolder* const GetHolder() const { return m_spellAuraHolder; }
 
         bool IsLastAuraOnHolder();
+
+        bool HasMechanic(uint32 mechanic) const;
     protected:
         Aura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBasePoints, SpellAuraHolder *holder, Unit *target, Unit *caster = NULL, Item* castItem = NULL);
 
@@ -481,8 +480,11 @@ class MANGOS_DLL_SPEC Aura
         bool m_isPeriodic:1;
         bool m_isAreaAura:1;
         bool m_isPersistent:1;
+        bool m_stacking:1;                                  // Aura is not overwritten, but effects are not cumulative with similar effects
 
         uint32 m_in_use;                                    // > 0 while in Aura::ApplyModifier call/Aura::Update/etc
+
+        bool IsEffectStacking();
 
         SpellAuraHolder* const m_spellAuraHolder;
     private:

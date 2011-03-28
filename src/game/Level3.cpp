@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,8 @@
 #include "Guild.h"
 #include "ObjectAccessor.h"
 #include "MapManager.h"
-#include "ScriptCalls.h"
+#include "MassMailMgr.h"
+#include "ScriptMgr.h"
 #include "Language.h"
 #include "GridNotifiersImpl.h"
 #include "CellImpl.h"
@@ -48,481 +49,10 @@
 #include "Util.h"
 #include "ItemEnchantmentMgr.h"
 #include "BattleGroundMgr.h"
-#include "InstanceSaveMgr.h"
+#include "MapPersistentStateMgr.h"
 #include "InstanceData.h"
 #include "CreatureEventAIMgr.h"
 #include "DBCEnums.h"
-#include "AuctionHouseBot.h"
-
-bool ChatHandler::HandleAHBotOptionsCommand(char* args)
-{
-    uint32 ahMapID = 0;
-    char * opt = strtok((char*)args, " ");
-    char * ahMapIdStr = strtok(NULL, " ");
-    if (ahMapIdStr)
-    {
-        ahMapID = (uint32) strtoul(ahMapIdStr, NULL, 0);
-    }
-    if (!opt)
-    {
-        PSendSysMessage("Syntax is: ahbotoptions $option $ahMapID (2, 6 or 7) $parameter");
-        PSendSysMessage("Try ahbotoptions help to see a list of options.");
-        return false;
-    }
-    int l = strlen(opt);
-
-    if (strncmp(opt,"help",l) == 0)
-    {
-        PSendSysMessage("AHBot commands:");
-        PSendSysMessage("ahexpire");
-        PSendSysMessage("minitems");
-        PSendSysMessage("maxitems");
-        PSendSysMessage("mintime");
-        PSendSysMessage("maxtime");
-        PSendSysMessage("percentages");
-        PSendSysMessage("minprice");
-        PSendSysMessage("maxprice");
-        PSendSysMessage("minbidprice");
-        PSendSysMessage("maxbidprice");
-        PSendSysMessage("maxstack");
-        PSendSysMessage("buyerprice");
-        PSendSysMessage("bidinterval");
-        PSendSysMessage("bidsperinterval");
-        return true;
-    }
-    else if (strncmp(opt,"ahexpire",l) == 0)
-    {
-        if (!ahMapIdStr)
-        {
-            PSendSysMessage("Syntax is: ahbotoptions ahexpire $ahMapID (2, 6 or 7)");
-            return false;
-        }
-        auctionbot.Commands(0, ahMapID, NULL, NULL);
-    }
-    else if (strncmp(opt,"minitems",l) == 0)
-    {
-        char * param1 = strtok(NULL, " ");
-        if ((!ahMapIdStr) || (!param1))
-        {
-            PSendSysMessage("Syntax is: ahbotoptions minitems $ahMapID (2, 6 or 7) $minItems");
-            return false;
-        }
-        auctionbot.Commands(1, ahMapID, NULL, param1);
-    }
-    else if (strncmp(opt,"maxitems",l) == 0)
-    {
-        char * param1 = strtok(NULL, " ");
-        if ((!ahMapIdStr) || (!param1))
-        {
-            PSendSysMessage("Syntax is: ahbotoptions maxitems $ahMapID (2, 6 or 7) $maxItems");
-            return false;
-        }
-        auctionbot.Commands(2, ahMapID, NULL, param1);
-    }
-    else if (strncmp(opt,"mintime",l) == 0)
-    {
-        char * param1 = strtok(NULL, " ");
-        if ((!ahMapIdStr) || (!param1))
-        {
-            PSendSysMessage("Syntax is: ahbotoptions mintime $ahMapID (2, 6 or 7) $mintime");
-            return false;
-        }
-        auctionbot.Commands(3, ahMapID, NULL, param1);
-    }
-    else if (strncmp(opt,"maxtime",l) == 0)
-    {
-        char * param1 = strtok(NULL, " ");
-        if ((!ahMapIdStr) || (!param1))
-        {
-            PSendSysMessage("Syntax is: ahbotoptions maxtime $ahMapID (2, 6 or 7) $maxtime");
-            return false;
-        }
-        auctionbot.Commands(4, ahMapID, NULL, param1);
-    }
-    else if (strncmp(opt,"percentages",l) == 0)
-    {
-        char * param1 = strtok(NULL, " ");
-        char * param2 = strtok(NULL, " ");
-        char * param3 = strtok(NULL, " ");
-        char * param4 = strtok(NULL, " ");
-        char * param5 = strtok(NULL, " ");
-        char * param6 = strtok(NULL, " ");
-        char * param7 = strtok(NULL, " ");
-        char * param8 = strtok(NULL, " ");
-        char * param9 = strtok(NULL, " ");
-        char * param10 = strtok(NULL, " ");
-        char * param11 = strtok(NULL, " ");
-        char * param12 = strtok(NULL, " ");
-        char * param13 = strtok(NULL, " ");
-        char * param14 = strtok(NULL, " ");
-        if ((!ahMapIdStr) || (!param14))
-        {
-            PSendSysMessage("Syntax is: ahbotoptions percentages $ahMapID (2, 6 or 7) $1 $2 $3 $4 $5 $6 $7 $8 $9 $10 $11 $12 $13 $14");
-            PSendSysMessage("1 GreyTradeGoods 2 WhiteTradeGoods 3 GreenTradeGoods 4 BlueTradeGoods 5 PurpleTradeGoods");
-            PSendSysMessage("6 OrangeTradeGoods 7 YellowTradeGoods 8 GreyItems 9 WhiteItems 10 GreenItems 11 BlueItems");
-            PSendSysMessage("12 PurpleItems 13 OrangeItems 14 YellowItems");
-            PSendSysMessage("The total must add up to 100%");
-            return false;
-        }
-        uint32 greytg = (uint32) strtoul(param1, NULL, 0);
-        uint32 whitetg = (uint32) strtoul(param2, NULL, 0);
-        uint32 greentg = (uint32) strtoul(param3, NULL, 0);
-        uint32 bluetg = (uint32) strtoul(param3, NULL, 0);
-        uint32 purpletg = (uint32) strtoul(param5, NULL, 0);
-        uint32 orangetg = (uint32) strtoul(param6, NULL, 0);
-        uint32 yellowtg = (uint32) strtoul(param7, NULL, 0);
-        uint32 greyi = (uint32) strtoul(param8, NULL, 0);
-        uint32 whitei = (uint32) strtoul(param9, NULL, 0);
-        uint32 greeni = (uint32) strtoul(param10, NULL, 0);
-        uint32 bluei = (uint32) strtoul(param11, NULL, 0);
-        uint32 purplei = (uint32) strtoul(param12, NULL, 0);
-        uint32 orangei = (uint32) strtoul(param13, NULL, 0);
-        uint32 yellowi = (uint32) strtoul(param14, NULL, 0);
-        uint32 totalPercent = greytg + whitetg + greentg + bluetg + purpletg + orangetg + yellowtg + greyi + whitei + greeni + bluei + purplei + orangei + yellowi;
-        if ((totalPercent == 0) || (totalPercent != 100))
-        {
-            PSendSysMessage("Syntax is: ahbotoptions percentages $ahMapID (2, 6 or 7) $1 $2 $3 $4 $5 $6 $7 $8 $9 $10 $11 $12 $13 $14");
-            PSendSysMessage("1 GreyTradeGoods 2 WhiteTradeGoods 3 GreenTradeGoods 4 BlueTradeGoods 5 PurpleTradeGoods");
-            PSendSysMessage("6 OrangeTradeGoods 7 YellowTradeGoods 8 GreyItems 9 WhiteItems 10 GreenItems 11 BlueItems");
-            PSendSysMessage("12 PurpleItems 13 OrangeItems 14 YellowItems");
-            PSendSysMessage("The total must add up to 100%");
-            return false;
-        }
-        char param[100];
-        param[0] = '\0';
-        strcat(param, param1);
-        strcat(param, " ");
-        strcat(param, param2);
-        strcat(param, " ");
-        strcat(param, param3);
-        strcat(param, " ");
-        strcat(param, param4);
-        strcat(param, " ");
-        strcat(param, param5);
-        strcat(param, " ");
-        strcat(param, param6);
-        strcat(param, " ");
-        strcat(param, param7);
-        strcat(param, " ");
-        strcat(param, param8);
-        strcat(param, " ");
-        strcat(param, param9);
-        strcat(param, " ");
-        strcat(param, param10);
-        strcat(param, " ");
-        strcat(param, param11);
-        strcat(param, " ");
-        strcat(param, param12);
-        strcat(param, " ");
-        strcat(param, param13);
-        strcat(param, " ");
-        strcat(param, param14);
-        auctionbot.Commands(5, ahMapID, NULL, param);
-    }
-    else if (strncmp(opt,"minprice",l) == 0)
-    {
-        char * param1 = strtok(NULL, " ");
-        char * param2 = strtok(NULL, " ");
-        if ((!ahMapIdStr) || (!param1) || (!param2))
-        {
-            PSendSysMessage("Syntax is: ahbotoptions minprice $ahMapID (2, 6 or 7) $color (grey, white, green, blue, purple, orange or yellow) $price");
-            return false;
-        }
-        if (strncmp(param1,"grey",l) == 0)
-        {
-            auctionbot.Commands(6, ahMapID, AHB_GREY, param2);
-        }
-        else if (strncmp(param1,"white",l) == 0)
-        {
-            auctionbot.Commands(6, ahMapID, AHB_WHITE, param2);
-        }
-        else if (strncmp(param1,"green",l) == 0)
-        {
-            auctionbot.Commands(6, ahMapID, AHB_GREEN, param2);
-        }
-        else if (strncmp(param1,"blue",l) == 0)
-        {
-            auctionbot.Commands(6, ahMapID, AHB_BLUE, param2);
-        }
-        else if (strncmp(param1,"purple",l) == 0)
-        {
-            auctionbot.Commands(6, ahMapID, AHB_PURPLE, param2);
-        }
-        else if (strncmp(param1,"orange",l) == 0)
-        {
-            auctionbot.Commands(6, ahMapID, AHB_ORANGE, param2);
-        }
-        else if (strncmp(param1,"yellow",l) == 0)
-        {
-            auctionbot.Commands(6, ahMapID, AHB_YELLOW, param2);
-        }
-        else
-        {
-            PSendSysMessage("Syntax is: ahbotoptions minprice $ahMapID (2, 6 or 7) $color (grey, white, green, blue, purple, orange or yellow) $price");
-            return false;
-        }
-    }
-    else if (strncmp(opt,"maxprice",l) == 0)
-    {
-        char * param1 = strtok(NULL, " ");
-        char * param2 = strtok(NULL, " ");
-        if ((!ahMapIdStr) || (!param1) || (!param2))
-        {
-            PSendSysMessage("Syntax is: ahbotoptions maxprice $ahMapID (2, 6 or 7) $color (grey, white, green, blue, purple, orange or yellow) $price");
-            return false;
-        }
-        if (strncmp(param1,"grey",l) == 0)
-        {
-            auctionbot.Commands(7, ahMapID, AHB_GREY, param2);
-        }
-        else if (strncmp(param1,"white",l) == 0)
-        {
-            auctionbot.Commands(7, ahMapID, AHB_WHITE, param2);
-        }
-        else if (strncmp(param1,"green",l) == 0)
-        {
-            auctionbot.Commands(7, ahMapID, AHB_GREEN, param2);
-        }
-        else if (strncmp(param1,"blue",l) == 0)
-        {
-            auctionbot.Commands(7, ahMapID, AHB_BLUE, param2);
-        }
-        else if (strncmp(param1,"purple",l) == 0)
-        {
-            auctionbot.Commands(7, ahMapID, AHB_PURPLE, param2);
-        }
-        else if (strncmp(param1,"orange",l) == 0)
-        {
-            auctionbot.Commands(7, ahMapID, AHB_ORANGE, param2);
-        }
-        else if (strncmp(param1,"yellow",l) == 0)
-        {
-            auctionbot.Commands(7, ahMapID, AHB_YELLOW, param2);
-        }
-        else
-        {
-            PSendSysMessage("Syntax is: ahbotoptions maxprice $ahMapID (2, 6 or 7) $color (grey, white, green, blue, purple, orange or yellow) $price");
-            return false;
-        }
-    }
-    else if (strncmp(opt,"minbidprice",l) == 0)
-    {
-        char * param1 = strtok(NULL, " ");
-        char * param2 = strtok(NULL, " ");
-        if ((!ahMapIdStr) || (!param1) || (!param2))
-        {
-            PSendSysMessage("Syntax is: ahbotoptions minbidprice $ahMapID (2, 6 or 7) $color (grey, white, green, blue, purple, orange or yellow) $price");
-            return false;
-        }
-        uint32 minBidPrice = (uint32) strtoul(param2, NULL, 0);
-        if ((minBidPrice < 1) || (minBidPrice > 100))
-        {
-            PSendSysMessage("The min bid price multiplier must be between 1 and 100");
-            return false;
-        }
-        if (strncmp(param1,"grey",l) == 0)
-        {
-            auctionbot.Commands(8, ahMapID, AHB_GREY, param2);
-        }
-        else if (strncmp(param1,"white",l) == 0)
-        {
-            auctionbot.Commands(8, ahMapID, AHB_WHITE, param2);
-        }
-        else if (strncmp(param1,"green",l) == 0)
-        {
-            auctionbot.Commands(8, ahMapID, AHB_GREEN, param2);
-        }
-        else if (strncmp(param1,"blue",l) == 0)
-        {
-            auctionbot.Commands(8, ahMapID, AHB_BLUE, param2);
-        }
-        else if (strncmp(param1,"purple",l) == 0)
-        {
-            auctionbot.Commands(8, ahMapID, AHB_PURPLE, param2);
-        }
-        else if (strncmp(param1,"orange",l) == 0)
-        {
-            auctionbot.Commands(8, ahMapID, AHB_ORANGE, param2);
-        }
-        else if (strncmp(param1,"yellow",l) == 0)
-        {
-            auctionbot.Commands(8, ahMapID, AHB_YELLOW, param2);
-        }
-        else
-        {
-            PSendSysMessage("Syntax is: ahbotoptions minbidprice $ahMapID (2, 6 or 7) $color (grey, white, green, blue, purple, orange or yellow) $price");
-            return false;
-        }
-    }
-    else if (strncmp(opt,"maxbidprice",l) == 0)
-    {
-        char * param1 = strtok(NULL, " ");
-        char * param2 = strtok(NULL, " ");
-        if ((!ahMapIdStr) || (!param1) || (!param2))
-        {
-            PSendSysMessage("Syntax is: ahbotoptions maxbidprice $ahMapID (2, 6 or 7) $color (grey, white, green, blue, purple, orange or yellow) $price");
-            return false;
-        }
-        uint32 maxBidPrice = (uint32) strtoul(param2, NULL, 0);
-        if ((maxBidPrice < 1) || (maxBidPrice > 100))
-        {
-            PSendSysMessage("The max bid price multiplier must be between 1 and 100");
-            return false;
-        }
-        if (strncmp(param1,"grey",l) == 0)
-        {
-            auctionbot.Commands(9, ahMapID, AHB_GREY, param2);
-        }
-        else if (strncmp(param1,"white",l) == 0)
-        {
-            auctionbot.Commands(9, ahMapID, AHB_WHITE, param2);
-        }
-        else if (strncmp(param1,"green",l) == 0)
-        {
-            auctionbot.Commands(9, ahMapID, AHB_GREEN, param2);
-        }
-        else if (strncmp(param1,"blue",l) == 0)
-        {
-            auctionbot.Commands(9, ahMapID, AHB_BLUE, param2);
-        }
-        else if (strncmp(param1,"purple",l) == 0)
-        {
-            auctionbot.Commands(9, ahMapID, AHB_PURPLE, param2);
-        }
-        else if (strncmp(param1,"orange",l) == 0)
-        {
-            auctionbot.Commands(9, ahMapID, AHB_ORANGE, param2);
-        }
-        else if (strncmp(param1,"yellow",l) == 0)
-        {
-            auctionbot.Commands(9, ahMapID, AHB_YELLOW, param2);
-        }
-        else
-        {
-            PSendSysMessage("Syntax is: ahbotoptions max bidprice $ahMapID (2, 6 or 7) $color (grey, white, green, blue, purple, orange or yellow) $price");
-            return false;
-        }
-    }
-    else if (strncmp(opt,"maxstack",l) == 0)
-    {
-        char * param1 = strtok(NULL, " ");
-        char * param2 = strtok(NULL, " ");
-        if ((!ahMapIdStr) || (!param1) || (!param2))
-        {
-            PSendSysMessage("Syntax is: ahbotoptions maxstack $ahMapID (2, 6 or 7) $color (grey, white, green, blue, purple, orange or yellow) $value");
-            return false;
-        }
-        uint32 maxStack = (uint32) strtoul(param2, NULL, 0);
-        if (maxStack < 0)
-        {
-            PSendSysMessage("maxstack can't be a negative number.");
-            return false;
-        }
-        if (strncmp(param1,"grey",l) == 0)
-        {
-            auctionbot.Commands(10, ahMapID, AHB_GREY, param2);
-        }
-        else if (strncmp(param1,"white",l) == 0)
-        {
-            auctionbot.Commands(10, ahMapID, AHB_WHITE, param2);
-        }
-        else if (strncmp(param1,"green",l) == 0)
-        {
-            auctionbot.Commands(10, ahMapID, AHB_GREEN, param2);
-        }
-        else if (strncmp(param1,"blue",l) == 0)
-        {
-            auctionbot.Commands(10, ahMapID, AHB_BLUE, param2);
-        }
-        else if (strncmp(param1,"purple",l) == 0)
-        {
-            auctionbot.Commands(10, ahMapID, AHB_PURPLE, param2);
-        }
-        else if (strncmp(param1,"orange",l) == 0)
-        {
-            auctionbot.Commands(10, ahMapID, AHB_ORANGE, param2);
-        }
-        else if (strncmp(param1,"yellow",l) == 0)
-        {
-            auctionbot.Commands(10, ahMapID, AHB_YELLOW, param2);
-        }
-        else
-        {
-            PSendSysMessage("Syntax is: ahbotoptions maxstack $ahMapID (2, 6 or 7) $color (grey, white, green, blue, purple, orange or yellow) $value");
-            return false;
-        }
-    }
-    else if (strncmp(opt,"buyerprice",l) == 0)
-    {
-        char * param1 = strtok(NULL, " ");
-        char * param2 = strtok(NULL, " ");
-        if ((!ahMapIdStr) || (!param1) || (!param2))
-        {
-            PSendSysMessage("Syntax is: ahbotoptions buyerprice $ahMapID (2, 6 or 7) $color (grey, white, green, blue or purple) $price");
-            return false;
-        }
-        if (strncmp(param1,"grey",l) == 0)
-        {
-            auctionbot.Commands(11, ahMapID, AHB_GREY, param2);
-        }
-        else if (strncmp(param1,"white",l) == 0)
-        {
-            auctionbot.Commands(11, ahMapID, AHB_WHITE, param2);
-        }
-        else if (strncmp(param1,"green",l) == 0)
-        {
-            auctionbot.Commands(11, ahMapID, AHB_GREEN, param2);
-        }
-        else if (strncmp(param1,"blue",l) == 0)
-        {
-            auctionbot.Commands(11, ahMapID, AHB_BLUE, param2);
-        }
-        else if (strncmp(param1,"purple",l) == 0)
-        {
-            auctionbot.Commands(11, ahMapID, AHB_PURPLE, param2);
-        }
-        else if (strncmp(param1,"orange",l) == 0)
-        {
-            auctionbot.Commands(11, ahMapID, AHB_ORANGE, param2);
-        }
-        else if (strncmp(param1,"yellow",l) == 0)
-        {
-            auctionbot.Commands(11, ahMapID, AHB_YELLOW, param2);
-        }
-        else
-        {
-            PSendSysMessage("Syntax is: ahbotoptions buyerprice $ahMapID (2, 6 or 7) $color (grey, white, green, blue or purple) $price");
-            return false;
-        }
-    }
-    else if (strncmp(opt,"bidinterval",l) == 0)
-    {
-        char * param1 = strtok(NULL, " ");
-        if ((!ahMapIdStr) || (!param1))
-        {
-            PSendSysMessage("Syntax is: ahbotoptions bidinterval $ahMapID (2, 6 or 7) $interval(in minutes)");
-            return false;
-        }
-        auctionbot.Commands(12, ahMapID, NULL, param1);
-    }
-    else if (strncmp(opt,"bidsperinterval",l) == 0)
-    {
-        char * param1 = strtok(NULL, " ");
-        if ((!ahMapIdStr) || (!param1))
-        {
-            PSendSysMessage("Syntax is: ahbotoptions bidsperinterval $ahMapID (2, 6 or 7) $bids");
-            return false;
-        }
-        auctionbot.Commands(13, ahMapID, NULL, param1);
-    }
-    else
-    {
-        PSendSysMessage("Syntax is: ahbotoptions $option $ahMapID (2, 6 or 7) $parameter");
-        PSendSysMessage("Try ahbotoptions help to see a list of options.");
-        return false;
-    }
-    return true;
-}
 
 //reload commands
 bool ChatHandler::HandleReloadAllCommand(char* /*args*/)
@@ -598,7 +128,7 @@ bool ChatHandler::HandleReloadAllQuestCommand(char* /*args*/)
 
 bool ChatHandler::HandleReloadAllScriptsCommand(char* /*args*/)
 {
-    if (sWorld.IsScriptScheduled())
+    if (sScriptMgr.IsScriptScheduled())
     {
         PSendSysMessage("DB scripts used currently, please attempt reload later.");
         SetSentErrorMessage(true);
@@ -760,7 +290,7 @@ bool ChatHandler::HandleReloadGossipMenuOptionCommand(char* /*args*/)
 
 bool ChatHandler::HandleReloadGossipScriptsCommand(char* args)
 {
-    if (sWorld.IsScriptScheduled())
+    if (sScriptMgr.IsScriptScheduled())
     {
         SendSysMessage("DB scripts used currently, please attempt reload later.");
         SetSentErrorMessage(true);
@@ -770,7 +300,7 @@ bool ChatHandler::HandleReloadGossipScriptsCommand(char* args)
     if (*args!='a')
         sLog.outString( "Re-Loading Scripts from `gossip_scripts`...");
 
-    sObjectMgr.LoadGossipScripts();
+    sScriptMgr.LoadGossipScripts();
 
     if (*args!='a')
         SendGlobalSysMessage("DB table `gossip_scripts` reloaded.");
@@ -933,8 +463,16 @@ bool ChatHandler::HandleReloadMangosStringCommand(char* /*args*/)
 bool ChatHandler::HandleReloadNpcGossipCommand(char* /*args*/)
 {
     sLog.outString( "Re-Loading `npc_gossip` Table!" );
-    sObjectMgr.LoadNpcTextId();
+    sObjectMgr.LoadNpcGossips();
     SendGlobalSysMessage("DB table `npc_gossip` reloaded.");
+    return true;
+}
+
+bool ChatHandler::HandleReloadNpcTextCommand(char* /*args*/)
+{
+    sLog.outString( "Re-Loading `npc_text` Table!" );
+    sObjectMgr.LoadGossipText();
+    SendGlobalSysMessage("DB table `npc_text` reloaded.");
     return true;
 }
 
@@ -1165,7 +703,7 @@ bool ChatHandler::HandleReloadBattleEventCommand(char* /*args*/)
 
 bool ChatHandler::HandleReloadGameObjectScriptsCommand(char* args)
 {
-    if (sWorld.IsScriptScheduled())
+    if (sScriptMgr.IsScriptScheduled())
     {
         SendSysMessage("DB scripts used currently, please attempt reload later.");
         SetSentErrorMessage(true);
@@ -1175,7 +713,7 @@ bool ChatHandler::HandleReloadGameObjectScriptsCommand(char* args)
     if (*args!='a')
         sLog.outString( "Re-Loading Scripts from `gameobject_scripts`...");
 
-    sObjectMgr.LoadGameObjectScripts();
+    sScriptMgr.LoadGameObjectScripts();
 
     if (*args!='a')
         SendGlobalSysMessage("DB table `gameobject_scripts` reloaded.");
@@ -1185,7 +723,7 @@ bool ChatHandler::HandleReloadGameObjectScriptsCommand(char* args)
 
 bool ChatHandler::HandleReloadEventScriptsCommand(char* args)
 {
-    if(sWorld.IsScriptScheduled())
+    if (sScriptMgr.IsScriptScheduled())
     {
         SendSysMessage("DB scripts used currently, please attempt reload later.");
         SetSentErrorMessage(true);
@@ -1195,7 +733,7 @@ bool ChatHandler::HandleReloadEventScriptsCommand(char* args)
     if (*args!='a')
         sLog.outString( "Re-Loading Scripts from `event_scripts`...");
 
-    sObjectMgr.LoadEventScripts();
+    sScriptMgr.LoadEventScripts();
 
     if (*args!='a')
         SendGlobalSysMessage("DB table `event_scripts` reloaded.");
@@ -1230,7 +768,7 @@ bool ChatHandler::HandleReloadEventAIScriptsCommand(char* /*args*/)
 
 bool ChatHandler::HandleReloadQuestEndScriptsCommand(char* args)
 {
-    if (sWorld.IsScriptScheduled())
+    if (sScriptMgr.IsScriptScheduled())
     {
         SendSysMessage("DB scripts used currently, please attempt reload later.");
         SetSentErrorMessage(true);
@@ -1240,7 +778,7 @@ bool ChatHandler::HandleReloadQuestEndScriptsCommand(char* args)
     if (*args != 'a')
         sLog.outString( "Re-Loading Scripts from `quest_end_scripts`...");
 
-    sObjectMgr.LoadQuestEndScripts();
+    sScriptMgr.LoadQuestEndScripts();
 
     if (*args != 'a')
         SendGlobalSysMessage("DB table `quest_end_scripts` reloaded.");
@@ -1250,7 +788,7 @@ bool ChatHandler::HandleReloadQuestEndScriptsCommand(char* args)
 
 bool ChatHandler::HandleReloadQuestStartScriptsCommand(char* args)
 {
-    if (sWorld.IsScriptScheduled())
+    if (sScriptMgr.IsScriptScheduled())
     {
         SendSysMessage("DB scripts used currently, please attempt reload later.");
         SetSentErrorMessage(true);
@@ -1260,7 +798,7 @@ bool ChatHandler::HandleReloadQuestStartScriptsCommand(char* args)
     if (*args != 'a')
         sLog.outString( "Re-Loading Scripts from `quest_start_scripts`...");
 
-    sObjectMgr.LoadQuestStartScripts();
+    sScriptMgr.LoadQuestStartScripts();
 
     if (*args != 'a')
         SendGlobalSysMessage("DB table `quest_start_scripts` reloaded.");
@@ -1270,7 +808,7 @@ bool ChatHandler::HandleReloadQuestStartScriptsCommand(char* args)
 
 bool ChatHandler::HandleReloadSpellScriptsCommand(char* args)
 {
-    if (sWorld.IsScriptScheduled())
+    if (sScriptMgr.IsScriptScheduled())
     {
         SendSysMessage("DB scripts used currently, please attempt reload later.");
         SetSentErrorMessage(true);
@@ -1280,7 +818,7 @@ bool ChatHandler::HandleReloadSpellScriptsCommand(char* args)
     if (*args != 'a')
         sLog.outString( "Re-Loading Scripts from `spell_scripts`...");
 
-    sObjectMgr.LoadSpellScripts();
+    sScriptMgr.LoadSpellScripts();
 
     if (*args != 'a')
         SendGlobalSysMessage("DB table `spell_scripts` reloaded.");
@@ -1291,7 +829,7 @@ bool ChatHandler::HandleReloadSpellScriptsCommand(char* args)
 bool ChatHandler::HandleReloadDbScriptStringCommand(char* /*args*/)
 {
     sLog.outString( "Re-Loading Script strings from `db_script_string`...");
-    sObjectMgr.LoadDbScriptStrings();
+    sScriptMgr.LoadDbScriptStrings();
     SendGlobalSysMessage("DB table `db_script_string` reloaded.");
     return true;
 }
@@ -1361,7 +899,7 @@ bool ChatHandler::HandleReloadLocalesItemCommand(char* /*args*/)
 bool ChatHandler::HandleReloadLocalesNpcTextCommand(char* /*args*/)
 {
     sLog.outString( "Re-Loading Locales NPC Text ... ");
-    sObjectMgr.LoadNpcTextLocales();
+    sObjectMgr.LoadGossipTextLocales();
     SendGlobalSysMessage("DB table `locales_npc_text` reloaded.");
     return true;
 }
@@ -1422,10 +960,26 @@ bool ChatHandler::HandleReloadAntiCheatCommand(char* /*arg*/)
 
 bool ChatHandler::HandleLoadScriptsCommand(char* args)
 {
-    if (!LoadScriptingModule(args))
-        return true;
+    if (!*args)
+        return false;
 
-    sWorld.SendWorldText(LANG_SCRIPTS_RELOADED);
+    switch(sScriptMgr.LoadScriptLibrary(args))
+    {
+        case SCRIPT_LOAD_OK:
+            sWorld.SendWorldText(LANG_SCRIPTS_RELOADED_ANNOUNCE);
+            SendSysMessage(LANG_SCRIPTS_RELOADED_OK);
+            break;
+        case SCRIPT_LOAD_ERR_NOT_FOUND:
+            SendSysMessage(LANG_SCRIPTS_NOT_FOUND);
+            break;
+        case SCRIPT_LOAD_ERR_WRONG_API:
+            SendSysMessage(LANG_SCRIPTS_WRONG_API);
+            break;
+        case SCRIPT_LOAD_ERR_OUTDATED:
+            SendSysMessage(LANG_SCRIPTS_OUTDATED);
+            break;
+    }
+
     return true;
 }
 
@@ -1722,7 +1276,7 @@ bool ChatHandler::HandleAchievementCriteriaAddCommand(char* args)
         return false;
 
     uint32 new_val;
-    
+
     if (maxValue)
         new_val = progress < maxValue && maxValue - progress > val ? progress + val : maxValue;
     else
@@ -4328,7 +3882,7 @@ bool ChatHandler::HandleAuraCommand(char* args)
     if (!spellInfo)
         return false;
 
-    if (!IsSpellAppliesAura(spellInfo, (1 << EFFECT_INDEX_0) | (1 << EFFECT_INDEX_1) | (1 << EFFECT_INDEX_2)) &&
+    if (!IsSpellAppliesAura(spellInfo) &&
         !IsSpellHaveEffect(spellInfo, SPELL_EFFECT_PERSISTENT_AREA_AURA))
     {
         PSendSysMessage(LANG_SPELL_NO_HAVE_AURAS, spellID);
@@ -4560,7 +4114,7 @@ bool ChatHandler::HandleNpcInfoCommand(char* /*args*/)
     std::string curRespawnDelayStr = secsToTimeString(curRespawnDelay,true);
     std::string defRespawnDelayStr = secsToTimeString(target->GetRespawnDelay(),true);
 
-    PSendSysMessage(LANG_NPCINFO_CHAR,  target->GetDBTableGUIDLow(), faction, npcflags, Entry, displayid, nativeid);
+    PSendSysMessage(LANG_NPCINFO_CHAR,  target->GetGUIDLow(), faction, npcflags, Entry, displayid, nativeid);
 
     if (cInfo->VehicleId)
         PSendSysMessage("VehicleId: %u", cInfo->VehicleId);
@@ -4582,7 +4136,7 @@ bool ChatHandler::HandleNpcInfoCommand(char* /*args*/)
         SendSysMessage(LANG_NPCINFO_TRAINER);
     }
 
-    ShowNpcOrGoSpawnInformation<Creature>(target->GetDBTableGUIDLow());
+    ShowNpcOrGoSpawnInformation<Creature>(target->GetGUIDLow());
     return true;
 }
 
@@ -5084,7 +4638,7 @@ bool ChatHandler::HandleListAurasCommand (char* /*args*/)
     for (Unit::SpellAuraHolderMap::const_iterator itr = uAuras.begin(); itr != uAuras.end(); ++itr)
     {
         bool talent = GetTalentSpellCost(itr->second->GetId()) > 0;
-        
+
         SpellAuraHolder *holder = itr->second;
         char const* name = holder->GetSpellProto()->SpellName[GetSessionDbcLocale()];
 
@@ -5093,7 +4647,7 @@ bool ChatHandler::HandleListAurasCommand (char* /*args*/)
             Aura *aur = holder->GetAuraByEffectIndex(SpellEffectIndex(i));
             if (!aur)
                 continue;
-            
+
             if (m_session)
             {
                 std::ostringstream ss_name;
@@ -5204,9 +4758,9 @@ bool ChatHandler::HandleResetHonorCommand(char* args)
     if (!ExtractPlayerTarget(&args, &target))
         return false;
 
+    target->SetHonorPoints(0);
     target->SetUInt32Value(PLAYER_FIELD_KILLS, 0);
     target->SetUInt32Value(PLAYER_FIELD_LIFETIME_HONORBALE_KILLS, 0);
-    target->SetUInt32Value(PLAYER_FIELD_HONOR_CURRENCY, 0);
     target->SetUInt32Value(PLAYER_FIELD_TODAY_CONTRIBUTION, 0);
     target->SetUInt32Value(PLAYER_FIELD_YESTERDAY_CONTRIBUTION, 0);
     target->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_EARN_HONORABLE_KILL);
@@ -6707,13 +6261,13 @@ bool ChatHandler::HandleInstanceListBindsCommand(char* /*args*/)
         Player::BoundInstancesMap &binds = player->GetBoundInstances(Difficulty(i));
         for(Player::BoundInstancesMap::const_iterator itr = binds.begin(); itr != binds.end(); ++itr)
         {
-            InstanceSave *save = itr->second.save;
-            std::string timeleft = secsToTimeString(save->GetResetTime() - time(NULL), true);
+            DungeonPersistentState *state = itr->second.state;
+            std::string timeleft = secsToTimeString(state->GetResetTime() - time(NULL), true);
             if (const MapEntry* entry = sMapStore.LookupEntry(itr->first))
             {
                 PSendSysMessage("map: %d (%s) inst: %d perm: %s diff: %d canReset: %s TTR: %s",
-                    itr->first, entry->name[GetSessionDbcLocale()], save->GetInstanceId(), itr->second.perm ? "yes" : "no",
-                    save->GetDifficulty(), save->CanReset() ? "yes" : "no", timeleft.c_str());
+                    itr->first, entry->name[GetSessionDbcLocale()], state->GetInstanceId(), itr->second.perm ? "yes" : "no",
+                    state->GetDifficulty(), state->CanReset() ? "yes" : "no", timeleft.c_str());
             }
             else
                 PSendSysMessage("bound for a nonexistent map %u", itr->first);
@@ -6722,21 +6276,21 @@ bool ChatHandler::HandleInstanceListBindsCommand(char* /*args*/)
     }
     PSendSysMessage("player binds: %d", counter);
     counter = 0;
-    Group *group = player->GetGroup();
-    if(group)
+
+    if (Group *group = player->GetGroup())
     {
         for(uint8 i = 0; i < MAX_DIFFICULTY; ++i)
         {
             Group::BoundInstancesMap &binds = group->GetBoundInstances(Difficulty(i));
             for(Group::BoundInstancesMap::const_iterator itr = binds.begin(); itr != binds.end(); ++itr)
             {
-                InstanceSave *save = itr->second.save;
-                std::string timeleft = secsToTimeString(save->GetResetTime() - time(NULL), true);
+                DungeonPersistentState *state = itr->second.state;
+                std::string timeleft = secsToTimeString(state->GetResetTime() - time(NULL), true);
                 if (const MapEntry* entry = sMapStore.LookupEntry(itr->first))
                 {
                     PSendSysMessage("map: %d (%s) inst: %d perm: %s diff: %d canReset: %s TTR: %s",
-                        itr->first, entry->name[GetSessionDbcLocale()], save->GetInstanceId(), itr->second.perm ? "yes" : "no",
-                        save->GetDifficulty(), save->CanReset() ? "yes" : "no", timeleft.c_str());
+                        itr->first, entry->name[GetSessionDbcLocale()], state->GetInstanceId(), itr->second.perm ? "yes" : "no",
+                        state->GetDifficulty(), state->CanReset() ? "yes" : "no", timeleft.c_str());
                 }
                 else
                     PSendSysMessage("bound for a nonexistent map %u", itr->first);
@@ -6782,7 +6336,7 @@ bool ChatHandler::HandleInstanceUnbindCommand(char* args)
             }
             if(itr->first != player->GetMapId())
             {
-                InstanceSave *save = itr->second.save;
+                DungeonPersistentState *save = itr->second.state;
                 std::string timeleft = secsToTimeString(save->GetResetTime() - time(NULL), true);
 
                 if (const MapEntry* entry = sMapStore.LookupEntry(itr->first))
@@ -6808,9 +6362,12 @@ bool ChatHandler::HandleInstanceStatsCommand(char* /*args*/)
 {
     PSendSysMessage("instances loaded: %d", sMapMgr.GetNumInstances());
     PSendSysMessage("players in instances: %d", sMapMgr.GetNumPlayersInInstances());
-    PSendSysMessage("instance saves: %d", sInstanceSaveMgr.GetNumInstanceSaves());
-    PSendSysMessage("players bound: %d", sInstanceSaveMgr.GetNumBoundPlayersTotal());
-    PSendSysMessage("groups bound: %d", sInstanceSaveMgr.GetNumBoundGroupsTotal());
+
+    uint32 numSaves, numBoundPlayers, numBoundGroups;
+    sMapPersistentStateMgr.GetStatistics(numSaves, numBoundPlayers, numBoundGroups);
+    PSendSysMessage("instance saves: %d", numSaves);
+    PSendSysMessage("players bound: %d", numBoundPlayers);
+    PSendSysMessage("groups bound: %d", numBoundGroups);
     return true;
 }
 
@@ -6819,21 +6376,16 @@ bool ChatHandler::HandleInstanceSaveDataCommand(char* /*args*/)
     Player* pl = m_session->GetPlayer();
 
     Map* map = pl->GetMap();
-    if (!map->IsDungeon())
-    {
-        PSendSysMessage("Map is not a dungeon.");
-        SetSentErrorMessage(true);
-        return false;
-    }
 
-    if (!((InstanceMap*)map)->GetInstanceData())
+    InstanceData* iData = map->GetInstanceData();
+    if (!iData)
     {
         PSendSysMessage("Map has no instance data.");
         SetSentErrorMessage(true);
         return false;
     }
 
-    ((InstanceMap*)map)->GetInstanceData()->SaveToDB();
+    iData->SaveToDB();
     return true;
 }
 
@@ -6977,16 +6529,9 @@ bool ChatHandler::HandleAccountSetAddonCommand(char* args)
     return true;
 }
 
-//Send items by mail
-bool ChatHandler::HandleSendItemsCommand(char* args)
+bool ChatHandler::HandleSendMailHelper(MailDraft& draft, char* args)
 {
-    // format: name "subject text" "mail text" item1[:count1] item2[:count2] ... item12[:count12]
-    Player* receiver;
-    ObjectGuid receiver_guid;
-    std::string receiver_name;
-    if (!ExtractPlayerTarget(&args, &receiver, &receiver_guid, &receiver_name))
-        return false;
-
+    // format: "subject text" "mail text"
     char* msgSubject = ExtractQuotedArg(&args);
     if (!msgSubject)
         return false;
@@ -6996,8 +6541,51 @@ bool ChatHandler::HandleSendItemsCommand(char* args)
         return false;
 
     // msgSubject, msgText isn't NUL after prev. check
-    std::string subject = msgSubject;
-    std::string text    = msgText;
+    draft.SetSubjectAndBody(msgSubject, msgText);
+
+    return true;
+}
+
+bool ChatHandler::HandleSendMassMailCommand(char* args)
+{
+    // format: raceMask "subject text" "mail text"
+    uint32 raceMask = 0;
+    char const* name = NULL;
+
+    if (!ExtractRaceMask(&args, raceMask, &name))
+        return false;
+
+    // need dynamic object because it trasfered to mass mailer
+    MailDraft* draft = new MailDraft;
+
+    // fill mail
+    if (!HandleSendMailHelper(*draft, args))
+    {
+        delete draft;
+        return false;
+    }
+
+    // from console show nonexistent sender
+    MailSender sender(MAIL_NORMAL, m_session ? m_session->GetPlayer()->GetObjectGuid().GetCounter() : 0, MAIL_STATIONERY_GM);
+
+    sMassMailMgr.AddMassMailTask(draft, sender, raceMask);
+
+    PSendSysMessage(LANG_MAIL_SENT, name);
+    return true;
+}
+
+
+
+bool ChatHandler::HandleSendItemsHelper(MailDraft& draft, char* args)
+{
+    // format: "subject text" "mail text" item1[:count1] item2[:count2] ... item12[:count12]
+    char* msgSubject = ExtractQuotedArg(&args);
+    if (!msgSubject)
+        return false;
+
+    char* msgText = ExtractQuotedArg(&args);
+    if (!msgText)
+        return false;
 
     // extract items
     typedef std::pair<uint32,uint32> ItemPair;
@@ -7052,11 +6640,8 @@ bool ChatHandler::HandleSendItemsCommand(char* args)
         }
     }
 
-    // from console show nonexistent sender
-    MailSender sender(MAIL_NORMAL, m_session ? m_session->GetPlayer()->GetObjectGuid().GetCounter() : 0, MAIL_STATIONERY_GM);
-
     // fill mail
-    MailDraft draft(subject, text);
+    draft.SetSubjectAndBody(msgSubject, msgText);
 
     for(ItemPairs::const_iterator itr = items.begin(); itr != items.end(); ++itr)
     {
@@ -7067,6 +6652,27 @@ bool ChatHandler::HandleSendItemsCommand(char* args)
         }
     }
 
+    return true;
+}
+
+bool ChatHandler::HandleSendItemsCommand(char* args)
+{
+    // format: name "subject text" "mail text" item1[:count1] item2[:count2] ... item12[:count12]
+    Player* receiver;
+    ObjectGuid receiver_guid;
+    std::string receiver_name;
+    if (!ExtractPlayerTarget(&args, &receiver, &receiver_guid, &receiver_name))
+        return false;
+
+    MailDraft draft;
+
+    // fill mail
+    if (!HandleSendItemsHelper(draft, args))
+        return false;
+
+    // from console show nonexistent sender
+    MailSender sender(MAIL_NORMAL, m_session ? m_session->GetPlayer()->GetObjectGuid().GetCounter() : 0, MAIL_STATIONERY_GM);
+
     draft.SendMailTo(MailReceiver(receiver, receiver_guid), sender);
 
     std::string nameLink = playerLink(receiver_name);
@@ -7074,16 +6680,39 @@ bool ChatHandler::HandleSendItemsCommand(char* args)
     return true;
 }
 
-///Send money by mail
-bool ChatHandler::HandleSendMoneyCommand(char* args)
+bool ChatHandler::HandleSendMassItemsCommand(char* args)
 {
-    /// format: name "subject text" "mail text" money
+    // format: racemask "subject text" "mail text" item1[:count1] item2[:count2] ... item12[:count12]
 
-    Player* receiver;
-    ObjectGuid receiver_guid;
-    std::string receiver_name;
-    if (!ExtractPlayerTarget(&args, &receiver, &receiver_guid, &receiver_name))
+    uint32 raceMask = 0;
+    char const* name = NULL;
+
+    if (!ExtractRaceMask(&args, raceMask, &name))
         return false;
+
+    // need dynamic object because it trasfered to mass mailer
+    MailDraft* draft = new MailDraft;
+
+
+    // fill mail
+    if (!HandleSendItemsHelper(*draft, args))
+    {
+        delete draft;
+        return false;
+    }
+
+    // from console show nonexistent sender
+    MailSender sender(MAIL_NORMAL, m_session ? m_session->GetPlayer()->GetObjectGuid().GetCounter() : 0, MAIL_STATIONERY_GM);
+
+    sMassMailMgr.AddMassMailTask(draft, sender, raceMask);
+
+    PSendSysMessage(LANG_MAIL_SENT, name);
+    return true;
+}
+
+bool ChatHandler::HandleSendMoneyHelper(MailDraft& draft, char* args)
+{
+    /// format: "subject text" "mail text" money
 
     char* msgSubject = ExtractQuotedArg(&args);
     if (!msgSubject)
@@ -7101,18 +6730,63 @@ bool ChatHandler::HandleSendMoneyCommand(char* args)
         return false;
 
     // msgSubject, msgText isn't NUL after prev. check
-    std::string subject = msgSubject;
-    std::string text    = msgText;
+    draft.SetSubjectAndBody(msgSubject, msgText).SetMoney(money);
+
+    return true;
+}
+
+bool ChatHandler::HandleSendMoneyCommand(char* args)
+{
+    /// format: name "subject text" "mail text" money
+
+    Player* receiver;
+    ObjectGuid receiver_guid;
+    std::string receiver_name;
+    if (!ExtractPlayerTarget(&args, &receiver, &receiver_guid, &receiver_name))
+        return false;
+
+    MailDraft draft;
+
+    // fill mail
+    if (!HandleSendMoneyHelper(draft, args))
+        return false;
 
     // from console show nonexistent sender
     MailSender sender(MAIL_NORMAL, m_session ? m_session->GetPlayer()->GetObjectGuid().GetCounter() : 0, MAIL_STATIONERY_GM);
 
-    MailDraft(subject, text)
-        .AddMoney(money)
-        .SendMailTo(MailReceiver(receiver, receiver_guid),sender);
+    draft.SendMailTo(MailReceiver(receiver, receiver_guid),sender);
 
     std::string nameLink = playerLink(receiver_name);
     PSendSysMessage(LANG_MAIL_SENT, nameLink.c_str());
+    return true;
+}
+
+bool ChatHandler::HandleSendMassMoneyCommand(char* args)
+{
+    /// format: raceMask "subject text" "mail text" money
+
+    uint32 raceMask = 0;
+    char const* name = NULL;
+
+    if (!ExtractRaceMask(&args, raceMask, &name))
+        return false;
+
+    // need dynamic object because it trasfered to mass mailer
+    MailDraft* draft = new MailDraft;
+
+    // fill mail
+    if (!HandleSendMoneyHelper(*draft, args))
+    {
+        delete draft;
+        return false;
+    }
+
+    // from console show nonexistent sender
+    MailSender sender(MAIL_NORMAL, m_session ? m_session->GetPlayer()->GetObjectGuid().GetCounter() : 0, MAIL_STATIONERY_GM);
+
+    sMassMailMgr.AddMassMailTask(draft, sender, raceMask);
+
+    PSendSysMessage(LANG_MAIL_SENT, name);
     return true;
 }
 
@@ -7212,4 +6886,142 @@ bool ChatHandler::HandleModifyGenderCommand(char *args)
         ChatHandler(player).PSendSysMessage(LANG_YOUR_GENDER_CHANGED, gender_full, GetNameLink().c_str());
 
     return true;
+}
+
+bool ChatHandler::HandleMmap(char* args)
+{
+    bool on;
+    if (ExtractOnOff(&args, on))
+    {
+        if (on)
+        {
+            sWorld.setConfig(CONFIG_BOOL_MMAP_ENABLED, true);
+            SendSysMessage("WORLD: mmaps are now ENABLED (individual map settings still in effect)");
+        }
+        else
+        {
+            sWorld.setConfig(CONFIG_BOOL_MMAP_ENABLED, false);
+            SendSysMessage("WORLD: mmaps are now DISABLED");
+        }
+        return true;
+    }
+
+    on = sWorld.getConfig(CONFIG_BOOL_MMAP_ENABLED);
+    PSendSysMessage("mmaps are %sabled", on ? "en" : "dis");
+
+    return true;
+}
+
+bool ChatHandler::HandleMmapTestArea(char* args)
+{
+    float radius = 40.0f;
+    ExtractFloat(&args, radius);
+
+    CellPair pair(MaNGOS::ComputeCellPair( m_session->GetPlayer()->GetPositionX(), m_session->GetPlayer()->GetPositionY()) );
+    Cell cell(pair);
+    cell.SetNoCreate();
+
+    std::list<Creature*> creatureList;
+
+    MaNGOS::AnyUnitInObjectRangeCheck go_check(m_session->GetPlayer(), radius);
+    MaNGOS::CreatureListSearcher<MaNGOS::AnyUnitInObjectRangeCheck> go_search(creatureList, go_check);
+    TypeContainerVisitor<MaNGOS::CreatureListSearcher<MaNGOS::AnyUnitInObjectRangeCheck>, GridTypeMapContainer> go_visit(go_search);
+
+    // Get Creatures
+    cell.Visit(pair, go_visit, *(m_session->GetPlayer()->GetMap()), *(m_session->GetPlayer()), radius);
+
+    if (!creatureList.empty())
+    {
+        PSendSysMessage("Found %i Creatures.", creatureList.size());
+
+        uint32 paths = 0;
+        uint32 uStartTime = WorldTimer::getMSTime();
+
+        float gx,gy,gz;
+        m_session->GetPlayer()->GetPosition(gx,gy,gz);
+        for (std::list<Creature*>::iterator itr = creatureList.begin(); itr != creatureList.end(); ++itr)
+        {
+            PathInfo((*itr), gx, gy, gz);
+            ++paths;
+        }
+
+        uint32 uPathLoadTime = WorldTimer::getMSTimeDiff(uStartTime, WorldTimer::getMSTime());
+        PSendSysMessage("Generated %i paths in %i ms", paths, uPathLoadTime);
+    }
+    else
+    {
+        PSendSysMessage("No creatures in %f yard range.", radius);
+    }
+
+    return true;
+}
+
+// Set friends for account
+bool ChatHandler::HandleAccountFriendAddCommand(char* args)
+{
+    ///- Get the command line arguments
+    std::string account_name;
+    uint32 targetAccountId = ExtractAccountId(&args, &account_name);
+
+    if (!targetAccountId)
+        return false;
+
+    std::string account_friend_name;
+    uint32 friendAccountId = ExtractAccountId(&args, &account_friend_name);
+
+    if (!friendAccountId)
+        return false;
+
+    AccountOpResult result = sAccountMgr.AddRAFLink(targetAccountId, friendAccountId);
+
+    switch(result)
+    {
+        case AOR_OK:
+            SendSysMessage(LANG_COMMAND_FRIEND);
+            break;
+        default:
+            SendSysMessage(LANG_COMMAND_FRIEND_ERROR);
+            SetSentErrorMessage(true);
+            return false;
+    }
+
+    return true;
+}
+
+// Delete friends for account
+bool ChatHandler::HandleAccountFriendDeleteCommand(char* args)
+{
+    ///- Get the command line arguments
+    std::string account_name;
+    uint32 targetAccountId = ExtractAccountId(&args, &account_name);
+
+    if (!targetAccountId)
+        return false;
+
+    std::string account_friend_name;
+    uint32 friendAccountId = ExtractAccountId(&args, &account_friend_name);
+
+    if (!friendAccountId)
+        return false;
+
+    AccountOpResult result = sAccountMgr.DeleteRAFLink(targetAccountId, friendAccountId);
+
+    switch(result)
+    {
+        case AOR_OK:
+            SendSysMessage(LANG_COMMAND_FRIEND);
+            break;
+        default:
+            SendSysMessage(LANG_COMMAND_FRIEND_ERROR);
+            SetSentErrorMessage(true);
+            return false;
+    }
+
+    return true;
+}
+
+// List friends for account
+bool ChatHandler::HandleAccountFriendListCommand(char* args)
+{
+    return false;
 }

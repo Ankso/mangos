@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@ class ChatHandler;
 class WorldSession;
 class WorldPacket;
 class GMTicket;
+class MailDraft;
 class Object;
 class GameObject;
 class Creature;
@@ -134,6 +135,10 @@ class ChatHandler
         bool HandleAccountSetGmLevelCommand(char* args);
         bool HandleAccountSetPasswordCommand(char* args);
 
+        bool HandleAccountFriendAddCommand(char* args);
+        bool HandleAccountFriendDeleteCommand(char* args);
+        bool HandleAccountFriendListCommand(char* args);
+
         bool HandleAuctionAllianceCommand(char* args);
         bool HandleAuctionGoblinCommand(char* args);
         bool HandleAuctionHordeCommand(char* args);
@@ -190,6 +195,7 @@ class ChatHandler
         bool HandleDebugSetItemValueCommand(char* args);
         bool HandleDebugSetValueCommand(char* args);
         bool HandleDebugSpellCheckCommand(char* args);
+        bool HandleDebugSpellCoefsCommand(char* args);
         bool HandleDebugSpellModsCommand(char* args);
         bool HandleDebugUpdateWorldStateCommand(char* args);
         bool HandleDebugSendCalendarResultCommand(char* args);
@@ -290,6 +296,7 @@ class ChatHandler
         bool HandleLookupPlayerIpCommand(char* args);
         bool HandleLookupPlayerAccountCommand(char* args);
         bool HandleLookupPlayerEmailCommand(char* args);
+        bool HandleLookupPoolCommand(char* args);
         bool HandleLookupQuestCommand(char* args);
         bool HandleLookupSkillCommand(char* args);
         bool HandleLookupSpellCommand(char* args);
@@ -342,6 +349,7 @@ class ChatHandler
         bool HandleNpcSetPhaseCommand(char* args);
         bool HandleNpcSpawnDistCommand(char* args);
         bool HandleNpcSpawnTimeCommand(char* args);
+        bool HandleNpcTameCommand(char* args);
         bool HandleNpcTextEmoteCommand(char* args);
         bool HandleNpcUnFollowCommand(char* args);
         bool HandleNpcWhisperCommand(char* args);
@@ -355,6 +363,10 @@ class ChatHandler
 
         bool HandlePDumpLoadCommand(char *args);
         bool HandlePDumpWriteCommand(char *args);
+
+        bool HandlePoolListCommand(char* args);
+        bool HandlePoolSpawnsCommand(char* args);
+        bool HandlePoolInfoCommand(char* args);
 
         bool HandleQuestAddCommand(char* args);
         bool HandleQuestRemoveCommand(char* args);
@@ -423,6 +435,7 @@ class ChatHandler
         bool HandleReloadMailLevelRewardCommand(char* args);
         bool HandleReloadMangosStringCommand(char* args);
         bool HandleReloadNpcGossipCommand(char* args);
+        bool HandleReloadNpcTextCommand(char* args);
         bool HandleReloadNpcTrainerCommand(char* args);
         bool HandleReloadNpcVendorCommand(char* args);
         bool HandleReloadPageTextsCommand(char* args);
@@ -467,6 +480,10 @@ class ChatHandler
         bool HandleSendMailCommand(char* args);
         bool HandleSendMessageCommand(char* args);
         bool HandleSendMoneyCommand(char* args);
+
+        bool HandleSendMassItemsCommand(char* args);
+        bool HandleSendMassMailCommand(char* args);
+        bool HandleSendMassMoneyCommand(char* args);
 
         bool HandleServerCorpsesCommand(char* args);
         bool HandleServerExitCommand(char* args);
@@ -524,6 +541,7 @@ class ChatHandler
         bool HandleTaxiCheatCommand(char* args);
         bool HandleWhispersCommand(char* args);
         bool HandleModifyDrunkCommand(char* args);
+        bool HandleSetViewCommand(char* args);
 
         bool HandleLoadScriptsCommand(char* args);
 
@@ -572,6 +590,16 @@ class ChatHandler
         bool HandleWaterwalkCommand(char* args);
         bool HandleQuitCommand(char* args);
 
+        bool HandleMmapPathCommand(char* args);
+        bool HandleMmapLocCommand(char* args);
+        bool HandleMmapLoadedTilesCommand(char* args);
+        bool HandleMmapStatsCommand(char* args);
+        bool HandleMmap(char* args);
+        bool HandleMmapTestArea(char* args);
+
+        // For custom rates per character system
+        bool HandleRatesCommand(char* args);
+
         //! Development Commands
         bool HandleSaveAllCommand(char* args);
 
@@ -608,6 +636,7 @@ class ChatHandler
         ObjectGuid ExtractGuidFromLink(char** text);
         GameTele const* ExtractGameTeleFromLink(char** text);
         bool   ExtractLocationFromLink(char** text, uint32& mapid, float& x, float& y, float& z);
+        bool   ExtractRaceMask(char** text, uint32& raceMask, char const** maskName = NULL);
         std::string ExtractPlayerNameFromLink(char** text);
         bool ExtractPlayerTarget(char** args, Player** player, ObjectGuid* player_guid = NULL, std::string* player_name = NULL);
                                                             // select by arg (name/link) or in-game selection online/offline player
@@ -615,7 +644,7 @@ class ChatHandler
         std::string playerLink(std::string const& name) const { return m_session ? "|cffffffff|Hplayer:"+name+"|h["+name+"]|h|r" : name; }
         std::string GetNameLink(Player* chr) const;
 
-        GameObject* GetObjectGlobalyWithGuidOrNearWithDbGuid(uint32 lowguid,uint32 entry);
+        GameObject* GetGameObjectWithGuid(uint32 lowguid,uint32 entry);
 
         // Utility methods for commands
         bool ShowAccountListHelper(QueryResult* result, uint32* limit = NULL, bool title = true, bool error = true);
@@ -626,6 +655,7 @@ class ChatHandler
         void ShowQuestListHelper(uint32 questId, int32 loc_idx, Player* target = NULL);
         bool ShowPlayerListHelper(QueryResult* result, uint32* limit = NULL, bool title = true, bool error = true);
         void ShowSpellListHelper(Player* target, SpellEntry const* spellInfo, LocaleConstant loc);
+        void ShowPoolListHelper(uint16 pool_id);
         void ShowTicket(GMTicket const* ticket);
         void ShowTriggerListHelper(AreaTriggerEntry const * atEntry);
         void ShowTriggerTargetListHelper(uint32 id, AreaTrigger const* at, bool subpart = false);
@@ -640,6 +670,11 @@ class ChatHandler
         bool HandleGetValueHelper(Object* target, uint32 field, char* typeStr);
         bool HandlerDebugModValueHelper(Object* target, uint32 field, char* typeStr, char* valStr);
         bool HandleSetValueHelper(Object* target, uint32 field, char* typeStr, char* valStr);
+
+        bool HandleSendItemsHelper(MailDraft& draft, char* args);
+        bool HandleSendMailHelper(MailDraft& draft, char* args);
+        bool HandleSendMoneyHelper(MailDraft& draft, char* args);
+
         template<typename T>
         void ShowNpcOrGoSpawnInformation(uint32 guid);
         template <typename T>

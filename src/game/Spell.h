@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -358,6 +358,9 @@ class Spell
         // GO_TYPE_33
         void EffectDamageBuilding(SpellEffectIndex eff_idx);
 
+        //RAF system
+        void EffectFriendSummon(SpellEffectIndex eff_idx);
+
         Spell(Unit* caster, SpellEntry const *info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = NULL);
         ~Spell();
 
@@ -437,7 +440,7 @@ class Spell
         void SendPlaySpellVisual(uint32 SpellID);
 
         void HandleEffects(Unit *pUnitTarget,Item *pItemTarget,GameObject *pGOTarget,SpellEffectIndex i, float DamageMultiplier = 1.0);
-        void HandleThreatSpells(uint32 spellId);
+        void HandleThreatSpells();
         //void HandleAddAura(Unit* Target);
 
         SpellEntry const* m_spellInfo;
@@ -503,7 +506,7 @@ class Spell
         void CleanupTargetList();
         void ClearCastItem();
 
-        static void SelectMountByAreaAndSkill(Unit* target, uint32 spellId75, uint32 spellId150, uint32 spellId225, uint32 spellId300, uint32 spellIdSpecial);
+        static void SelectMountByAreaAndSkill(Unit* target, SpellEntry const* parentSpell, uint32 spellId75, uint32 spellId150, uint32 spellId225, uint32 spellId300, uint32 spellIdSpecial);
     protected:
         bool HasGlobalCooldown();
         void TriggerGlobalCooldown();

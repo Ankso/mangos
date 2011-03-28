@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -403,6 +403,8 @@ bool Item::LoadFromDB(uint32 guidLow, Field *fields, ObjectGuid ownerGuid)
         sLog.outError("Item #%d have broken data in `data` field. Can't be loaded.", guidLow);
         return false;
     }
+
+    SetText(fields[1].GetCppString());
 
     bool need_save = false;                                 // need explicit save data at load fixes
 
@@ -850,10 +852,10 @@ bool Item::IsFitToSpellRequirements(SpellEntry const* spellInfo) const
     ItemPrototype const* proto = GetProto();
 
     // Enchant spells only use Effect[0] (patch 3.3.2)
-    if(proto->IsVellum() && spellInfo->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_ENCHANT_ITEM)
+    if (proto->IsVellum() && spellInfo->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_ENCHANT_ITEM)
     {
         // EffectItemType[0] is the associated scroll itemID, if a scroll can be made
-        if(spellInfo->EffectItemType[EFFECT_INDEX_0] == 0)
+        if (spellInfo->EffectItemType[EFFECT_INDEX_0] == 0)
             return false;
         // Other checks do not apply to vellum enchants, so return final result
         return ((proto->SubClass == ITEM_SUBCLASS_WEAPON_ENCHANTMENT && spellInfo->EquippedItemClass == ITEM_CLASS_WEAPON) ||
@@ -1046,13 +1048,12 @@ void Item::SendTimeUpdate(Player* owner)
 
 Item* Item::CreateItem( uint32 item, uint32 count, Player const* player )
 {
-    if ( count < 1 )
+    if (count < 1)
         return NULL;                                        //don't create item at zero count
 
-    ItemPrototype const *pProto = ObjectMgr::GetItemPrototype( item );
-    if( pProto )
+    if (ItemPrototype const *pProto = ObjectMgr::GetItemPrototype(item))
     {
-        if ( count > pProto->GetMaxStackSize())
+        if (count > pProto->GetMaxStackSize())
             count = pProto->GetMaxStackSize();
 
         MANGOS_ASSERT(count !=0 && "pProto->Stackable==0 but checked at loading already");
@@ -1066,8 +1067,20 @@ Item* Item::CreateItem( uint32 item, uint32 count, Player const* player )
             CharacterDatabase.PExecute( ss.str().c_str() );
         }
         Item *pItem = NewItemOrBag( pProto );
-        if( pItem->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_ITEM), item, player) )
+        if (pItem->Create(sObjectMgr.GenerateItemLowGuid(), item, player) )
         {
+            /** World of Warcraft Armory **/
+            if (sWorld.getConfig(CONFIG_BOOL_ARMORY_SUPPORT))
+            {
+                if (pProto->Quality > 2 && pProto->Flags != 2048 && (pProto->Class == ITEM_CLASS_WEAPON || pProto->Class == ITEM_CLASS_ARMOR) && player)
+                {
+                    std::ostringstream ss;
+                    sLog.outDetail("WoWArmory: write feed log (guid: %u, type: 2, data: %u)", player->GetGUIDLow(), item);
+                    ss << "REPLACE INTO armory_character_feed_log (guid, type, data, date, counter, item_guid) VALUES (" << player->GetGUIDLow() << ", 2, " << item << ", UNIX_TIMESTAMP(NOW()), 1," << pItem->GetGUIDLow()  << ")";
+                    CharacterDatabase.PExecute( ss.str().c_str() );
+                }
+            }
+            /** World of Warcraft Armory **/
             pItem->SetCount( count );
             return pItem;
         }
@@ -1305,5 +1318,38 @@ bool Item::CheckSoulboundTradeExpire()
         return true; // remove from tradeable list
     }
 
+    return false;
+}
+
+bool Item::HasTriggeredByAuraSpell(SpellEntry const* spellInfo) const
+{
+    if (!spellInfo)
+        return false;
+
+    ItemPrototype const* proto = GetProto();
+    if (!proto)
+        return false;
+
+    for (int i = 0; i < MAX_ITEM_PROTO_SPELLS; i++)
+    {
+        _Spell const& spellData = proto->Spells[i];
+
+        // no spell
+        if(!spellData.SpellId)
+            continue;
+
+        // wrong triggering type
+        if(spellData.SpellTrigger != ITEM_SPELLTRIGGER_ON_EQUIP)
+            continue;
+
+        // check if it is valid spell
+        SpellEntry const* spellproto = sSpellStore.LookupEntry(spellData.SpellId);
+        if(!spellproto)
+            continue;
+
+        for (int j = 0; j < MAX_EFFECT_INDEX; j++)
+            if (spellproto->EffectTriggerSpell[j] == spellInfo->Id)
+                return true;
+    }
     return false;
 }

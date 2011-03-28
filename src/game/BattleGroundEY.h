@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,9 @@ class BattleGround;
 
 #define BG_EY_FLAG_RESPAWN_TIME         (10*IN_MILLISECONDS) //10 seconds
 #define BG_EY_FPOINTS_TICK_TIME         (2*IN_MILLISECONDS)  //2 seconds
+#define ILEGAL_POSITION_TIMER           (5*IN_MILLISECONDS)  //5 seconds
+#define MINIMUM_HEIGHT_AT_START         1250.0f
+#define BG_EY_DISTANCE_TO_CAPTURE_FLAG  5.0f
 
 enum BG_EY_WorldStates
 {
@@ -134,6 +137,9 @@ const float BG_EY_NodePositions[BG_EY_NODES_MAX][3] = {
     {2282.121582f, 1760.006958f, 1189.707153f}              // BG_EY_NODE_MAGE_TOWER
 };
 
+// used to check if player is near the Fel Reaver's flag capture point
+const float BG_EY_FelReaverFlagCapturePoint[3] = {2043.875244f, 1729.625366f, 1189.870605f};
+
 enum EYBattleGroundObjectTypes
 {
     //buffs
@@ -232,6 +238,12 @@ const BattleGroundEYCapturingPointStruct CapturingPointTypes[BG_EY_NODES_MAX] =
     BattleGroundEYCapturingPointStruct(LANG_BG_EY_HAS_TAKEN_A_M_TOWER, LANG_BG_EY_HAS_TAKEN_H_M_TOWER, EY_GRAVEYARD_MAGE_TOWER)
 };
 
+const float BG_EY_TeleportingLocs[2][4] =
+{
+    {2522.573730f, 1596.592651f, 1268.835327f, 3.110087f}, // Alliance
+    {1810.632690f, 1539.422241f, 1266.304443f, 0.039179f}  // Horde
+};
+
 class BattleGroundEYScore : public BattleGroundScore
 {
     public:
@@ -297,6 +309,9 @@ class BattleGroundEY : public BattleGround
         void CheckSomeoneJoinedPoint();
         void UpdatePointStatuses();
 
+        /* To allow drop flag on Fel Reaver */
+        void CheckFlagOnFelReaver();
+
         /* Scorekeeping */
         uint32 GetTeamScore(Team team) const { return m_TeamScores[GetTeamIndexByTeamId(team)]; }
         void AddPoints(Team team, uint32 Points);
@@ -325,5 +340,7 @@ class BattleGroundEY : public BattleGround
 
         int32 m_PointAddingTimer;
         uint32 m_HonorTics;
+
+        int32 ilegalPositionTimer;
 };
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #include "Object.h"
 #include "LootMgr.h"
 #include "ItemPrototype.h"
+#include "World.h"
 
 struct SpellEntry;
 class Bag;
@@ -304,6 +305,7 @@ class MANGOS_DLL_SPEC Item : public Object
         bool IsInTrade() const { return mb_in_trade; }
 
         bool IsFitToSpellRequirements(SpellEntry const* spellInfo) const;
+        bool HasTriggeredByAuraSpell(SpellEntry const* spellInfo) const;
         bool IsTargetValidForItemUse(Unit* pUnitTarget);
         bool IsLimitedToAnotherMapOrZone( uint32 cur_mapId, uint32 cur_zoneId) const;
         bool GemsFitSockets() const;

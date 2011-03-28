@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  * This code is based on TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -466,7 +466,7 @@ void WorldSession::SendLfgRoleCheckUpdate(LfgRoleCheck* pRoleCheck)
 
         roles = itPlayers->second;
         //guid = MAKE_NEW_GUID(itPlayers->first, 0, HIGHGUID_PLAYER);
-        ObjectGuid guid =  ObjectGuid(HIGHGUID_PLAYER, 0, itPlayers->first);
+        ObjectGuid guid =  ObjectGuid(HIGHGUID_PLAYER, 0, uint32(itPlayers->first));
         data << guid;                               // Guid
         data << uint8(roles > 0);                           // Ready
         data << uint32(roles);                              // Roles

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
 #include "UpdateData.h"
 #include "LootMgr.h"
 #include "Chat.h"
-#include "ScriptCalls.h"
+#include "ScriptMgr.h"
 #include <zlib/zlib.h>
 #include "ObjectAccessor.h"
 #include "Object.h"
@@ -402,12 +402,12 @@ void WorldSession::HandleSetSelectionOpcode( WorldPacket & recv_data )
     ObjectGuid guid;
     recv_data >> guid;
 
-    _player->SetSelectionGuid(guid);
-
     // update reputation list if need
     Unit* unit = ObjectAccessor::GetUnit(*_player, guid );  // can select group members at diff maps
     if (!unit)
         return;
+
+    _player->SetSelectionGuid(guid);
 
     if(FactionTemplateEntry const* factionTemplateEntry = sFactionTemplateStore.LookupEntry(unit->getFaction()))
         _player->GetReputationMgr().SetVisible(factionTemplateEntry);
@@ -710,7 +710,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket & recv_data)
         return;
     }
 
-    if(Script->scriptAreaTrigger(pl, atEntry))
+    if (sScriptMgr.OnAreaTrigger(pl, atEntry))
         return;
 
     uint32 quest_id = sObjectMgr.GetQuestForAreaTrigger( Trigger_ID );
@@ -795,11 +795,18 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket & recv_data)
 
         if(missingItem || missingLevel || missingQuest)
         {
+
+            MapDifficultyEntry const* mapDiff = GetMapDifficultyData(mapEntry->MapID,GetPlayer()->GetDifficulty(mapEntry->IsRaid()));
+
             // hack for "Opening of the Dark Portal"
             if(missingQuest && at->target_mapId == 269)
                 SendAreaTriggerMessage("%s", at->requiredFailedText.c_str());
             else if(missingQuest && mapEntry->IsContinent())// do not report anything for quest areatriggers
                 return;
+            else if (mapDiff && mapDiff->mapDifficultyFlags & MAP_DIFFICULTY_FLAG_CONDITION)
+            {
+                SendAreaTriggerMessage(mapDiff->areaTriggerText[GetSessionDbcLocale()]);
+            }
             // hack for TBC heroics
             else if(missingLevel && !mapEntry->IsRaid() && GetPlayer()->GetDifficulty(false) == DUNGEON_DIFFICULTY_HEROIC && mapEntry->addon == 1)
                 SendAreaTriggerMessage(GetMangosString(LANG_LEVEL_MINREQUIRED), at->requiredLevel);
@@ -961,7 +968,8 @@ void WorldSession::HandleNextCinematicCamera( WorldPacket & /*recv_data*/ )
 
 void WorldSession::HandleMoveTimeSkippedOpcode( WorldPacket & recv_data )
 {
-    /*  WorldSession::Update( getMSTime() );*/
+    /*  WorldSession::Update( WorldTimer::getMSTime() );*/
+//    DEBUG_LOG( "WORLD: Time Lag/Synchronization Resent/Update" );
 
     ObjectGuid guid;
     uint32 time_skipped;
@@ -1098,17 +1106,15 @@ void WorldSession::HandleInspectOpcode(WorldPacket& recv_data)
     data << plr->GetPackGUID();
 
     if(sWorld.getConfig(CONFIG_BOOL_TALENTS_INSPECTING) || _player->isGameMaster())
-    {
         plr->BuildPlayerTalentsInfoData(&data);
-        plr->BuildEnchantmentsInfoData(&data);
-    }
     else
     {
         data << uint32(0);                                  // unspentTalentPoints
         data << uint8(0);                                   // talentGroupCount
         data << uint8(0);                                   // talentGroupIndex
-        data << uint32(0);                                  // slotUsedMask
     }
+
+    plr->BuildEnchantmentsInfoData(&data);
 
     SendPacket(&data);
 }
@@ -1347,7 +1353,7 @@ void WorldSession::HandleTimeSyncResp( WorldPacket & recv_data )
 
     DEBUG_LOG("Time sync received: counter %u, client ticks %u, time since last sync %u", counter, clientTicks, clientTicks - _player->m_timeSyncClient);
 
-    uint32 ourTicks = clientTicks + (getMSTime() - _player->m_timeSyncServer);
+    uint32 ourTicks = clientTicks + (WorldTimer::getMSTime() - _player->m_timeSyncServer);
 
     // diff should be small
     DEBUG_LOG("Our ticks: %u, diff %u, latency %u", ourTicks, ourTicks - clientTicks, GetLatency());
@@ -1479,7 +1485,7 @@ void WorldSession::HandleCancelMountAuraOpcode( WorldPacket & /*recv_data*/ )
         return;
     }
 
-    _player->Unmount();
+    _player->Unmount(_player->HasAuraType(SPELL_AURA_MOUNTED));
     _player->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
 }
 
@@ -1489,7 +1495,7 @@ void WorldSession::HandleMoveSetCanFlyAckOpcode( WorldPacket & recv_data )
     DEBUG_LOG("WORLD: CMSG_MOVE_SET_CAN_FLY_ACK");
     //recv_data.hexlike();
 
-    ObjectGuid guid;                                        // guid - unused
+    ObjectGuid guid;
     MovementInfo movementInfo;
 
     recv_data >> guid.ReadAsPacked();
@@ -1497,7 +1503,21 @@ void WorldSession::HandleMoveSetCanFlyAckOpcode( WorldPacket & recv_data )
     recv_data >> movementInfo;
     recv_data >> Unused<float>();                           // unk2
 
-    _player->m_movementInfo.SetMovementFlags(movementInfo.GetMovementFlags());
+    Unit * target;
+
+    if (GetPlayer()->GetObjectGuid() == guid)
+        target = GetPlayer();
+    else if (!GetPlayer()->IsSelfMover() && GetPlayer()->GetMover()->GetObjectGuid() == guid)
+        target = GetPlayer()->GetMover();
+    else
+    {
+        DEBUG_LOG("WorldSession::HandleMoveSetCanFlyAckOpcode: player %s, "
+            "mover %s, received %s", _player->GetGuidStr().c_str(),
+            GetPlayer()->GetMover()->GetGuidStr().c_str(), guid.GetString().c_str());
+        return;
+    }
+
+    target->m_movementInfo.SetMovementFlags(movementInfo.GetMovementFlags());
 }
 
 void WorldSession::HandleRequestPetInfoOpcode( WorldPacket & /*recv_data */)
@@ -1560,4 +1580,104 @@ void WorldSession::HandleHearthandResurrect(WorldPacket & /*recv_data*/)
     _player->BuildPlayerRepop();
     _player->ResurrectPlayer(100);
     _player->TeleportToHomebind();
+}
+
+// Refer-A-Friend
+void WorldSession::HandleGrantLevel(WorldPacket& recv_data)
+{
+    DEBUG_LOG("WORLD: CMSG_GRANT_LEVEL");
+
+    ObjectGuid guid;
+    recv_data >> guid.ReadAsPacked();
+
+    if (!guid.IsPlayer())
+        return;
+
+    Player * target = sObjectMgr.GetPlayer(guid);
+
+    // cheating and other check
+    ReferAFriendError err = _player->GetReferFriendError(target, false);
+
+    if (err)
+    {
+        _player->SendReferFriendError(err, target);
+        return;
+    }
+
+    target->AccessGrantableLevel(_player->GetObjectGuid());
+
+    WorldPacket data(SMSG_PROPOSE_LEVEL_GRANT, 8);
+    data << _player->GetPackGUID();
+    target->GetSession()->SendPacket(&data);
+}
+
+void WorldSession::HandleAcceptGrantLevel(WorldPacket& recv_data)
+{
+    DEBUG_LOG("WORLD: CMSG_ACCEPT_LEVEL_GRANT");
+
+    ObjectGuid guid;
+    recv_data >> guid.ReadAsPacked();
+
+    if (!guid.IsPlayer())
+        return;
+
+    if (!_player->IsAccessGrantableLevel(guid))
+        return;
+
+    _player->AccessGrantableLevel(ObjectGuid());
+    Player * grant_giver = sObjectMgr.GetPlayer(guid);
+
+    if (!grant_giver)
+        return;
+
+    if (grant_giver->GetGrantableLevels())
+        grant_giver->ChangeGrantableLevels(0);
+    else
+        return;
+
+    _player->GiveLevel(_player->getLevel() + 1);
+}
+
+void WorldSession::HandleInstanceLockResponse(WorldPacket& recvPacket)
+{
+    DEBUG_LOG("WORLD: CMSG_INSTANCE_LOCK_WARNING_RESPONSE");
+    uint8 accept;
+    recvPacket >> accept;
+
+    if (!GetPlayer()->HasPendingBind())
+    {
+        sLog.outDetail("InstanceLockResponse: Player %s (guid %u) tried to bind himself/teleport to graveyard without a pending bind!", _player->GetName(), _player->GetGUIDLow());
+        return;
+    }
+
+    if (accept)
+        GetPlayer()->BindToInstance();
+    else
+        GetPlayer()->RepopAtGraveyard();
+
+    GetPlayer()->SetPendingBind(NULL, 0);
+}
+
+void WorldSession::HandleSetSavedInstanceExtend(WorldPacket& recv_data)
+{
+    DEBUG_LOG("WORLD: CMSG_SET_SAVED_INSTANCE_EXTEND");
+
+    uint32 map_id;
+    uint32 difficulty;
+    uint8  _extend;
+
+    recv_data >> map_id;
+    recv_data >> difficulty;
+    recv_data >> _extend;
+
+    DEBUG_LOG("SetSavedInstanceExtend: Player %s (guid %u) tried to extend (code %d) instance map %d difficulty %d ", GetPlayer()->GetName(), GetPlayer()->GetGUIDLow(), _extend, map_id, difficulty);
+
+    if (InstancePlayerBind* bind = GetPlayer()->GetBoundInstance(map_id, Difficulty(difficulty)))
+    {
+        GetPlayer()->BindToInstance(bind->state, bind->perm, false, bool(_extend));
+    }
+    else
+    {
+        sLog.outError("SetSavedInstanceExtend: Player tryed to extend instance, but not bound to.");
+    }
 }

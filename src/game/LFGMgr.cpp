@@ -299,7 +299,7 @@ void LFGMgr::Update(uint32 diff)
         Player* plr = NULL;
         for (LfgRolesMap::const_iterator itRoles = pRoleCheck->roles.begin(); itRoles != pRoleCheck->roles.end(); ++itRoles)
         {
-            plr = sObjectMgr.GetPlayer(ObjectGuid(HIGHGUID_PLAYER, itRoles->first));
+            plr = sObjectMgr.GetPlayer(ObjectGuid(HIGHGUID_PLAYER, uint32(itRoles->first)));
             if (!plr)
                 continue;
             plr->GetSession()->SendLfgRoleCheckUpdate(pRoleCheck);
@@ -338,7 +338,7 @@ void LFGMgr::Update(uint32 diff)
             pBoot->inProgress = false;
             for (LfgAnswerMap::const_iterator itVotes = pBoot->votes.begin(); itVotes != pBoot->votes.end(); ++itVotes)
             {
-                if (Player* plrg = sObjectMgr.GetPlayer( ObjectGuid(HIGHGUID_PLAYER, itVotes->first)))
+                if (Player* plrg = sObjectMgr.GetPlayer( ObjectGuid(HIGHGUID_PLAYER, uint32(itVotes->first))))
                     if (plrg->GetObjectGuid().GetCounter() != pBoot->victimLowGuid)
                         plrg->GetSession()->SendLfgBootPlayer(pBoot);
             }
@@ -419,7 +419,7 @@ void LFGMgr::Update(uint32 diff)
             for (LfgDungeonSet::const_iterator itdungeon = queue->dungeons.begin(); itdungeon != queue->dungeons.end(); ++itdungeon)
             {
                 dungeonId = (*itdungeon);
-				plr = sObjectMgr.GetPlayer(ObjectGuid(HIGHGUID_PLAYER, itQueue->first));
+				plr = sObjectMgr.GetPlayer(ObjectGuid(HIGHGUID_PLAYER, uint32(itQueue->first)));
 				if (plr)
 					role=plr->GetLfgRoles();
 				else
@@ -475,7 +475,7 @@ void LFGMgr::Update(uint32 diff)
             else if (role & ROLE_DAMAGE)
                 waitTime = m_WaitTimeDps;
             for (LfgRolesMap::const_iterator itPlayer = queue->roles.begin(); itPlayer != queue->roles.end(); ++itPlayer)
-                if (Player* plr = sObjectMgr.GetPlayer(ObjectGuid(HIGHGUID_PLAYER, itPlayer->first)))
+                if (Player* plr = sObjectMgr.GetPlayer(ObjectGuid(HIGHGUID_PLAYER, uint32(itPlayer->first))))
 					plr->GetSession()->SendLfgQueueStatus(dungeonId, waitTime, m_WaitTimeAvg, m_WaitTimeTank, m_WaitTimeHealer, m_WaitTimeDps, queuedTime, (m_LfgStatus[dungeonId].Tanks>0)? 0 : 1, (m_LfgStatus[dungeonId].Healers>0)? 0 : 1, (m_LfgStatus[dungeonId].DPS>2)? 0 : (3-m_LfgStatus[dungeonId].DPS));
         }
     }
@@ -1172,7 +1172,7 @@ void LFGMgr::UpdateRoleCheck(Group* grp, Player* plr /* = NULL*/)
                         LfgDungeonSet* dungeons = GetDungeonsByRandom(*pRoleCheck->dungeons.begin());
                         PlayerSet players;
                         for (LfgRolesMap::const_iterator it = pRoleCheck->roles.begin(); it != pRoleCheck->roles.end(); ++it)
-                            if (Player* plr = sObjectMgr.GetPlayer(ObjectGuid(HIGHGUID_PLAYER,it->first)))
+                            if (Player* plr = sObjectMgr.GetPlayer(ObjectGuid(HIGHGUID_PLAYER, uint32(it->first))))
                                 players.insert(plr);
 
                         playersLockMap = CheckCompatibleDungeons(dungeons, &players);
@@ -1802,7 +1802,7 @@ void LFGMgr::UpdateBoot(Player* plr, bool accept)
         // Send update info to all players
         pBoot->inProgress = false;
         for (LfgAnswerMap::const_iterator itVotes = pBoot->votes.begin(); itVotes != pBoot->votes.end(); ++itVotes)
-            if (Player* plrg = sObjectMgr.GetPlayer(ObjectGuid(HIGHGUID_PLAYER,itVotes->first)))
+            if (Player* plrg = sObjectMgr.GetPlayer(ObjectGuid(HIGHGUID_PLAYER, uint32(itVotes->first))))
                 if (plrg->GetGUIDLow() != pBoot->victimLowGuid)
                     plrg->GetSession()->SendLfgBootPlayer(pBoot);
 

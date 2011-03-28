@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +42,8 @@ BattleGroundEY::BattleGroundEY()
     m_StartMessageIds[BG_STARTING_EVENT_SECOND] = LANG_BG_EY_START_ONE_MINUTE;
     m_StartMessageIds[BG_STARTING_EVENT_THIRD]  = LANG_BG_EY_START_HALF_MINUTE;
     m_StartMessageIds[BG_STARTING_EVENT_FOURTH] = LANG_BG_EY_HAS_BEGUN;
+
+    ilegalPositionTimer = ILEGAL_POSITION_TIMER;
 }
 
 BattleGroundEY::~BattleGroundEY()
@@ -91,6 +93,38 @@ void BattleGroundEY::Update(uint32 diff)
             UpdatePointStatuses();
             m_TowerCapCheckTimer = BG_EY_FPOINTS_TICK_TIME;
         }
+        CheckFlagOnFelReaver();
+    }
+    else if (GetStatus() == STATUS_WAIT_JOIN)
+    {
+        if (ilegalPositionTimer <= 0)
+        {
+            for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
+            {
+                Player *plr = sObjectMgr.GetPlayer(itr->first);
+                if (!plr)
+                    continue;
+
+                if (plr->GetPositionZ() < MINIMUM_HEIGHT_AT_START)
+                {
+                    switch(plr->GetTeam())
+                    {
+                        case ALLIANCE:
+                            plr->TeleportTo(GetMapId(), BG_EY_TeleportingLocs[0][0], BG_EY_TeleportingLocs[0][1], BG_EY_TeleportingLocs[0][2], BG_EY_TeleportingLocs[0][3]);
+                            break;
+                        case HORDE:
+                            plr->TeleportTo(GetMapId(), BG_EY_TeleportingLocs[1][0], BG_EY_TeleportingLocs[1][1], BG_EY_TeleportingLocs[1][2], BG_EY_TeleportingLocs[1][3]);
+                            break;
+                        default:
+                            sLog.outError("BattleGroundEY: Unexpected team for player %s (cheater?)", plr->GetName());
+                            break;
+                    }
+                }
+            }
+            ilegalPositionTimer = ILEGAL_POSITION_TIMER;
+        }
+        else
+            ilegalPositionTimer -= diff;
     }
 }
 
@@ -124,7 +158,7 @@ void BattleGroundEY::AddPoints(Team team, uint32 Points)
     }
     if (m_ExperienceTics[team_index] >= BG_EY_ExperienceTicks )
     {
-        RewardXpToTeam(0, 0.8, team);
+        RewardXpToTeam(0, 0.8f, team);
         m_ExperienceTics[team_index] -= m_HonorTics;
     }
     UpdateTeamScore(team);
@@ -187,7 +221,7 @@ void BattleGroundEY::CheckSomeoneLeftPoint()
                 !plr->IsWithinDist3d(BG_EY_NodePositions[i][0], BG_EY_NodePositions[i][1], BG_EY_NodePositions[i][2], BG_EY_POINT_RADIUS))
                 //move player out of point (add him to players that are out of points
             {
-				m_PlayersNearPoint[BG_EY_PLAYERS_OUT_OF_POINTS].push_back(m_PlayersNearPoint[i][j]);
+                m_PlayersNearPoint[BG_EY_PLAYERS_OUT_OF_POINTS].push_back(m_PlayersNearPoint[i][j]);
                 m_PlayersNearPoint[i].erase(m_PlayersNearPoint[i].begin() + j);
                 UpdateWorldStateForPlayer(PROGRESS_BAR_SHOW, BG_EY_PROGRESS_BAR_DONT_SHOW, plr);
             }
@@ -198,6 +232,25 @@ void BattleGroundEY::CheckSomeoneLeftPoint()
                 ++j;
             }
         }
+    }
+}
+
+void BattleGroundEY::CheckFlagOnFelReaver()
+{
+    uint8 i = 0;
+    while (i < m_PlayersNearPoint[BG_EY_NODE_FEL_REAVER].size())
+    {
+        Player *plr = sObjectMgr.GetPlayer(m_PlayersNearPoint[BG_EY_NODE_FEL_REAVER][i]);
+        if (!plr)
+        {
+            sLog.outError("BattleGroundEY::CheckFlagOnFelReaver(): Player %s not found!", m_PlayersNearPoint[BG_EY_NODE_FEL_REAVER][i].GetString().c_str());
+            continue;
+        }
+        if (plr->HasAura(BG_EY_NETHERSTORM_FLAG_SPELL) && plr->IsWithinDist3d(BG_EY_FelReaverFlagCapturePoint[0], BG_EY_FelReaverFlagCapturePoint[1], BG_EY_FelReaverFlagCapturePoint[2], BG_EY_DISTANCE_TO_CAPTURE_FLAG))
+            if (m_PointState[BG_EY_NODE_FEL_REAVER] == EY_POINT_UNDER_CONTROL && m_PointOwnedByTeam[BG_EY_NODE_FEL_REAVER] == plr->GetTeam())
+                if (m_FlagState && GetFlagPickerGuid() == plr->GetObjectGuid())
+                    EventPlayerCapturedFlag(plr, BG_EY_NODE_FEL_REAVER);
+        ++i;
     }
 }
 
@@ -274,9 +327,9 @@ void BattleGroundEY::EndBattleGround(Team winner)
     RewardHonorToTeam(GetBonusHonorFromKill(1), ALLIANCE);
     RewardHonorToTeam(GetBonusHonorFromKill(1), HORDE);
 
-    RewardXpToTeam(0, 0.8, winner);
-    RewardXpToTeam(0, 0.8, ALLIANCE);
-    RewardXpToTeam(0, 0.8, HORDE);
+    RewardXpToTeam(0, 0.8f, winner);
+    RewardXpToTeam(0, 0.8f, ALLIANCE);
+    RewardXpToTeam(0, 0.8f, HORDE);
     BattleGround::EndBattleGround(winner);
 }
 
@@ -652,7 +705,7 @@ void BattleGroundEY::EventPlayerCapturedFlag(Player *Source, BG_EY_Nodes node)
     if (m_TeamPointsCount[team_id] > 0)
         AddPoints(Source->GetTeam(), BG_EY_FlagPoints[m_TeamPointsCount[team_id] - 1]);
 
-    RewardXpToTeam(0, 0.6, Source->GetTeam());
+    RewardXpToTeam(0, 0.6f, Source->GetTeam());
 
     UpdatePlayerScore(Source, SCORE_FLAG_CAPTURES, 1);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -345,7 +345,7 @@ OpcodeHandler opcodeTable[NUM_MSG_TYPES] =
     /*0x13C*/ { "SMSG_AI_REACTION",                             STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
     /*0x13D*/ { "CMSG_SET_SELECTION",                           STATUS_LOGGEDIN, PROCESS_INPLACE,      &WorldSession::HandleSetSelectionOpcode        },
     /*0x13E*/ { "CMSG_EQUIPMENT_SET_DELETE",                    STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleEquipmentSetDeleteOpcode  },
-    /*0x13F*/ { "CMSG_INSTANCE_LOCK_WARNING_RESPONSE",          STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     },
+    /*0x13F*/ { "CMSG_INSTANCE_LOCK_WARNING_RESPONSE",          STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleInstanceLockResponse      },
     /*0x140*/ { "CMSG_UNUSED2",                                 STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     },
     /*0x141*/ { "CMSG_ATTACKSWING",                             STATUS_LOGGEDIN, PROCESS_INPLACE,      &WorldSession::HandleAttackSwingOpcode         },
     /*0x142*/ { "CMSG_ATTACKSTOP",                              STATUS_LOGGEDIN, PROCESS_INPLACE,      &WorldSession::HandleAttackStopOpcode          },
@@ -684,7 +684,7 @@ OpcodeHandler opcodeTable[NUM_MSG_TYPES] =
     /*0x28F*/ { "CMSG_GROUP_ASSISTANT_LEADER",                  STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleGroupAssistantLeaderOpcode},
     /*0x290*/ { "CMSG_BUYBACK_ITEM",                            STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleBuybackItem               },
     /*0x291*/ { "SMSG_SERVER_MESSAGE",                          STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
-    /*0x292*/ { "CMSG_SET_SAVED_INSTANCE_EXTEND",               STATUS_UNHANDLED,PROCESS_INPLACE,      &WorldSession::Handle_NULL                     },
+    /*0x292*/ { "CMSG_SET_SAVED_INSTANCE_EXTEND",               STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleSetSavedInstanceExtend    },
     /*0x293*/ { "SMSG_LFG_OFFER_CONTINUE",                      STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
     /*0x294*/ { "CMSG_MEETINGSTONE_CHEAT",                      STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     },
     /*0x295*/ { "SMSG_MEETINGSTONE_SETQUEUE",                   STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
@@ -1063,7 +1063,7 @@ OpcodeHandler opcodeTable[NUM_MSG_TYPES] =
     /*0x40A*/ { "MSG_QUERY_GUILD_BANK_TEXT",                    STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleQueryGuildBankTabText     },
     /*0x40B*/ { "CMSG_SET_GUILD_BANK_TEXT",                     STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleSetGuildBankTabText       },
     /*0x40C*/ { "CMSG_SET_GRANTABLE_LEVELS",                    STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     },
-    /*0x40D*/ { "CMSG_GRANT_LEVEL",                             STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     },
+    /*0x40D*/ { "CMSG_GRANT_LEVEL",                             STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleGrantLevel                },
     /*0x40E*/ { "CMSG_REFER_A_FRIEND",                          STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     },
     /*0x40F*/ { "MSG_GM_CHANGE_ARENA_RATING",                   STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     },
     /*0x410*/ { "CMSG_DECLINE_CHANNEL_INVITE",                  STATUS_UNHANDLED,PROCESS_INPLACE,      &WorldSession::Handle_NULL                     },
@@ -1082,8 +1082,8 @@ OpcodeHandler opcodeTable[NUM_MSG_TYPES] =
     /*0x41D*/ { "SMSG_SERVER_BUCK_DATA",                        STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
     /*0x41E*/ { "SMSG_SEND_UNLEARN_SPELLS",                     STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
     /*0x41F*/ { "SMSG_PROPOSE_LEVEL_GRANT",                     STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
-    /*0x420*/ { "CMSG_ACCEPT_LEVEL_GRANT",                      STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     },
-    /*0x421*/ { "SMSG_REFER_A_FRIEND_FAILURE",                  STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
+    /*0x420*/ { "CMSG_ACCEPT_LEVEL_GRANT",                      STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleAcceptGrantLevel          },
+    /*0x421*/ { "SMSG_REFER_A_FRIEND_ERROR",                    STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
     /*0x422*/ { "SMSG_SPLINE_MOVE_SET_FLYING",                  STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
     /*0x423*/ { "SMSG_SPLINE_MOVE_UNSET_FLYING",                STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
     /*0x424*/ { "SMSG_SUMMON_CANCEL",                           STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
@@ -1240,7 +1240,7 @@ OpcodeHandler opcodeTable[NUM_MSG_TYPES] =
     /*0x4BB*/ { "SMSG_CALENDAR_ACTION_PENDING",                 STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
     /*0x4BC*/ { "SMSG_EQUIPMENT_SET_LIST",                      STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
     /*0x4BD*/ { "CMSG_EQUIPMENT_SET_SAVE",                      STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleEquipmentSetSaveOpcode    },
-    /*0x4BE*/ { "CMSG_UPDATE_PROJECTILE_POSITION",              STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     },
+    /*0x4BE*/ { "CMSG_UPDATE_PROJECTILE_POSITION",              STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleUpdateProjectilePosition  },
     /*0x4BF*/ { "SMSG_SET_PROJECTILE_POSITION",                 STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
     /*0x4C0*/ { "SMSG_TALENTS_INFO",                            STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
     /*0x4C1*/ { "CMSG_LEARN_PREVIEW_TALENTS",                   STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleLearnPreviewTalents       },
@@ -1333,4 +1333,8 @@ OpcodeHandler opcodeTable[NUM_MSG_TYPES] =
     /*0x518*/ { "SMSG_UNKNOWN_1304",                            STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
     /*0x519*/ { "UMSG_UNKNOWN_1305",                            STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     },
     /*0x51A*/ { "UMSG_UNKNOWN_1306",                            STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     },
+    /*0x51B*/ { "CMSG_COMMENTATOR_SKIRMISH_QUEUE_COMMAND",      STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     },
+    /*0x51C*/ { "SMSG_UNKNOWN_1308",                            STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
+    /*0x51D*/ { "SMSG_UNKNOWN_1309",                            STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
+    /*0x51E*/ { "SMSG_UNKNOWN_1310",                            STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
 };

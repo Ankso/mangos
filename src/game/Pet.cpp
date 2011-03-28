@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ m_petFollowAngle(PET_FOLLOW_ANGLE), m_needSave(true), m_petCounter(0), m_PetScal
 
     if (type == MINI_PET)                                    // always passive
         GetCharmInfo()->SetReactState(REACT_PASSIVE);
-    else if(type == PROTECTOR_PET)                          // always defensive 
+    else if(type == PROTECTOR_PET)                           // always defensive
         GetCharmInfo()->SetReactState(REACT_DEFENSIVE);
     else if (type == GUARDIAN_PET)                           // always aggressive
         GetCharmInfo()->SetReactState(REACT_AGGRESSIVE);
@@ -90,7 +90,7 @@ void Pet::RemoveFromWorld()
     Unit::RemoveFromWorld();
 }
 
-bool Pet::LoadPetFromDB( Player* owner, uint32 petentry, uint32 petnumber, bool current,  float x, float y, float z )
+bool Pet::LoadPetFromDB( Player* owner, uint32 petentry, uint32 petnumber, bool current)
 {
     m_loading = true;
 
@@ -164,7 +164,23 @@ bool Pet::LoadPetFromDB( Player* owner, uint32 petentry, uint32 petnumber, bool 
         return false;
     }
 
-    if (!Create(owner->GetMap()->GenerateLocalLowGuid(HIGHGUID_PET), owner->GetMap(), owner->GetPhaseMask(), petentry, pet_number, owner))
+    if (GetPetCounter() == 1)
+        SetPetFollowAngle(PET_FOLLOW_ANGLE*3);
+    else if (GetPetCounter() == 2)
+        SetPetFollowAngle(PET_FOLLOW_ANGLE*2);
+    else
+        SetPetFollowAngle(PET_FOLLOW_ANGLE);
+
+    if (getPetType() == MINI_PET)
+        SetPetFollowAngle(M_PI_F*1.25f);
+
+    Map *map = owner->GetMap();
+
+    CreatureCreatePos pos(owner, owner->GetOrientation(), PET_FOLLOW_DIST, GetPetFollowAngle());
+
+    uint32 guid = pos.GetMap()->GenerateLocalLowGuid(HIGHGUID_PET);
+
+    if (!Create(guid, pos, petentry, pet_number, owner))
     {
         delete result;
         return false;
@@ -178,20 +194,13 @@ bool Pet::LoadPetFromDB( Player* owner, uint32 petentry, uint32 petnumber, bool 
     SetUInt32Value(UNIT_FIELD_PETEXPERIENCE, fields[5].GetUInt32());
     m_charmInfo->SetReactState(ReactStates(fields[6].GetUInt8()));
 
-    if (!SetSummonPosition( x, y, z))
-    {
-        sLog.outError("Pet (guidlow %d, entry %d) not loaded. Suggested coordinates isn't valid (X: %f Y: %f)",
-            GetGUIDLow(), GetEntry(), GetPositionX(), GetPositionY());
-        delete result;
-        return false;
-    }
 
     CreatureInfo const *cinfo = GetCreatureInfo();
 
     if (cinfo->type == CREATURE_TYPE_CRITTER)
     {
         AIM_Initialize();
-        GetMap()->Add((Creature*)this);
+        pos.GetMap()->Add((Creature*)this);
         delete result;
         return true;
     }
@@ -273,20 +282,15 @@ bool Pet::LoadPetFromDB( Player* owner, uint32 petentry, uint32 petnumber, bool 
         CastPetAuras(current);
 
     CastPetPassiveAuras(true);
+    CalculateScalingData(true);
     ApplyAllScalingBonuses(true);
 
-    if (getPetType() != HUNTER_PET
-        && (owner->GetTypeId() == TYPEID_PLAYER && owner->GetTemporaryUnsummonedPetNumber() != pet_number))
-     //all (?) summon pets come with full health when called, but not when they are current
+    if (isControlled())
+     //all (?) summon pets come with full health when called, note by virusav
     {
         SetHealth(GetMaxHealth());
         SetPower(getPowerType(), GetMaxPower(getPowerType()));
         LoadCreatureAddon(true);
-    }
-    else
-    {
-        SetHealth(savedhealth > GetMaxHealth() ? GetMaxHealth() : savedhealth);
-        SetPower(getPowerType(), savedmana > GetMaxPower(getPowerType()) ? GetMaxPower(getPowerType()) : savedmana);
     }
 
     UpdateWalkMode(owner);
@@ -374,6 +378,8 @@ void Pet::SavePetToDB(PetSaveMode mode)
         if (getPetType() == HUNTER_PET && mode != PET_SAVE_AS_CURRENT)
             RemoveAllAuras();
 
+        //save pet's data as one single transaction
+        CharacterDatabase.BeginTransaction();
         _SaveSpells();
         _SaveSpellCooldowns();
         _SaveAuras();
@@ -381,7 +387,6 @@ void Pet::SavePetToDB(PetSaveMode mode)
         uint32 ownerLow = GetOwnerGuid().GetCounter();
         std::string name = m_name;
         CharacterDatabase.escape_string(name);
-        CharacterDatabase.BeginTransaction();
         // remove current data
         CharacterDatabase.PExecute("DELETE FROM character_pet WHERE owner = '%u' AND id = '%u'", ownerLow, m_charmInfo->GetPetNumber());
 
@@ -436,13 +441,19 @@ void Pet::SavePetToDB(PetSaveMode mode)
     }
 }
 
-void Pet::DeleteFromDB(uint32 guidlow)
+void Pet::DeleteFromDB(uint32 guidlow, bool separate_transaction)
 {
+    if(separate_transaction)
+        CharacterDatabase.BeginTransaction();
+
     CharacterDatabase.PExecute("DELETE FROM character_pet WHERE id = '%u'", guidlow);
     CharacterDatabase.PExecute("DELETE FROM character_pet_declinedname WHERE id = '%u'", guidlow);
     CharacterDatabase.PExecute("DELETE FROM pet_aura WHERE guid = '%u'", guidlow);
     CharacterDatabase.PExecute("DELETE FROM pet_spell WHERE guid = '%u'", guidlow);
     CharacterDatabase.PExecute("DELETE FROM pet_spell_cooldown WHERE guid = '%u'", guidlow);
+
+    if(separate_transaction)
+        CharacterDatabase.CommitTransaction();
 }
 
 void Pet::SetDeathState(DeathState s)                       // overwrite virtual Creature::SetDeathState and Unit::SetDeathState
@@ -478,7 +489,7 @@ void Pet::SetDeathState(DeathState s)                       // overwrite virtual
     }
 }
 
-void Pet::Update(uint32 diff)
+void Pet::Update(uint32 update_diff, uint32 diff)
 {
     if (!IsInWorld())                               // pet already removed, just wait in remove queue, no updates
         return;
@@ -487,7 +498,7 @@ void Pet::Update(uint32 diff)
     {
         case CORPSE:
         {
-            if (m_corpseDecayTimer <= diff)
+            if (m_corpseDecayTimer <= update_diff)
             {
                 MANGOS_ASSERT(getPetType()!=SUMMON_PET && "Must be already removed.");
                 Unsummon(PET_SAVE_NOT_IN_SLOT);             //hunters' pets never get removed because of death, NEVER!
@@ -506,7 +517,7 @@ void Pet::Update(uint32 diff)
                 return;
             }
 
-            if (isControlled() && !IsWithinDistInMap(owner, GetMap()->GetVisibilityDistance()))
+            if ((!IsWithinDistInMap(owner, GetMap()->GetVisibilityDistance()) && !owner->GetCharmGuid().IsEmpty()) || (isControlled() && owner->GetPetGuid().IsEmpty()))
             {
                 DEBUG_LOG("Pet %d lost control, removed. Owner = %d, distance = %d, pet GUID = ", GetGUID(),owner->GetGUID(), GetDistance2d(owner), owner->GetPetGuid().GetCounter());
                 Unsummon(PET_SAVE_REAGENTS);
@@ -533,18 +544,18 @@ void Pet::Update(uint32 diff)
 
             if (m_duration > 0)
             {
-                if(m_duration > (int32)diff)
-                    m_duration -= (int32)diff;
+                if(m_duration > (int32)update_diff)
+                    m_duration -= (int32)update_diff;
                 else
                 {
                     DEBUG_LOG("Pet %d removed with duration expired.", GetGUID());
-                    Unsummon(getPetType() != SUMMON_PET ? PET_SAVE_AS_DELETED : PET_SAVE_NOT_IN_SLOT, owner);
+                    Unsummon(PET_SAVE_AS_DELETED, owner);
                     return;
                 }
             }
 
             //regenerate focus for hunter pets or energy for deathknight's ghoul
-            if(m_regenTimer <= diff)
+            if(m_regenTimer <= update_diff)
             {
                 Regenerate(getPowerType(), REGEN_TIME_FULL);
                 m_regenTimer = REGEN_TIME_FULL;
@@ -556,7 +567,7 @@ void Pet::Update(uint32 diff)
                     RegenerateHealth(REGEN_TIME_FULL);
             }
             else
-                m_regenTimer -= diff;
+                m_regenTimer -= update_diff;
 
             break;
         }
@@ -571,7 +582,7 @@ void Pet::Update(uint32 diff)
     };
 
     if (IsInWorld())
-        Creature::Update(diff);
+        Creature::Update(update_diff, diff);
 }
 
 HappinessState Pet::GetHappinessState()
@@ -648,11 +659,11 @@ void Pet::Unsummon(PetSaveMode mode, Unit* owner /*= NULL*/)
                 p_owner->GetTemporaryUnsummonedPetNumber() != GetCharmInfo()->GetPetNumber())
                 mode = PET_SAVE_NOT_IN_SLOT;
 
+            SpellEntry const *spellInfo = sSpellStore.LookupEntry(GetCreateSpellID());
+
             if (mode == PET_SAVE_REAGENTS)
             {
                 //returning of reagents only for players, so best done here
-                uint32 spellId = GetUInt32Value(UNIT_CREATED_BY_SPELL);
-                SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellId);
 
                 if (spellInfo)
                 {
@@ -679,6 +690,11 @@ void Pet::Unsummon(PetSaveMode mode, Unit* owner /*= NULL*/)
 
                 if (p_owner->GetGroup())
                     p_owner->SetGroupUpdateFlag(GROUP_UPDATE_PET);
+
+                // Special way for remove cooldown if SPELL_ATTR_DISABLED_WHILE_ACTIVE
+                if (spellInfo && spellInfo->Attributes & SPELL_ATTR_DISABLED_WHILE_ACTIVE)
+                    if (p_owner->GetTemporaryUnsummonedPetNumber() != GetCharmInfo()->GetPetNumber())
+                        p_owner->SendCooldownEvent(spellInfo);
             }
         }
 
@@ -760,11 +776,14 @@ void Pet::GivePetLevel(uint32 level)
 
 bool Pet::CreateBaseAtCreature(Creature* creature, Unit* owner)
 {
-    if(!creature || !owner)
+    if(!creature)
     {
-        sLog.outError("CRITICAL: NULL pointer parsed into CreateBaseAtCreature()");
+        sLog.outError("CRITICAL: NULL pointer passed into CreateBaseAtCreature()");
         return false;
     }
+
+    if(!owner)
+        return false;
 
     CreatureInfo const *cinfo = creature->GetCreatureInfo();
     if(!cinfo)
@@ -773,17 +792,15 @@ bool Pet::CreateBaseAtCreature(Creature* creature, Unit* owner)
         return false;
     }
 
+    CreatureCreatePos pos(creature, creature->GetOrientation());
+
     BASIC_LOG("Create new pet from creature %d ", creature->GetEntry());
 
-    if (!Create(owner, creature->GetEntry()))
+    BASIC_LOG("Create pet");
+
+    if (!Create(0, pos, creature->GetEntry(), 0, owner))
         return false;
 
-    if (!SetSummonPosition(creature->GetPositionX(), creature->GetPositionY(), creature->GetPositionZ()))
-    {
-        sLog.outError("Pet (guidlow %d, entry %d) not created base at creature. Suggested coordinates isn't valid (X: %f Y: %f)",
-            GetGUIDLow(), GetEntry(), GetPositionX(), GetPositionY());
-        return false;
-    }
 
     if(CreatureFamilyEntry const* cFamily = sCreatureFamilyStore.LookupEntry(cinfo->family))
         SetName(cFamily->Name[sWorld.GetDefaultDbcLocale()]);
@@ -883,8 +900,6 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
         // Armor
         createResistance[SPELL_SCHOOL_NORMAL] = petlevel*50;
     }
-
-    float attack_bonus = 0.0f;
 
     switch(getPetType())
     {
@@ -1870,6 +1885,8 @@ bool Pet::IsPermanentPetFor(Player* owner)
         case SUMMON_PET:
             switch(owner->getClass())
             {
+                // oddly enough, Mage's Water Elemental is still treated as temporary pet with Glyph of Eternal Water
+                // i.e. does not unsummon at mounting, gets dismissed at teleport etc.
                 case CLASS_WARLOCK:
                     return GetCreatureInfo()->type == CREATURE_TYPE_DEMON;
                 case CLASS_DEATH_KNIGHT:
@@ -1884,40 +1901,36 @@ bool Pet::IsPermanentPetFor(Player* owner)
     }
 }
 
-bool Pet::Create(Unit* owner, uint32 Entry)
+bool Pet::Create(uint32 guidlow, CreatureCreatePos& cPos, uint32 Entry, uint32 pet_number, Unit* owner)
 {
-    return Create(owner->GetMap()->GenerateLocalLowGuid(HIGHGUID_PET), owner->GetMap(),
-            owner->GetPhaseMask(), Entry, sObjectMgr.GeneratePetNumber(), owner);
-}
-
-bool Pet::Create(uint32 guidlow, Map *map, uint32 phaseMask, uint32 Entry, uint32 pet_number, Unit* owner)
-{
-
     if (!owner)
-        return false;
-
-    if (map)
-        SetMap(map);
-    else
         return false;
 
     m_loading = true;
 
+    SetMap(cPos.GetMap());
+    SetPhaseMask(cPos.GetPhaseMask(), false);
+
     if (!guidlow)
-        guidlow = map->GenerateLocalLowGuid(HIGHGUID_PET);
+        guidlow = cPos.GetMap()->GenerateLocalLowGuid(HIGHGUID_PET);
 
     if (!pet_number)
         pet_number = sObjectMgr.GeneratePetNumber();
 
     Object::_Create(ObjectGuid(HIGHGUID_PET, pet_number, guidlow));
 
-    m_DBTableGuid = guidlow;
-    m_originalEntry = Entry;
-
-    if(!InitEntry(Entry))
+    if (!InitEntry(Entry))
         return false;
 
-    SetPhaseMask(phaseMask,false);
+    cPos.SelectFinalPoint(this);
+
+    if (!cPos.Relocate(this))
+        return false;
+
+
+    SetSheath(SHEATH_STATE_MELEE);
+
+    m_originalEntry = Entry;
 
     if(owner->GetTypeId() == TYPEID_PLAYER)
         m_charmInfo->SetPetNumber(pet_number, IsPermanentPetFor((Player*)owner));
@@ -1932,9 +1945,6 @@ bool Pet::Create(uint32 guidlow, Map *map, uint32 phaseMask, uint32 Entry, uint3
 
     if (GetCreateSpellID())
         SetUInt32Value(UNIT_CREATED_BY_SPELL, GetCreateSpellID());
-
-
-    SetSheath(SHEATH_STATE_MELEE);
 
     if(getPetType() == MINI_PET)                            // always non-attackable
         SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -2064,39 +2074,6 @@ void Pet::ApplyModeFlags(PetModeFlags mode, bool apply)
     data << GetObjectGuid();
     data << uint32(m_petModeFlags);
     ((Player*)owner)->GetSession()->SendPacket(&data);
-}
-
-bool Pet::SetSummonPosition(float x, float y, float z)
-{
-    Unit* owner = GetOwner();
-
-    if (!owner)
-        return false;
-
-    float px, py, pz;
-
-    // Summon location setting
-    if (GetPetCounter() == 1)
-        SetPetFollowAngle(PET_FOLLOW_ANGLE*3);
-    else if (GetPetCounter() == 2)
-        SetPetFollowAngle(PET_FOLLOW_ANGLE*2);
-    else
-        SetPetFollowAngle(PET_FOLLOW_ANGLE);
-
-    if (getPetType() == MINI_PET)
-        SetPetFollowAngle(M_PI_F*1.25f);
-
-
-    if (x == 0.0f && y == 0.0f && z == 0.0f)
-        owner->GetClosePoint(x, y, z, GetObjectBoundingRadius()*4, PET_FOLLOW_DIST, GetPetFollowAngle());
-
-    GetRandomPoint(x, y, z, GetObjectBoundingRadius()*4, px, py, pz);
-
-    Relocate(px, py, pz, -owner->GetOrientation());
-    SetSummonPoint(px, py, pz, -owner->GetOrientation());
-
-    if (!IsPositionValid()) return false;
-        else return true;
 }
 
 void Pet::ApplyStatScalingBonus(Stats stat, bool apply)
@@ -2783,6 +2760,16 @@ bool Pet::Summon()
     if (!map)
         return false;
 
+    if (GetPetCounter() == 1)
+        SetPetFollowAngle(PET_FOLLOW_ANGLE*3);
+    else if (GetPetCounter() == 2)
+        SetPetFollowAngle(PET_FOLLOW_ANGLE*2);
+    else
+        SetPetFollowAngle(PET_FOLLOW_ANGLE);
+
+    if (getPetType() == MINI_PET)
+        SetPetFollowAngle(M_PI_F*1.25f);
+
     uint16 level = getLevel() ? getLevel() : owner->getLevel();;
 
     if (GetCreateSpellID())
@@ -2929,7 +2916,7 @@ Unit* Pet::GetOwner() const
     Unit* owner = Unit::GetOwner();
 
     if (!owner)
-        if (!GetOwnerGuid().IsEmpty())
+        if (!GetOwnerGuid().IsEmpty() && GetOwnerGuid().IsAnyTypeCreature())
             if (Map* pMap = GetMap())
                 owner = pMap->GetAnyTypeCreature(GetOwnerGuid());
 
@@ -2939,8 +2926,8 @@ Unit* Pet::GetOwner() const
 
     if (owner)
         return owner;
-
-    return NULL;
+    else
+        return NULL;
 }
 
 
@@ -3055,7 +3042,7 @@ PetScalingData* Pet::CalculateScalingData(bool recalculate)
     {
          const PetScalingData* pData = &*itr;
 
-         if (!pData->creatureID || (owner && (!pData->requiredAura || owner->HasSpell(pData->requiredAura) || owner->HasAura(pData->requiredAura))))
+         if (!pData->creatureID || (owner && (!pData->requiredAura || owner->HasSpell(pData->requiredAura) || owner->HasAura(pData->requiredAura) || HasSpell(pData->requiredAura) || HasAura(pData->requiredAura))))
          {
              m_PetScalingData->healthBasepoint  += pData->healthBasepoint;
              m_PetScalingData->healthScale      += pData->healthScale;

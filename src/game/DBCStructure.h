@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -734,10 +734,14 @@ struct CreatureDisplayInfoExtraEntry
 {
     uint32      DisplayExtraId;                             // 0        CreatureDisplayInfoEntry::m_extendedDisplayInfoID
     uint32      Race;                                       // 1
-    //uint32      Gender;                                   // 2        Model gender, exist not small amount cases when query creature data return different gender from used model, so can't be replacement for model gender field.
-                                                            // 3-7      unknown, 0..~2x
-    //uint32      Equipment[11]                             // 8-18     equipped static items EQUIPMENT_SLOT_HEAD..EQUIPMENT_SLOT_HANDS, client show its by self
-                                                            // 19       unknown, 0/1
+    //uint32    Gender;                                     // 2        Model gender, exist not small amount cases when query creature data return different gender from used model, so can't be replacement for model gender field.
+    //uint32    SkinColor;                                  // 3
+    //uint32    FaceType;                                   // 4
+    //uint32    HairType;                                   // 5        CharHairGeosets.dbc
+    //uint32    HairStyle;                                  // 6        CharSections.dbc, where GeneralType=3
+    //uint32    BeardStyle;                                 // 7
+    //uint32    Equipment[11];                              // 8-18     equipped static items EQUIPMENT_SLOT_HEAD..EQUIPMENT_SLOT_HANDS, client show its by self
+    //uint32    CanEquip;                                   // 19       0..1 Can equip additional things when used for players
     //char*                                                 // 20       CreatureDisplayExtra-*.blp
 };
 
@@ -790,6 +794,18 @@ struct CurrencyTypesEntry
     uint32    ItemId;                                       // 1        used as real index
     //uint32    Category;                                   // 2        may be category
     uint32    BitIndex;                                     // 3        bit index in PLAYER_FIELD_KNOWN_CURRENCIES (1 << (index-1))
+};
+
+struct DungeonEncounterEntry
+{
+    uint32 Id;                                              // 0        unique id
+    uint32 mapId;                                           // 1        map id
+    uint32 Difficulty;                                      // 2        instance mode
+    uint32 encounterData;                                   // 3        time to reach?
+    uint32 encounterIndex;                                  // 4        encounter index for creating completed mask
+    char*  encounterName[16];                               // 5-20     encounter name
+    //uint32 nameFlags;                                     // 21       language flags
+    //uint32 unk1;                                          // 22
 };
 
 struct DurabilityCostsEntry
@@ -1078,14 +1094,16 @@ struct ItemDisplayInfoEntry
 //    uint32      arenaseason;                              // arena season number(1-4)
 //};
 
+#define MAX_EXTENDED_COST_ITEMS 5
+
 struct ItemExtendedCostEntry
 {
     uint32      ID;                                         // 0 extended-cost entry id
     uint32      reqhonorpoints;                             // 1 required honor points
     uint32      reqarenapoints;                             // 2 required arena points
-    uint32      reqarenaslot;                               // 4 arena slot restrctions (min slot value)
-    uint32      reqitem[5];                                 // 5-8 required item id
-    uint32      reqitemcount[5];                            // 9-13 required count of 1st item
+    uint32      reqarenaslot;                               // 4 arena slot restrictions (min slot value)
+    uint32      reqitem[MAX_EXTENDED_COST_ITEMS];           // 5-8 required item id
+    uint32      reqitemcount[MAX_EXTENDED_COST_ITEMS];      // 9-13 required count of 1st item
     uint32      reqpersonalarenarating;                     // 14 required personal arena rating
 };
 
@@ -1212,7 +1230,7 @@ struct MapEntry
             MapID==209 || MapID==269 || MapID==309 ||       // TanarisInstance, CavernsOfTime, Zul'gurub
             MapID==509 || MapID==534 || MapID==560 ||       // AhnQiraj, HyjalPast, HillsbradPast
             MapID==568 || MapID==580 || MapID==595 ||       // ZulAman, Sunwell Plateau, Culling of Stratholme
-            MapID==603 || MapID==615 || MapID==616;         // Ulduar, Obsidian Sanctum, Eye Of Eternity
+            MapID==603 || MapID==615 || MapID==616;         // Ulduar, The Obsidian Sanctum, The Eye Of Eternity
     }
 
     bool IsContinent() const
@@ -1226,8 +1244,8 @@ struct MapDifficultyEntry
     //uint32      Id;                                       // 0
     uint32      MapId;                                      // 1
     uint32      Difficulty;                                 // 2 (for arenas: arena slot)
-    //char*       areaTriggerText[16];                      // 3-18 text showed when transfer to map failed (missing requirements)
-    //uint32      textFlags;                                // 19
+    char*       areaTriggerText[16];                      // 3-18 text showed when transfer to map failed (missing requirements)
+    uint32      mapDifficultyFlags;                         // 19
     uint32      resetTime;                                  // 20, in secs, 0 if no fixed reset time
     uint32      maxPlayers;                                 // 21, some heroic versions have 0 when expected same amount as in normal version
     //char*       difficultyString;                         // 22
@@ -1463,9 +1481,9 @@ struct SpellEntry
     uint32    AttributesEx6;                                // 10       m_attributesExF
     uint32    AttributesEx7;                                // 11       m_attributesExG (0x20 - totems, 0x4 - paladin auras, etc...)
     uint32    Stances;                                      // 12       m_shapeshiftMask
-    // uint32 unk_320_2;                                    // 13       3.2.0
+    // uint32 unk_320_1;                                    // 13       3.2.0
     uint32    StancesNot;                                   // 14       m_shapeshiftExclude
-    // uint32 unk_320_3;                                    // 15       3.2.0
+    // uint32 unk_320_2;                                    // 15       3.2.0
     uint32    Targets;                                      // 16       m_targets
     uint32    TargetCreatureType;                           // 17       m_targetCreatureType
     uint32    RequiresSpellFocus;                           // 18       m_requiresSpellFocus
@@ -1559,7 +1577,7 @@ struct SpellEntry
     uint32    runeCostID;                                   // 226      m_runeCostID
     //uint32    spellMissileID;                             // 227      m_spellMissileID not used
     //uint32  PowerDisplayId;                               // 228      m_powerDisplayID - id from PowerDisplay.dbc, new in 3.1
-    //float   unk_320_4[3];                                 // 229-231  3.2.0
+    //float   unk_320_3[3];                                 // 229-231  3.2.0
     //uint32  spellDescriptionVariableID;                   // 232      m_spellDescriptionVariableID, 3.2.0
     uint32  SpellDifficultyId;                              // 233      m_spellDifficultyID - id from SpellDifficulty.dbc
 

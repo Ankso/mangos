@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include "ProgressBar.h"
 #include "SharedDefines.h"
 #include "ObjectGuid.h"
+#include "SpellMgr.h"
 
 #include "DBCfmt.h"
 
@@ -76,6 +77,8 @@ DBCStorage <CreatureSpellDataEntry> sCreatureSpellDataStore(CreatureSpellDatafmt
 DBCStorage <CreatureTypeEntry> sCreatureTypeStore(CreatureTypefmt);
 DBCStorage <CurrencyTypesEntry> sCurrencyTypesStore(CurrencyTypesfmt);
 
+DBCStorage <DungeonEncounterEntry> sDungeonEncounterStore(DungeonEncounterfmt);
+
 DBCStorage <DurabilityQualityEntry> sDurabilityQualityStore(DurabilityQualityfmt);
 DBCStorage <DurabilityCostsEntry> sDurabilityCostsStore(DurabilityCostsfmt);
 
@@ -123,8 +126,7 @@ DBCStorage <LockEntry> sLockStore(LockEntryfmt);
 DBCStorage <MailTemplateEntry> sMailTemplateStore(MailTemplateEntryfmt);
 DBCStorage <MapEntry> sMapStore(MapEntryfmt);
 
-// DBC used only for initialization sMapDifficultyMap at startup.
-DBCStorage <MapDifficultyEntry> sMapDifficultyStore(MapDifficultyEntryfmt); // only for loading
+DBCStorage <MapDifficultyEntry> sMapDifficultyStore(MapDifficultyEntryfmt);
 MapDifficultyMap sMapDifficultyMap;
 
 DBCStorage <MovieEntry> sMovieStore(MovieEntryfmt);
@@ -372,7 +374,7 @@ void LoadDBCStores(const std::string& dataPath)
         exit(1);
     }
 
-    const uint32 DBCFilesCount = 91;
+    const uint32 DBCFilesCount = 92;
 
     barGoLink bar( (int)DBCFilesCount );
 
@@ -416,6 +418,7 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sCreatureSpellDataStore,   dbcPath,"CreatureSpellData.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sCreatureTypeStore,        dbcPath,"CreatureType.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sCurrencyTypesStore,       dbcPath,"CurrencyTypes.dbc");
+    LoadDBC(availableDbcLocales,bar,bad_dbc_files,sDungeonEncounterStore,    dbcPath,"DungeonEncounter.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sDurabilityCostsStore,     dbcPath,"DurabilityCosts.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sDurabilityQualityStore,   dbcPath,"DurabilityQuality.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sEmotesStore,              dbcPath,"Emotes.dbc");
@@ -482,9 +485,12 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sMapDifficultyStore,       dbcPath,"MapDifficulty.dbc");
     // fill data
     for(uint32 i = 1; i < sMapDifficultyStore.GetNumRows(); ++i)
+    {
         if(MapDifficultyEntry const* entry = sMapDifficultyStore.LookupEntry(i))
-            sMapDifficultyMap[MAKE_PAIR32(entry->MapId,entry->Difficulty)] = MapDifficulty(entry->resetTime,entry->maxPlayers);
-    sMapDifficultyStore.Clear();
+        {
+            sMapDifficultyMap[MAKE_PAIR32(entry->MapId,entry->Difficulty)] = entry;
+        }
+    }
 
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sMovieStore,               dbcPath,"Movie.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sOverrideSpellDataStore,   dbcPath,"OverrideSpellData.dbc");
@@ -516,6 +522,66 @@ void LoadDBCStores(const std::string& dataPath)
         std::swap(*((uint32*)(&spell->SpellFamilyFlags)),*(((uint32*)(&spell->SpellFamilyFlags))+1));
         #endif
     }
+
+    // DBC Hacks
+
+
+    // Bestial Wrath - Similar to PvP trinket except for Daze effects and slow attack
+    /*SpellEntry *sfix1 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(19574));
+    sfix1->EffectApplyAuraName[EFFECT_INDEX_2] = SPELL_AURA_MECHANIC_IMMUNITY_MASK;
+    sfix1->EffectMiscValue[EFFECT_INDEX_2] = ( \
+    (1<<(MECHANIC_CHARM   -1))|(1<<(MECHANIC_DISORIENTED-1))|(1<<(MECHANIC_FEAR  -1))| \
+    (1<<(MECHANIC_ROOT    -1))|(1<<(MECHANIC_SLEEP -1))| \
+    (1<<(MECHANIC_SNARE   -1))|(1<<(MECHANIC_STUN       -1))|(1<<(MECHANIC_FREEZE-1))| \
+    (1<<(MECHANIC_KNOCKOUT-1))|(1<<(MECHANIC_POLYMORPH  -1))|(1<<(MECHANIC_BANISH-1))| \
+    (1<<(MECHANIC_SHACKLE -1))|(1<<(MECHANIC_TURN       -1))|(1<<(MECHANIC_HORROR-1))| \
+    (1<<(MECHANIC_SAPPED     -1)));*/
+
+    // The Beast Within - Same problem as Bestial Wrath
+    SpellEntry *sfix2 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(34471));
+    sfix2->EffectApplyAuraName[EFFECT_INDEX_2] = SPELL_AURA_MECHANIC_IMMUNITY_MASK;
+    sfix2->EffectMiscValue[EFFECT_INDEX_2] = ( \
+    (1<<(MECHANIC_CHARM   -1))|(1<<(MECHANIC_DISORIENTED-1))|(1<<(MECHANIC_FEAR  -1))| \
+    (1<<(MECHANIC_ROOT    -1))|(1<<(MECHANIC_SLEEP -1))| \
+    (1<<(MECHANIC_SNARE   -1))|(1<<(MECHANIC_STUN       -1))|(1<<(MECHANIC_FREEZE-1))| \
+    (1<<(MECHANIC_KNOCKOUT-1))|(1<<(MECHANIC_POLYMORPH  -1))|(1<<(MECHANIC_BANISH-1))| \
+    (1<<(MECHANIC_SHACKLE -1))|(1<<(MECHANIC_TURN       -1))|(1<<(MECHANIC_HORROR-1))| \
+    (1<<(MECHANIC_SAPPED     -1)));
+
+    // Throw Passanger
+    SpellEntry *sfix3 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62324));
+    sfix3->Targets |= TARGET_FLAG_UNIT_UNK;
+
+    // Twilight Torment - relly dunno what blizzard intended to do
+    SpellEntry *sfix4 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(57935));
+    sfix4->AttributesEx = 0;
+    sfix4->AttributesEx4 = SPELL_ATTR_EX4_NOT_STEALABLE;
+    sfix4->CastingTimeIndex = 1;
+    sfix4->RecoveryTime = 0;
+    sfix4->procFlags = (PROC_FLAG_TAKEN_MELEE_HIT | PROC_FLAG_TAKEN_MELEE_SPELL_HIT | PROC_FLAG_TAKEN_RANGED_HIT | PROC_FLAG_TAKEN_RANGED_SPELL_HIT | PROC_FLAG_TAKEN_NEGATIVE_SPELL_HIT);
+    sfix4->procChance = 100;
+    sfix4->procCharges = 0;
+    sfix4->rangeIndex = 1;
+    sfix4->StackAmount = 0;
+    sfix4->Effect[EFFECT_INDEX_1] = 0;
+    sfix4->EffectDieSides[EFFECT_INDEX_1] = 0;
+    sfix4->EffectBasePoints[EFFECT_INDEX_0] = -1;
+    sfix4->EffectImplicitTargetA[EFFECT_INDEX_0] = 6;
+    sfix4->EffectImplicitTargetA[EFFECT_INDEX_1] = 0;
+    sfix4->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
+    sfix4->EffectImplicitTargetB[EFFECT_INDEX_1] = 0;
+    sfix4->EffectRadiusIndex[EFFECT_INDEX_0] = 0;
+    sfix4->EffectRadiusIndex[EFFECT_INDEX_1] = 0;
+    sfix4->EffectApplyAuraName[EFFECT_INDEX_0] = SPELL_AURA_PROC_TRIGGER_SPELL;
+    sfix4->EffectApplyAuraName[EFFECT_INDEX_1] = 0;
+    sfix4->EffectAmplitude[EFFECT_INDEX_0] = 0;
+    sfix4->EffectAmplitude[EFFECT_INDEX_1] = 0;
+    sfix4->EffectMiscValue[EFFECT_INDEX_0] = 0;
+    sfix4->EffectMiscValue[EFFECT_INDEX_1] = 0;
+    sfix4->EffectMiscValueB[EFFECT_INDEX_0] = 0;
+    sfix4->EffectMiscValueB[EFFECT_INDEX_1] = 0;
+    sfix4->EffectTriggerSpell[EFFECT_INDEX_0] = 57988;
+    sfix4->EffectTriggerSpell[EFFECT_INDEX_1] = 0;
 
     for (uint32 j = 0; j < sSkillLineAbilityStore.GetNumRows(); ++j)
     {
@@ -898,10 +964,10 @@ bool Map2ZoneCoordinates(float& x,float& y,uint32 zone)
     return true;
 }
 
-MapDifficulty const* GetMapDifficultyData(uint32 mapId, Difficulty difficulty)
+MapDifficultyEntry const* GetMapDifficultyData(uint32 mapId, Difficulty difficulty)
 {
     MapDifficultyMap::const_iterator itr = sMapDifficultyMap.find(MAKE_PAIR32(mapId,difficulty));
-    return itr != sMapDifficultyMap.end() ? &itr->second : NULL;
+    return itr != sMapDifficultyMap.end() ? itr->second : NULL;
 }
 
 PvPDifficultyEntry const* GetBattlegroundBracketByLevel( uint32 mapid, uint32 level )

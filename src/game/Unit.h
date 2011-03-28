@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -126,6 +126,7 @@ enum SpellFacingFlags
     SPELL_FACING_FLAG_INFRONT = 0x0001
 };
 
+#define BASE_MELEERANGE_OFFSET 1.33f
 #define BASE_MINDAMAGE 1.0f
 #define BASE_MAXDAMAGE 2.0f
 #define BASE_ATTACK_TIME 2000
@@ -142,7 +143,7 @@ enum UnitStandStateType
     UNIT_STAND_STATE_SIT_HIGH_CHAIR    = 6,
     UNIT_STAND_STATE_DEAD              = 7,
     UNIT_STAND_STATE_KNEEL             = 8,
-    UNIT_STAND_STATE_SUBMERGED         = 9
+    UNIT_STAND_STATE_CUSTOM            = 9                  // Depends on model animation. Submerge, freeze, hide, hibernate, rest
 };
 
 // byte flags value (UNIT_FIELD_BYTES_1,2)
@@ -163,42 +164,6 @@ enum UnitBytes1_Flags
     UNIT_BYTE1_FLAG_UNK_2        = 0x02,                    // Creature that can fly and are not on the ground appear to have this flag. If they are on the ground, flag is not present.
     UNIT_BYTE1_FLAG_UNTRACKABLE  = 0x04,
     UNIT_BYTE1_FLAG_ALL          = 0xFF
-};
-
-// byte value (UNIT_FIELD_BYTES_2,3)
-enum ShapeshiftForm
-{
-    FORM_NONE               = 0x00,
-    FORM_CAT                = 0x01,
-    FORM_TREE               = 0x02,
-    FORM_TRAVEL             = 0x03,
-    FORM_AQUA               = 0x04,
-    FORM_BEAR               = 0x05,
-    FORM_AMBIENT            = 0x06,
-    FORM_GHOUL              = 0x07,
-    FORM_DIREBEAR           = 0x08,
-    FORM_STEVES_GHOUL       = 0x09,
-    FORM_THARONJA_SKELETON  = 0x0A,
-    FORM_TEST_OF_STRENGTH   = 0x0B,
-    FORM_BLB_PLAYER         = 0x0C,
-    FORM_SHADOW_DANCE       = 0x0D,
-    FORM_CREATUREBEAR       = 0x0E,
-    FORM_CREATURECAT        = 0x0F,
-    FORM_GHOSTWOLF          = 0x10,
-    FORM_BATTLESTANCE       = 0x11,
-    FORM_DEFENSIVESTANCE    = 0x12,
-    FORM_BERSERKERSTANCE    = 0x13,
-    FORM_TEST               = 0x14,
-    FORM_ZOMBIE             = 0x15,
-    FORM_METAMORPHOSIS      = 0x16,
-    FORM_UNDEAD             = 0x19,
-    FORM_FRENZY             = 0x1A,
-    FORM_FLIGHT_EPIC        = 0x1B,
-    FORM_SHADOW             = 0x1C,
-    FORM_FLIGHT             = 0x1D,
-    FORM_STEALTH            = 0x1E,
-    FORM_MOONKIN            = 0x1F,
-    FORM_SPIRITOFREDEMPTION = 0x20,
 };
 
 // byte value (UNIT_FIELD_BYTES_2,0)
@@ -321,7 +286,9 @@ enum UnitModifierType
     BASE_PCT = 1,
     TOTAL_VALUE = 2,
     TOTAL_PCT = 3,
-    MODIFIER_TYPE_END = 4
+    NONSTACKING_VALUE = 4,
+    NONSTACKING_PCT = 5,
+    MODIFIER_TYPE_END = 6
 };
 
 enum WeaponDamageRange
@@ -393,6 +360,7 @@ enum BaseModGroup
     RANGED_CRIT_PERCENTAGE,
     OFFHAND_CRIT_PERCENTAGE,
     SHIELD_BLOCK_VALUE,
+    NONSTACKING_CRIT_PERCENTAGE,
     BASEMOD_END
 };
 
@@ -445,6 +413,8 @@ enum UnitState
     UNIT_STAT_FLEEING         = 0x00020000,                     // FleeMovementGenerator/TimedFleeingMovementGenerator active/onstack
     UNIT_STAT_FLEEING_MOVE    = 0x00040000,
     UNIT_STAT_ON_VEHICLE      = 0x00080000,                     // Unit is on vehicle
+
+    UNIT_STAT_IGNORE_PATHFINDING    = 0x00080000,               // do not use pathfinding in any MovementGenerator
 
     // masks (only for check)
 
@@ -583,11 +553,15 @@ enum UnitFlags
 enum UnitFlags2
 {
     UNIT_FLAG2_FEIGN_DEATH          = 0x00000001,
-    UNIT_FLAG2_UNK1                 = 0x00000002,           // Hides unit model (show only player equip)
+    UNIT_FLAG2_UNK1                 = 0x00000002,           // Hides body and body armor. Weapons and shoulder and head armor still visible
+    UNIT_FLAG2_UNK2                 = 0x00000004,
     UNIT_FLAG2_COMPREHEND_LANG      = 0x00000008,
     UNIT_FLAG2_MIRROR_IMAGE         = 0x00000010,
+    UNIT_FLAG2_UNK5                 = 0x00000020,
     UNIT_FLAG2_FORCE_MOVE           = 0x00000040,
-    UNIT_FLAG2_DISARM_OFFHAND       = 0x00000080,
+    UNIT_FLAG2_DISARM_OFFHAND       = 0x00000080,           // also shield case
+    UNIT_FLAG2_UNK8                 = 0x00000100,
+    UNIT_FLAG2_UNK9                 = 0x00000200,
     UNIT_FLAG2_DISARM_RANGED        = 0x00000400,           // disarm or something
     UNIT_FLAG2_REGENERATE_POWER     = 0x00000800,
 };
@@ -773,6 +747,7 @@ class MovementInfo
         MovementFlags GetMovementFlags() const { return MovementFlags(moveFlags); }
         void SetMovementFlags(MovementFlags f) { moveFlags = f; }
         MovementFlags2 GetMovementFlags2() const { return MovementFlags2(moveFlags2); }
+        void AddMovementFlag2(MovementFlags2 f) { moveFlags2 |= f; }
 
         // Position manipulations
         Position const *GetPos() const { return &pos; }
@@ -1182,7 +1157,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         typedef std::list<SpellAuraHolder *> SpellAuraHolderList;
         typedef std::list<Aura *> AuraList;
         typedef std::list<DiminishingReturn> Diminishing;
-        typedef std::set<uint32> ComboPointHolderSet;
+        typedef std::set<ObjectGuid> ComboPointHolderSet;
         typedef std::map<uint8, uint32> VisibleAuraMap;
         typedef std::map<SpellEntry const*, ObjectGuid> SingleCastSpellTargetMap;
 
@@ -1205,31 +1180,30 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void ApplyDiminishingAura(DiminishingGroup  group, bool apply);
         void ClearDiminishings() { m_Diminishing.clear(); }
 
-        virtual void Update( uint32 time );
+        virtual void Update( uint32 update_diff, uint32 time );
 
         void setAttackTimer(WeaponAttackType type, uint32 time) { m_attackTimer[type] = time; }
         void resetAttackTimer(WeaponAttackType type = BASE_ATTACK);
         uint32 getAttackTimer(WeaponAttackType type) const { return m_attackTimer[type]; }
         bool isAttackReady(WeaponAttackType type = BASE_ATTACK) const { return m_attackTimer[type] == 0; }
         bool haveOffhandWeapon() const;
-        bool IsUseEquippedWeapon(WeaponAttackType attackType) const
+        bool CanUseEquippedWeapon(WeaponAttackType attackType) const
         {
-            bool disarmed = false;
+            if (IsInFeralForm())
+                return false;
+
             switch(attackType)
             {
+                default:
                 case BASE_ATTACK:
-                    disarmed = HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISARMED);
-                break;
+                    return !HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISARMED);
                 case OFF_ATTACK:
-                    disarmed = HasFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_DISARM_OFFHAND);
-                break;
+                    return !HasFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_DISARM_OFFHAND);
                 case RANGED_ATTACK:
-                    disarmed = HasFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_DISARM_RANGED);
-                break;
+                    return !HasFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_DISARM_RANGED);
             }
-            return !IsInFeralForm() && !disarmed;
         }
-        bool canReachWithAttack(Unit *pVictim) const;
+        bool CanReachWithMeleeAttack(Unit* pVictim, float flat_mod = 0.0f) const;
         uint32 m_extraAttacks;
 
         void _addAttacker(Unit *pAttacker)                  // must be called only from Unit::Attack(Unit*)
@@ -1253,6 +1227,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
             return NULL;
         }
         bool Attack(Unit *victim, bool meleeAttack);
+        void AttackedBy(Unit *attacker);
         void CastStop(uint32 except_spellid = 0);
         bool AttackStop(bool targetSwitch = false);
         void RemoveAllAttackers();
@@ -1322,7 +1297,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         // faction template id
         uint32 getFaction() const { return GetUInt32Value(UNIT_FIELD_FACTIONTEMPLATE); }
-        void setFaction(uint32 faction) { SetUInt32Value(UNIT_FIELD_FACTIONTEMPLATE, faction ); }
+        uint32 GetOriginalFaction() const { return m_originalFaction; }
+        void setFaction(uint32 faction) { if (!m_originalFaction) m_originalFaction = faction; SetUInt32Value(UNIT_FIELD_FACTIONTEMPLATE, faction ); }
         FactionTemplateEntry const* getFactionTemplateEntry() const;
         bool IsHostileTo(Unit const* unit) const;
         bool IsHostileToPlayers() const;
@@ -1357,7 +1333,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool IsMounted() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNT ); }
         uint32 GetMountID() const { return GetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID); }
         void Mount(uint32 mount, uint32 spellId = 0, uint32 vehicleId = 0, uint32 creatureEntry = 0);
-        void Unmount();
+        void Unmount(bool from_aura = false);
 
         uint16 GetMaxSkillValueForLevel(Unit const* target = NULL) const { return (target ? GetLevelForTarget(target) : getLevel()) * 5; }
         void DealDamageMods(Unit *pVictim, uint32 &damage, uint32* absorb);
@@ -1481,10 +1457,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool isFrozen() const;
         bool IsIgnoreUnitState(SpellEntry const *spell, IgnoreUnitState ignoreState);
 
-        void RemoveSpellbyDamageTaken(AuraType auraType, uint32 damage);
-
         bool isTargetableForAttack(bool inversAlive = false) const;
-        bool isPassiveToHostile() { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE); }
+        virtual bool isPassiveToHostile() { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE); }
 
         virtual bool IsInWater() const;
         virtual bool IsUnderWater() const;
@@ -1501,8 +1475,6 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void CastSpell(float x, float y, float z, uint32 spellId, bool triggered, Item *castItem = NULL, Aura* triggeredByAura = NULL, ObjectGuid originalCaster = ObjectGuid(), SpellEntry const* triggeredBy = NULL);
         void CastSpell(float x, float y, float z, SpellEntry const *spellInfo, bool triggered, Item *castItem = NULL, Aura* triggeredByAura = NULL, ObjectGuid originalCaster = ObjectGuid(), SpellEntry const* triggeredBy = NULL);
 
-        bool IsDamageToThreatSpell(SpellEntry const * spellInfo) const;
-
         void DeMorph();
 
         void SendAttackStateUpdate(CalcDamageInfo *damageInfo);
@@ -1518,6 +1490,10 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void MonsterMoveWithSpeed(float x, float y, float z, uint32 transitTime = 0);
         void MonsterJump(float x, float y, float z, float o, uint32 transitTime, uint32 verticalSpeed);
 
+        void MonsterMoveByPath(float x, float y, float z, uint32 speed, bool smoothPath = true);
+        template<typename PathElem, typename PathNode>
+        void MonsterMoveByPath(Path<PathElem,PathNode> const& path, uint32 start, uint32 end, uint32 transitTime = 0);
+
         // recommend use MonsterMove/MonsterMoveWithSpeed for most case that correctly work with movegens
         // if used additional args in ... part then floats must explicitly casted to double
         void SendMonsterMove(float x, float y, float z, SplineType type, SplineFlags flags, uint32 Time, Player* player = NULL, ...);
@@ -1528,7 +1504,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         virtual bool SetPosition(float x, float y, float z, float orientation, bool teleport = false);
 
         template<typename PathElem, typename PathNode>
-        void SendMonsterMoveByPath(Path<PathElem,PathNode> const& path, uint32 start, uint32 end, SplineFlags flags);
+        void SendMonsterMoveByPath(Path<PathElem,PathNode> const& path, uint32 start, uint32 end, SplineFlags flags, uint32 traveltime);
 
         void SendHighestThreatUpdate(HostileReference* pHostileReference);
         void SendThreatClear();
@@ -1546,7 +1522,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         ObjectGuid const& GetOwnerGuid() const { return  GetGuidValue(UNIT_FIELD_SUMMONEDBY); }
         void SetOwnerGuid(ObjectGuid owner) { SetGuidValue(UNIT_FIELD_SUMMONEDBY, owner); }
-        ObjectGuid const& GetCreatorGuid() const { return GetGuidValue(UNIT_FIELD_CREATEDBY); }
+        ObjectGuid const& GetCreatorGuid() const;
         void SetCreatorGuid(ObjectGuid creator) { SetGuidValue(UNIT_FIELD_CREATEDBY, creator); }
         ObjectGuid const& GetPetGuid() const { return GetGuidValue(UNIT_FIELD_SUMMON); }
         void SetPetGuid(ObjectGuid pet) { SetGuidValue(UNIT_FIELD_SUMMON, pet); }
@@ -1632,6 +1608,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         void _AddAura(uint32 spellID, uint32 duration = 60000);
 
+        float CheckAuraStackingAndApply(Aura *Aur, UnitMods unitMod, UnitModifierType modifierType, float amount, bool apply, int32 miscMask = 0, int32 miscValue = 0);
+
         // removing specific aura stack
         void RemoveAura(Aura* aura, AuraRemoveMode mode = AURA_REMOVE_BY_DEFAULT);
         void RemoveAura(uint32 spellId, SpellEffectIndex effindex, Aura* except = NULL);
@@ -1676,7 +1654,11 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
             for(int i = STAT_STRENGTH; i < MAX_STATS; ++i) SetFloatValue(UNIT_FIELD_POSSTAT0+i, 0);
             for(int i = STAT_STRENGTH; i < MAX_STATS; ++i) SetFloatValue(UNIT_FIELD_NEGSTAT0+i, 0);
         }
-        void ApplyStatBuffMod(Stats stat, float val, bool apply) { ApplyModSignedFloatValue((val > 0 ? UNIT_FIELD_POSSTAT0+stat : UNIT_FIELD_NEGSTAT0+stat), val, apply); }
+        void ApplyStatBuffMod(Stats stat, float val, bool apply)
+        {
+            val *= GetModifierValue(UnitMods(UNIT_MOD_STAT_STRENGTH+stat), TOTAL_PCT);
+            ApplyModSignedFloatValue((val > 0 ? UNIT_FIELD_POSSTAT0+stat : UNIT_FIELD_NEGSTAT0+stat), val, apply);
+        }
         void ApplyStatPercentBuffMod(Stats stat, float val, bool apply)
         {
             ApplyPercentModFloatValue(UNIT_FIELD_POSSTAT0+stat, val, apply);
@@ -1739,7 +1721,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         int32 m_baseSpellCritChance;
 
         float m_threatModifier[MAX_SPELL_SCHOOL];
-        float m_modAttackSpeedPct[3];
+        float m_modAttackSpeedPct[MAX_ATTACK + 2];
 
         // Event handler
         EventProcessor m_Events;
@@ -1774,6 +1756,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         // Visibility system
         UnitVisibility GetVisibility() const { return m_Visibility; }
         void SetVisibility(UnitVisibility x);
+        void UpdateVisibilityAndView();                     // overwrite WorldObject::UpdateVisibilityAndView()
 
         // common function for visibility checks for player/creatures with detection code
         bool isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, bool detect, bool inVisibleList = false, bool is3dDistance = true) const;
@@ -1832,18 +1815,18 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         int32 GetTotalAuraModifier(AuraType auratype) const;
         float GetTotalAuraMultiplier(AuraType auratype) const;
-        int32 GetMaxPositiveAuraModifier(AuraType auratype) const;
-        int32 GetMaxNegativeAuraModifier(AuraType auratype) const;
+        int32 GetMaxPositiveAuraModifier(AuraType auratype, bool nonStackingOnly = false) const;
+        int32 GetMaxNegativeAuraModifier(AuraType auratype, bool nonStackingOnly = false) const;
 
         int32 GetTotalAuraModifierByMiscMask(AuraType auratype, uint32 misc_mask) const;
         float GetTotalAuraMultiplierByMiscMask(AuraType auratype, uint32 misc_mask) const;
-        int32 GetMaxPositiveAuraModifierByMiscMask(AuraType auratype, uint32 misc_mask) const;
-        int32 GetMaxNegativeAuraModifierByMiscMask(AuraType auratype, uint32 misc_mask) const;
+        int32 GetMaxPositiveAuraModifierByMiscMask(AuraType auratype, uint32 misc_mask, bool nonStackingOnly = false) const;
+        int32 GetMaxNegativeAuraModifierByMiscMask(AuraType auratype, uint32 misc_mask, bool nonStackingOnly = false) const;
 
         int32 GetTotalAuraModifierByMiscValue(AuraType auratype, int32 misc_value) const;
         float GetTotalAuraMultiplierByMiscValue(AuraType auratype, int32 misc_value) const;
-        int32 GetMaxPositiveAuraModifierByMiscValue(AuraType auratype, int32 misc_value) const;
-        int32 GetMaxNegativeAuraModifierByMiscValue(AuraType auratype, int32 misc_value) const;
+        int32 GetMaxPositiveAuraModifierByMiscValue(AuraType auratype, int32 misc_value, bool nonStackingOnly = false) const;
+        int32 GetMaxNegativeAuraModifierByMiscValue(AuraType auratype, int32 misc_value, bool nonStackingOnly = false) const;
 
         // misc have plain value but we check it fit to provided values mask (mask & (1 << (misc-1)))
         float GetTotalAuraMultiplierByMiscValueForMask(AuraType auratype, uint32 mask) const;
@@ -1920,10 +1903,14 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         SpellAuraProcResult HandleModPowerCostSchoolAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const *procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
         SpellAuraProcResult HandleMechanicImmuneResistanceAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const *procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
         SpellAuraProcResult HandleModDamageFromCasterAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const *procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
-        SpellAuraProcResult HandleMaelstromWeaponAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const *procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
+        SpellAuraProcResult HandleAddFlatModifierAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const *procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
         SpellAuraProcResult HandleAddPctModifierAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const *procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
         SpellAuraProcResult HandleModDamagePercentDoneAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const *procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
         SpellAuraProcResult HandlePeriodicDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const *procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
+        SpellAuraProcResult HandleModRating(Unit *pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const *procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
+        SpellAuraProcResult HandleRemoveByDamageProc(Unit *pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const *procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
+        SpellAuraProcResult HandleRemoveByDamageChanceProc(Unit *pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const *procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
+        SpellAuraProcResult HandleManaShieldAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const *procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
         SpellAuraProcResult HandleNULLProc(Unit *pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const *procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown)
         {
             // no proc handler for this aura type
@@ -1996,9 +1983,15 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void SetConfused(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0);
         void SetFeignDeath(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0);
 
-        void AddComboPointHolder(uint32 lowguid) { m_ComboPointHolders.insert(lowguid); }
-        void RemoveComboPointHolder(uint32 lowguid) { m_ComboPointHolders.erase(lowguid); }
+        void AddComboPointHolder(ObjectGuid guid) { m_ComboPointHolders.insert(guid); }
+        void RemoveComboPointHolder(ObjectGuid guid) { m_ComboPointHolders.erase(guid); }
         void ClearComboPointHolders();
+
+        uint8 GetComboPoints() { return m_comboPoints; }
+        ObjectGuid const& GetComboTargetGuid() const { return m_comboTargetGuid; }
+
+        void AddComboPoints(Unit* target, int8 count);
+        void ClearComboPoints();
 
         ///----------Pet responses methods-----------------
         void SendPetCastFail(uint32 spellid, SpellCastResult msg);
@@ -2061,6 +2054,11 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         VehicleKit* GetVehicleKit() const { return m_pVehicleKit; }
         bool CreateVehicleKit(uint32 vehicleId);
         void RemoveVehicleKit();
+
+        void ScheduleAINotify(uint32 delay);
+        bool IsAINotifyScheduled() const { return m_AINotifyScheduled;}
+        void _SetAINotifyScheduled(bool on) { m_AINotifyScheduled = on;}       // only for call from RelocationNotifyEvent code
+        void OnRelocated();
 
     protected:
         explicit Unit ();
@@ -2140,6 +2138,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         uint32 m_castCounter;                               // count casts chain of triggered spells for prevent infinity cast crashes
 
         UnitVisibility m_Visibility;
+        Position m_last_notified_position;
+        bool m_AINotifyScheduled;
 
         Diminishing m_Diminishing;
         // Manage all Units threatening us
@@ -2150,6 +2150,10 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         FollowerRefManager m_FollowingRefManager;
 
         ComboPointHolderSet m_ComboPointHolders;
+        ObjectGuid m_comboTargetGuid;
+        int8 m_comboPoints;
+
+        uint32 m_originalFaction;
 
         GroupPetList m_groupPets;
 
@@ -2159,6 +2163,21 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         uint64 m_TotemSlot[MAX_TOTEM_SLOT];
 
+    private:                                                // Error traps for some wrong args using
+        // this will catch and prevent build for any cases when all optional args skipped and instead triggered used non boolean type
+        // no bodies expected for this declarations
+        template <typename TR>
+        void CastSpell(Unit* Victim, uint32 spell, TR triggered);
+        template <typename TR>
+        void CastSpell(Unit* Victim, SpellEntry const* spell, TR triggered);
+        template <typename TR>
+        void CastCustomSpell(Unit* Victim, uint32 spell, int32 const* bp0, int32 const* bp1, int32 const* bp2, TR triggered);
+        template <typename SP, typename TR>
+        void CastCustomSpell(Unit* Victim, SpellEntry const* spell, int32 const* bp0, int32 const* bp1, int32 const* bp2, TR triggered);
+        template <typename TR>
+        void CastSpell(float x, float y, float z, uint32 spell, TR triggered);
+        template <typename TR>
+        void CastSpell(float x, float y, float z, SpellEntry const* spell, TR triggered);
 };
 
 template<typename Func>
@@ -2238,35 +2257,6 @@ bool Unit::CheckAllControlledUnits(Func const& func, uint32 controlledMask) cons
                 return true;
 
     return false;
-}
-
-template<typename Elem, typename Node>
-inline void Unit::SendMonsterMoveByPath(Path<Elem,Node> const& path, uint32 start, uint32 end, SplineFlags flags)
-{
-    uint32 traveltime = uint32(path.GetTotalLength(start, end) * 32);
-
-    uint32 pathSize = end - start;
-
-    WorldPacket data( SMSG_MONSTER_MOVE, (GetPackGUID().size()+1+4+4+4+4+1+4+4+4+pathSize*4*3) );
-    data << GetPackGUID();
-    data << uint8(0);
-    data << GetPositionX();
-    data << GetPositionY();
-    data << GetPositionZ();
-    data << uint32(getMSTime());
-    data << uint8(SPLINETYPE_NORMAL);
-    data << uint32(flags);
-    data << uint32(traveltime);
-    data << uint32(pathSize);
-
-    for(uint32 i = start; i < end; ++i)
-    {
-        data << float(path[i].x);
-        data << float(path[i].y);
-        data << float(path[i].z);
-    }
-
-    SendMessageToSet(&data, true);
 }
 
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -250,7 +250,8 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
                 /*if (((Creature*)unit)->hasUnitState(UNIT_STAT_MOVING))
                     unit->m_movementInfo.SetMovementFlags(MOVEFLAG_FORWARD);*/
 
-                if (((Creature*)unit)->CanFly())
+                if (((Creature*)unit)->CanFly() && !(((Creature*)unit)->CanWalk()
+                    && unit->IsAtGroundLevel(unit->GetPositionX(), unit->GetPositionY(), unit->GetPositionZ())))
                 {
                     // (ok) most seem to have this
                     unit->m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
@@ -302,7 +303,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
             unit->m_movementInfo.RemoveMovementFlag(MOVEFLAG_ONTRANSPORT);
 
         // Update movement info time
-        unit->m_movementInfo.UpdateTime(getMSTime());
+        unit->m_movementInfo.UpdateTime(WorldTimer::getMSTime());
         // Write movement info
         unit->m_movementInfo.Write(*data);
 
@@ -509,7 +510,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
     // 0x2
     if(updateFlags & UPDATEFLAG_TRANSPORT)
     {
-        *data << uint32(getMSTime());                       // ms time
+        *data << uint32(WorldTimer::getMSTime());                       // ms time
     }
 
     // 0x80
@@ -835,15 +836,7 @@ void Object::SetInt32Value( uint16 index, int32 value )
     if(m_int32Values[ index ] != value)
     {
         m_int32Values[ index ] = value;
-
-        if(m_inWorld)
-        {
-            if(!m_objectUpdated)
-            {
-                AddToClientUpdateList();
-                m_objectUpdated = true;
-            }
-        }
+        MarkForClientUpdate();
     }
 }
 
@@ -854,15 +847,7 @@ void Object::SetUInt32Value( uint16 index, uint32 value )
     if(m_uint32Values[ index ] != value)
     {
         m_uint32Values[ index ] = value;
-
-        if(m_inWorld)
-        {
-            if(!m_objectUpdated)
-            {
-                AddToClientUpdateList();
-                m_objectUpdated = true;
-            }
-        }
+        MarkForClientUpdate();
     }
 }
 
@@ -873,15 +858,7 @@ void Object::SetUInt64Value( uint16 index, const uint64 &value )
     {
         m_uint32Values[ index ] = *((uint32*)&value);
         m_uint32Values[ index + 1 ] = *(((uint32*)&value) + 1);
-
-        if(m_inWorld)
-        {
-            if(!m_objectUpdated)
-            {
-                AddToClientUpdateList();
-                m_objectUpdated = true;
-            }
-        }
+        MarkForClientUpdate();
     }
 }
 
@@ -892,15 +869,7 @@ void Object::SetFloatValue( uint16 index, float value )
     if(m_floatValues[ index ] != value)
     {
         m_floatValues[ index ] = value;
-
-        if(m_inWorld)
-        {
-            if(!m_objectUpdated)
-            {
-                AddToClientUpdateList();
-                m_objectUpdated = true;
-            }
-        }
+        MarkForClientUpdate();
     }
 }
 
@@ -918,15 +887,7 @@ void Object::SetByteValue( uint16 index, uint8 offset, uint8 value )
     {
         m_uint32Values[ index ] &= ~uint32(uint32(0xFF) << (offset * 8));
         m_uint32Values[ index ] |= uint32(uint32(value) << (offset * 8));
-
-        if(m_inWorld)
-        {
-            if(!m_objectUpdated)
-            {
-                AddToClientUpdateList();
-                m_objectUpdated = true;
-            }
-        }
+        MarkForClientUpdate();
     }
 }
 
@@ -944,15 +905,7 @@ void Object::SetUInt16Value( uint16 index, uint8 offset, uint16 value )
     {
         m_uint32Values[ index ] &= ~uint32(uint32(0xFFFF) << (offset * 16));
         m_uint32Values[ index ] |= uint32(uint32(value) << (offset * 16));
-
-        if(m_inWorld)
-        {
-            if(!m_objectUpdated)
-            {
-                AddToClientUpdateList();
-                m_objectUpdated = true;
-            }
-        }
+        MarkForClientUpdate();
     }
 }
 
@@ -1013,15 +966,7 @@ void Object::SetFlag( uint16 index, uint32 newFlag )
     if(oldval != newval)
     {
         m_uint32Values[ index ] = newval;
-
-        if(m_inWorld)
-        {
-            if(!m_objectUpdated)
-            {
-                AddToClientUpdateList();
-                m_objectUpdated = true;
-            }
-        }
+        MarkForClientUpdate();
     }
 }
 
@@ -1034,15 +979,7 @@ void Object::RemoveFlag( uint16 index, uint32 oldFlag )
     if(oldval != newval)
     {
         m_uint32Values[ index ] = newval;
-
-        if(m_inWorld)
-        {
-            if(!m_objectUpdated)
-            {
-                AddToClientUpdateList();
-                m_objectUpdated = true;
-            }
-        }
+        MarkForClientUpdate();
     }
 }
 
@@ -1059,15 +996,7 @@ void Object::SetByteFlag( uint16 index, uint8 offset, uint8 newFlag )
     if(!(uint8(m_uint32Values[ index ] >> (offset * 8)) & newFlag))
     {
         m_uint32Values[ index ] |= uint32(uint32(newFlag) << (offset * 8));
-
-        if(m_inWorld)
-        {
-            if(!m_objectUpdated)
-            {
-                AddToClientUpdateList();
-                m_objectUpdated = true;
-            }
-        }
+        MarkForClientUpdate();
     }
 }
 
@@ -1084,15 +1013,7 @@ void Object::RemoveByteFlag( uint16 index, uint8 offset, uint8 oldFlag )
     if(uint8(m_uint32Values[ index ] >> (offset * 8)) & oldFlag)
     {
         m_uint32Values[ index ] &= ~uint32(uint32(oldFlag) << (offset * 8));
-
-        if(m_inWorld)
-        {
-            if(!m_objectUpdated)
-            {
-                AddToClientUpdateList();
-                m_objectUpdated = true;
-            }
-        }
+        MarkForClientUpdate();
     }
 }
 
@@ -1103,15 +1024,7 @@ void Object::SetShortFlag(uint16 index, bool highpart, uint16 newFlag)
     if (!(uint16(m_uint32Values[index] >> (highpart ? 16 : 0)) & newFlag))
     {
         m_uint32Values[index] |= uint32(uint32(newFlag) << (highpart ? 16 : 0));
-
-        if (m_inWorld)
-        {
-            if (!m_objectUpdated)
-            {
-                AddToClientUpdateList();
-                m_objectUpdated = true;
-            }
-        }
+        MarkForClientUpdate();
     }
 }
 
@@ -1122,15 +1035,7 @@ void Object::RemoveShortFlag(uint16 index, bool highpart, uint16 oldFlag)
     if (uint16(m_uint32Values[index] >> (highpart ? 16 : 0)) & oldFlag)
     {
         m_uint32Values[index] &= ~uint32(uint32(oldFlag) << (highpart ? 16 : 0));
-
-        if (m_inWorld)
-        {
-            if (!m_objectUpdated)
-            {
-                AddToClientUpdateList();
-                m_objectUpdated = true;
-            }
-        }
+        MarkForClientUpdate();
     }
 }
 
@@ -1174,6 +1079,18 @@ void Object::BuildUpdateData( UpdateDataMapType& /*update_players */)
     MANGOS_ASSERT(false);
 }
 
+void Object::MarkForClientUpdate()
+{
+    if(m_inWorld)
+    {
+        if(!m_objectUpdated)
+        {
+            AddToClientUpdateList();
+            m_objectUpdated = true;
+        }
+    }
+}
+
 WorldObject::WorldObject()
     : m_isActiveObject(false), m_currMap(NULL), m_mapId(0), m_InstanceId(0), m_phaseMask(PHASEMASK_NORMAL),
     m_groupLootTimer(0), m_groupLootId(0), m_lootGroupRecipientId(0), m_name(""),
@@ -1214,7 +1131,7 @@ void WorldObject::Relocate(float x, float y, float z)
 }
 
 void WorldObject::SetOrientation(float orientation)
-{ 
+{
     m_orientation = orientation;
 
     if(isType(TYPEMASK_UNIT))
@@ -1238,8 +1155,7 @@ void WorldObject::GetZoneAndAreaId(uint32& zoneid, uint32& areaid) const
 
 InstanceData* WorldObject::GetInstanceData() const
 {
-    Map *map = GetMap();
-    return map->IsDungeon() ? ((InstanceMap*)map)->GetInstanceData() : NULL;
+    return GetMap()->GetInstanceData();
 }
 
                                                             //slow
@@ -1270,6 +1186,16 @@ float WorldObject::GetDistance(float x, float y, float z) const
     float sizefactor = GetObjectBoundingRadius();
     float dist = sqrt((dx*dx) + (dy*dy) + (dz*dz)) - sizefactor;
     return ( dist > 0 ? dist : 0);
+}
+
+float WorldObject::GetDistanceSqr(float x, float y, float z) const
+{
+    float dx = GetPositionX() - x;
+    float dy = GetPositionY() - y;
+    float dz = GetPositionZ() - z;
+    float sizefactor = GetObjectBoundingRadius();
+    float dist = dx*dx+dy*dy+dz*dz-sizefactor;
+    return (dist > 0 ? dist : 0);
 }
 
 float WorldObject::GetDistance2d(const WorldObject* obj) const
@@ -1452,6 +1378,34 @@ float WorldObject::GetAngle( const float x, const float y ) const
     return ang;
 }
 
+bool WorldObject::HasInArc(const float arcangle, const float x, const float y) const
+{
+    // always have self in arc
+    if(x == m_positionX && y == m_positionY)
+        return true;
+
+    float arc = arcangle;
+
+    // move arc to range 0.. 2*pi
+    while( arc >= 2.0f * M_PI_F )
+        arc -=  2.0f * M_PI_F;
+    while( arc < 0 )
+        arc +=  2.0f * M_PI_F;
+
+    float angle = GetAngle( x, y );
+    angle -= m_orientation;
+
+    // move angle to range -pi ... +pi
+    while( angle > M_PI_F)
+        angle -= 2.0f * M_PI_F;
+    while(angle < -M_PI_F)
+        angle += 2.0f * M_PI_F;
+
+    float lborder =  -1 * (arc/2.0f);                       // in range -pi..0
+    float rborder = (arc/2.0f);                             // in range 0..pi
+    return (( angle >= lborder ) && ( angle <= rborder ));
+}
+
 bool WorldObject::HasInArc(const float arcangle, const WorldObject* obj) const
 {
     // always have self in arc
@@ -1548,9 +1502,9 @@ void WorldObject::UpdateAllowedPositionZ(float x, float y, float &z) const
             // non swim unit must be at ground (mostly speedup, because it don't must be in water and water level check less fast
             if (!((Creature const*)this)->CanFly())
             {
-                bool CanSwim = ((Creature const*)this)->CanSwim();
+                bool canSwim = ((Creature const*)this)->CanSwim();
                 float ground_z = z;
-                float max_z = CanSwim
+                float max_z = canSwim
                     ? GetTerrain()->GetWaterOrGroundLevel(x, y, z, &ground_z, !((Unit const*)this)->HasAuraType(SPELL_AURA_WATER_WALK))
                     : ((ground_z = GetTerrain()->GetHeight(x, y, z, true)));
                 if (max_z > INVALID_HEIGHT)
@@ -1605,6 +1559,14 @@ void WorldObject::UpdateAllowedPositionZ(float x, float y, float &z) const
 bool WorldObject::IsPositionValid() const
 {
     return MaNGOS::IsValidMapCoord(m_positionX,m_positionY,m_positionZ,m_orientation);
+}
+
+bool WorldObject::IsAtGroundLevel(float x, float y, float z) const
+{
+    float groundZ = GetTerrain()->GetHeight(x, y, z, true);
+    if(groundZ <= INVALID_HEIGHT || fabs(groundZ-z) > 0.5f)
+        return false;
+    return true;
 }
 
 void WorldObject::MonsterSay(const char* text, uint32 language, Unit* target)
@@ -1665,21 +1627,20 @@ namespace MaNGOS
 
 void WorldObject::MonsterSay(int32 textId, uint32 language, Unit* target)
 {
+    float range = sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_SAY);
     MaNGOS::MonsterChatBuilder say_build(*this, CHAT_MSG_MONSTER_SAY, textId, language, target);
     MaNGOS::LocalizedPacketDo<MaNGOS::MonsterChatBuilder> say_do(say_build);
-    MaNGOS::CameraDistWorker<MaNGOS::LocalizedPacketDo<MaNGOS::MonsterChatBuilder> > say_worker(this,sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_SAY),say_do);
-    Cell::VisitWorldObjects(this, say_worker, sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_SAY));
+    MaNGOS::CameraDistWorker<MaNGOS::LocalizedPacketDo<MaNGOS::MonsterChatBuilder> > say_worker(this, range, say_do);
+    Cell::VisitWorldObjects(this, say_worker, range);
 }
 
 void WorldObject::MonsterYell(int32 textId, uint32 language, Unit* target)
 {
-
     float range = sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_YELL);
-
     MaNGOS::MonsterChatBuilder say_build(*this, CHAT_MSG_MONSTER_YELL, textId, language, target);
     MaNGOS::LocalizedPacketDo<MaNGOS::MonsterChatBuilder> say_do(say_build);
     MaNGOS::CameraDistWorker<MaNGOS::LocalizedPacketDo<MaNGOS::MonsterChatBuilder> > say_worker(this,range,say_do);
-    Cell::VisitWorldObjects(this, say_worker, sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_YELL));
+    Cell::VisitWorldObjects(this, say_worker, range);
 }
 
 void WorldObject::MonsterYellToZone(int32 textId, uint32 language, Unit* target)
@@ -1806,32 +1767,23 @@ Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, floa
     if (GetTypeId()==TYPEID_PLAYER)
         team = ((Player*)this)->GetTeam();
 
-    if (!pCreature->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_UNIT), GetMap(), GetPhaseMask(), id, team))
-    {
-        delete pCreature;
-        return NULL;
-    }
+    CreatureCreatePos pos(GetMap(), x, y, z, ang, GetPhaseMask());
 
     if (x == 0.0f && y == 0.0f && z == 0.0f)
-        GetClosePoint(x, y, z, pCreature->GetObjectBoundingRadius());
+        pos = CreatureCreatePos(this, GetOrientation(), CONTACT_DISTANCE, ang);
 
-    pCreature->Relocate(x, y, z, ang);
-    pCreature->SetSummonPoint(x, y, z, ang);
-
-    if(!pCreature->IsPositionValid())
+    if (!pCreature->Create(GetMap()->GenerateLocalLowGuid(HIGHGUID_UNIT), pos, id, team))
     {
-        sLog.outError("Creature (guidlow %d, entry %d) not summoned. Suggested coordinates isn't valid (X: %f Y: %f)",pCreature->GetGUIDLow(),pCreature->GetEntry(),pCreature->GetPositionX(),pCreature->GetPositionY());
         delete pCreature;
         return NULL;
     }
+
+    pCreature->SetSummonPoint(pos);
 
     // Active state set before added to map
     pCreature->SetActiveObjectState(asActiveObject);
 
     pCreature->Summon(spwtype, despwtime);
-
-    if (GetTypeId() == TYPEID_UNIT)
-        pCreature->SetCreatorGuid(GetObjectGuid());
 
     if(GetTypeId()==TYPEID_UNIT && ((Creature*)this)->AI())
         ((Creature*)this)->AI()->JustSummoned(pCreature);
@@ -1846,7 +1798,10 @@ GameObject* WorldObject::SummonGameobject(uint32 id, float x, float y, float z, 
 
     Map *map = GetMap();
 
-    if(!pGameObj->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_GAMEOBJECT), id, map,
+    if (!map)
+        return NULL;
+
+    if(!pGameObj->Create(map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT), id, map,
         GetPhaseMask(), x, y, z, angle, 0.0f, 0.0f, 0.0f, 0.0f, 100, GO_STATE_READY))
     {
         delete pGameObj;
@@ -2088,10 +2043,7 @@ void WorldObject::SetPhaseMask(uint32 newPhaseMask, bool update)
     m_phaseMask = newPhaseMask;
 
     if(update && IsInWorld())
-    {
-        UpdateObjectVisibility();
-        GetViewPoint().Event_ViewPointVisibilityChanged();
-    }
+        UpdateVisibilityAndView();
 }
 
 void WorldObject::PlayDistanceSound( uint32 sound_id, Player* target /*= NULL*/ )
@@ -2113,6 +2065,26 @@ void WorldObject::PlayDirectSound( uint32 sound_id, Player* target /*= NULL*/ )
         target->SendDirectMessage( &data );
     else
         SendMessageToSet( &data, true );
+}
+
+void WorldObject::GetCreatureListWithEntryInGrid(std::list<Creature*>& lList, uint32 uiEntry, float fMaxSearchRange)
+{
+    CellPair pair(MaNGOS::ComputeCellPair(GetPositionX(), GetPositionY()));
+    Cell cell(pair);
+    cell.SetNoCreate();
+
+    MaNGOS::AllCreaturesOfEntryInRange check(this, uiEntry, fMaxSearchRange);
+    MaNGOS::CreatureListSearcher<MaNGOS::AllCreaturesOfEntryInRange> searcher(lList, check);
+    TypeContainerVisitor<MaNGOS::CreatureListSearcher<MaNGOS::AllCreaturesOfEntryInRange>, GridTypeMapContainer> visitor(searcher);
+
+    GetMap()->Visit(cell, visitor);
+}
+
+void WorldObject::UpdateVisibilityAndView()
+{
+    GetViewPoint().Call_UpdateVisibilityForOwner();
+    UpdateObjectVisibility();
+    GetViewPoint().Event_ViewPointVisibilityChanged();
 }
 
 void WorldObject::UpdateObjectVisibility()

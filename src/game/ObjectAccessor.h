@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,9 +37,7 @@
 #include <set>
 #include <list>
 
-class Creature;
 class Unit;
-class GameObject;
 class WorldObject;
 class Map;
 
@@ -145,9 +143,6 @@ class MANGOS_DLL_DECL ObjectAccessor : public MaNGOS::Singleton<ObjectAccessor, 
         void AddObject(Pet* object) { HashMapHolder<Pet>::Insert(object); }
         void RemoveObject(Pet* object) { HashMapHolder<Pet>::Remove(object); }
 
-        // TODO: This methods will need lock in MT environment
-        static void LinkMap(Map* map)   { ACE_Guard<ACE_Thread_Mutex> guard(m_Lock); i_mapList.push_back(map); }
-        static void DelinkMap(Map* map) { ACE_Guard<ACE_Thread_Mutex> guard(m_Lock); i_mapList.remove(map); }
     private:
         // TODO: This methods will need lock in MT environment
         // Theoreticaly multiple threads can enter and search in this method but
@@ -174,21 +169,8 @@ class MANGOS_DLL_DECL ObjectAccessor : public MaNGOS::Singleton<ObjectAccessor, 
 
         LockType i_playerGuard;
         LockType i_corpseGuard;
+        LockType i_petGuard;
 };
-
-inline Unit* ObjectAccessor::GetUnitInWorld(WorldObject const& obj, ObjectGuid guid)
-{
-    if(guid.IsEmpty())
-        return NULL;
-
-    if (guid.IsPlayer())
-        return FindPlayer(guid);
-
-    if (guid.IsPet())
-        return obj.IsInWorld() ? obj.GetMap()->GetPet(guid) : NULL;
-
-    return GetCreatureInWorld(guid);
-}
 
 #define sObjectAccessor ObjectAccessor::Instance()
 

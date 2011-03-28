@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,13 +25,11 @@
 #include "ObjectAccessor.h"
 #include "Language.h"
 #include "AccountMgr.h"
+#include "ScriptMgr.h"
 #include "SystemConfig.h"
-#include "revision.h"
 #include "revision_nr.h"
 #include "Util.h"
 #include "ObjectMgr.h"
-
-#define MAX_ALLOWED_QUESTS 20
 
 bool ChatHandler::HandleHelpCommand(char* args)
 {
@@ -104,13 +102,22 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
     else
         full = _FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,REVISION_ID);
 
-    SendSysMessage("Revision ReinoDeLaOscuridad: [R122] || Conoce los ultimos cambios entrando en www.reinodelaoscuridad.com");
+    SendSysMessage("Revision ReinoDeLaOscuridad: [R158] || Conoce los ultimos cambios entrando en www.reinodelaoscuridad.com");
     //Don't send revision info to normal players, for some hacks, you need the server rev. =/
     if(chr->isGameMaster())
     {
         SendSysMessage("--------------------- INFORMACION ADICIONAL PARA EL STAFF ---------------------");
         SendSysMessage(full);
-        PSendSysMessage(LANG_USING_SCRIPT_LIB,sWorld.GetScriptsVersion());
+        if (sScriptMgr.IsScriptLibraryLoaded())
+        {
+            char const* ver = sScriptMgr.GetScriptLibraryVersion();
+            if (ver && *ver)
+                PSendSysMessage(LANG_USING_SCRIPT_LIB, ver);
+            else
+             SendSysMessage(LANG_USING_SCRIPT_LIB_UNKNOWN);
+        }
+        else
+            SendSysMessage(LANG_USING_SCRIPT_LIB_NONE);
         PSendSysMessage(LANG_USING_WORLD_DB,sWorld.GetDBVersion());
         PSendSysMessage(LANG_USING_EVENT_AI,sWorld.GetCreatureEventAIVersion());
         SendSysMessage("-----------------------------------------------------------------------------------------------------");
@@ -121,11 +128,19 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
     return true;
 }
 
+#define MAX_ALLOWED_QUESTS 30
+
 bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
 {
     uint32 ALLOWED_QUESTS[MAX_ALLOWED_QUESTS] = {
+        12733,  // Death's Challenge (Dks - Same problem as The Endless Hunger)
         12779,  // A End to All Things... (DKs)
-        12641,  // Death comes from above (DKs)
+        12848,  // The Endless Hunger (DKs - Sometimes works, sometimes not)
+        12687,  // Into the realm of Shadows (DKs)
+
+        13625,  // Learning The Reins (H)
+        13677,  //     "     "    "   (A)
+        12727,  // Bloody breakout (DKs - Sometimes the script fails)
         13680,  // The Aspirant's Challenge (H)
         13679,  // The Aspirant's Challenge (A)
         13724,
@@ -141,9 +156,14 @@ bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
         12983,  
         12997,
         12886,
+        13828,  // Mastery of Melee (A/H)
+        13829,
         12856,  // Hodir chain bugged quests (A/H)
+        12851,
+        12996,  // The Warm-up (A/H)
         24451,  // An Audience With The Arcanist (A/H) (For Quel'delar)
-        24560   // Tempering the Blade (A/H) (For Quel'delar)
+        24560,  // Tempering the Blade (A/H) (For Quel'delar)
+        24561   // The Halls of Reflection (A/H) (For Quel'delar)
     };
 
     Player* player = getSelectedPlayer();
@@ -158,10 +178,14 @@ bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
     // number or [name] Shift-click form |color|Hquest:quest_id:quest_level|h[name]|h|r
     uint32 entry;
     if (!ExtractUint32KeyFromLink(&args, "Hquest", entry))
+    {
+        PSendSysMessage("No se ha podido identificar el link, prueba poniendo directamente la id.");
         return false;
+    }
 
     bool allowed = false;
-    for (int i = 0; i < MAX_ALLOWED_QUESTS; ++i)
+    uint16 i;
+    for (i = 0; i < MAX_ALLOWED_QUESTS; ++i)
     {
         if (ALLOWED_QUESTS[i] == entry)
         {
@@ -171,7 +195,19 @@ bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
     }
 
     if (!allowed)
+    {
+        PSendSysMessage("No se encuentra '%u' en la lista de misiones.", entry);
+        PSendSysMessage("Las misiones soportadas por el comando son las siguientes:");
+        for (i = 0; i < MAX_ALLOWED_QUESTS; ++i)
+        {
+            Quest const* pQuest = sObjectMgr.GetQuestTemplate(ALLOWED_QUESTS[i]);
+            if (!pQuest)
+                break;
+            PSendSysMessage("%s (ID: %u)", pQuest->GetTitle().c_str(), pQuest->GetQuestId());
+        }
+        SetSentErrorMessage(true);
         return false;
+    }
 
     Quest const* pQuest = sObjectMgr.GetQuestTemplate(entry);
 
@@ -411,5 +447,31 @@ bool ChatHandler::HandleAccountLockCommand(char* args)
 bool ChatHandler::HandleServerMotdCommand(char* /*args*/)
 {
     PSendSysMessage(LANG_MOTD_CURRENT, sWorld.GetMotd());
+    return true;
+}
+
+bool ChatHandler::HandleRatesCommand(char* args)
+{
+    Player *plr = m_session->GetPlayer();
+    if (!plr)
+        return false;
+
+    if (!*args)
+    {
+        PSendSysMessage("Las rates de experiencia del personaje %s son actualmente: %u", plr->GetName(), plr->GetXpRate());
+        return false;
+    }
+
+    uint8 new_rates = (uint8)atof(args);
+    if (new_rates > 10 || new_rates < 1)
+    {
+        SendSysMessage(LANG_BAD_VALUE);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    plr->SetXpRate(new_rates);
+    PSendSysMessage("Las rates de experiencia de %s se han establecido a %u", plr->GetName(), new_rates);
+    
     return true;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,11 +29,9 @@
 #define BG_EVENT_NONE 255
 // those generic events should get a high event id
 #define BG_EVENT_DOOR 254
-// Used to activate/disable generic gameobjects, like Dalaran's waterfall.
-#define BG_EVENT_ACTIVATE_GAMEOBJECT 253
 // only arena event
 // cause this buff apears 90sec after start in every bg i implement it here
-#define ARENA_BUFF_EVENT 252
+#define ARENA_BUFF_EVENT 253
 
 #define BG_SA_NUM_CREATURES 16
 
@@ -102,6 +100,7 @@ enum BattleGroundMarksCount
 
 enum BattleGroundSpells
 {
+    SPELL_SPIRIT_HEAL_CHANNEL       = 22011,
     SPELL_ARENA_PREPARATION         = 32727,                // use this one, 32728 not correct
     SPELL_ALLIANCE_GOLD_FLAG        = 32724,
     SPELL_ALLIANCE_GREEN_FLAG       = 32725,
@@ -126,6 +125,7 @@ enum BattleGroundTimeIntervals
     RESPAWN_IMMEDIATELY             = 0,                    // secs
     BUFF_RESPAWN_TIME               = 180,                  // secs
     ARENA_SPAWN_BUFF_OBJECTS        = 90000,                // ms - 90sec after start
+    ARENA_TIME_LIMIT                = 2820000,              // ms - 47 minutes after start
 };
 
 enum BattleGroundStartTimeIntervals
@@ -219,11 +219,15 @@ enum ScoreType
     SCORE_TOWERS_DEFENDED       = 14,
     SCORE_SECONDARY_OBJECTIVES  = 15,
 	//SA
-	SCORE_GATES_DESTROYED		= 16,
-	SCORE_DEMOLISHERS_DESTROYED	= 17,
-    /* WoWArmory */
-    SCORE_DAMAGE_TAKEN          = 18,
-    SCORE_HEALING_TAKEN         = 19
+	SCORE_DESTROYED_DEMOLISHER  = 16,
+	SCORE_DESTROYED_WALL        = 17,
+    //IC
+    SCORE_BASE_ASSAULTED        = 18,
+    SCORE_BASE_DEFENDED         = 19,
+    /** World of Warcraft Armory **/
+    SCORE_DAMAGE_TAKEN          = 20,
+    SCORE_HEALING_TAKEN         = 21
+    /** World of Warcraft Armory **/
 };
 
 enum ArenaType
@@ -272,6 +276,15 @@ enum BattleGroundStartingEventsIds
 };
 #define BG_STARTING_EVENT_COUNT 4
 
+enum BG_OBJECT_DMG_HIT_TYPE
+{
+    BG_OBJECT_DMG_HIT_TYPE_JUST_DAMAGED         = 0,
+    BG_OBJECT_DMG_HIT_TYPE_DAMAGED              = 1,
+    BG_OBJECT_DMG_HIT_TYPE_JUST_HIGH_DAMAGED    = 2,
+    BG_OBJECT_DMG_HIT_TYPE_HIGH_DAMAGED         = 3,
+    BG_OBJECT_DMG_HIT_TYPE_JUST_DESTROYED       = 4
+};
+
 enum GroupJoinBattlegroundResult
 {
     // positive values are indexes in BattlemasterList.dbc
@@ -293,6 +306,12 @@ enum GroupJoinBattlegroundResult
     ERR_IN_NON_RANDOM_BG                    = -15,          // Can't queue for Random Battleground while in another Battleground queue.
 };
 
+enum BattlegroundCreatures
+{
+    BG_CREATURE_ENTRY_A_SPIRITGUIDE      = 13116,           // alliance
+    BG_CREATURE_ENTRY_H_SPIRITGUIDE      = 13117,           // horde
+};
+
 class BattleGroundScore
 {
     public:
@@ -307,8 +326,10 @@ class BattleGroundScore
         uint32 BonusHonor;
         uint32 DamageDone;
         uint32 HealingDone;
+        /** World of Warcraft Armory **/
         uint32 DamageTaken;
         uint32 HealingTaken;
+        /** World of Warcraft Armory **/
 };
 
 /*
@@ -339,6 +360,7 @@ class BattleGround
         /* achievement req. */
         virtual bool IsAllNodesConrolledByTeam(Team /*team*/) const { return false; }
         bool IsTeamScoreInRange(Team team, uint32 minScore, uint32 maxScore) const;
+        void StartTimedAchievement(AchievementCriteriaTypes type, uint32 entry);
 
         /* Battleground */
         // Get methods:
@@ -368,11 +390,8 @@ class BattleGround
         uint32 GetBonusHonorFromKill(uint32 kills) const;
         bool IsRandom() { return m_IsRandom; }
 
-        //START//////////SA and IC /////////START//
-        virtual uint32 GetController()				  const	{ return false; }
-        virtual uint8  GetGydController(uint8 /*gyd*/) const { return false; }
-        virtual uint8  GetNodeControll(uint8 /*node*/) const { return false; }
-        //END////////////SA and IC ///////////END//
+        // For SotA vehicle's scripts
+        virtual Team GetController() const { return TEAM_NONE; }
 
         // Set methods:
         void SetName(char const* Name)      { m_Name = Name; }
@@ -464,6 +483,7 @@ class BattleGround
         void PlaySoundToTeam(uint32 SoundID, Team team);
         void PlaySoundToAll(uint32 SoundID);
         void CastSpellOnTeam(uint32 SpellID, Team team);
+        void RemoveAuraOnTeam(uint32 SpellID, Team team);
         void RewardHonorToTeam(uint32 Honor, Team team);
         void RewardReputationToTeam(uint32 faction_id, uint32 Reputation, Team team);
         void RewardMark(Player *plr,uint32 count);
@@ -484,6 +504,7 @@ class BattleGround
         void SendWarningToAll(int32 entry, ...);
 
         GameObject* GetBGObject(uint32 type);
+        Creature* GetBGCreature(uint32 type);
 
         // specialized version with 2 string id args
         void SendMessage2ToAll(int32 entry, ChatMsg type, Player const* source, int32 strId1 = 0, int32 strId2 = 0);
@@ -494,6 +515,7 @@ class BattleGround
         void SetBgRaid(Team team, Group *bg_raid);
 
         virtual void UpdatePlayerScore(Player *Source, uint32 type, uint32 value);
+        uint32 GetPlayerScore(Player *Source, uint32 type);
 
         static BattleGroundTeamIndex GetTeamIndexByTeamId(Team team) { return team == ALLIANCE ? BG_TEAM_ALLIANCE : BG_TEAM_HORDE; }
         uint32 GetPlayersCountByTeam(Team team) const { return m_PlayersCount[GetTeamIndexByTeamId(team)]; }
@@ -524,11 +546,18 @@ class BattleGround
         virtual void EventPlayerDroppedFlag(Player* /*player*/) {}
         virtual void EventPlayerClickedOnFlag(Player* /*player*/, GameObject* /*target_obj*/) {}
         virtual void EventPlayerCapturedFlag(Player* /*player*/) {}
-		virtual void EventPlayerDamageGO(Player* /*player*/, GameObject* /*target_obj*/, uint32 /*eventId*/) {}
+		virtual void EventPlayerDamagedGO(Player* /*player*/, GameObject* /*target_obj*/, uint8 /*hitType*/, uint32 /*eventId*/) {}
+        virtual void EventPlayerUsedGO(Player* /*Source*/, GameObject* /*object*/) {}
 		virtual void EventSpawnGOSA(Player* /*owner*/, Creature* /*obj*/, float /*x*/, float /*y*/, float /*z*/) {}
+        virtual void DestroyGate(Player* /*pl*/, GameObject* /*go*/, uint32 /*destroyedEvent*/) {}
 		virtual void VirtualUpdatePlayerScore(Player* /*Source*/, uint32 /*type*/, uint32 /*value*/) {}
         void EventPlayerLoggedIn(Player* player, ObjectGuid plr_guid);
         void EventPlayerLoggedOut(Player* player);
+
+        // this function can be used by spell to interact with the BG map
+        virtual void DoAction(uint32 action, uint64 var) {}
+
+        virtual void HandlePlayerResurrect(Player* player) {}
 
         /* Death related */
         virtual WorldSafeLocsEntry const* GetClosestGraveYard(Player* player);
@@ -547,7 +576,6 @@ class BattleGround
         void OnObjectDBLoad(GameObject* /*obj*/);
         // (de-)spawns creatures and gameobjects from an event
         void SpawnEvent(uint8 event1, uint8 event2, bool spawn);
-        void ActivateObjectEvent(uint8 event1, uint8 event2, bool spawn);
         bool IsActiveEvent(uint8 event1, uint8 event2)
         {
             if (m_ActiveEvents.find(event1) == m_ActiveEvents.end())
@@ -570,12 +598,13 @@ class BattleGround
         void SpawnBGObject(ObjectGuid guid, uint32 respawntime);
         bool AddObject(uint32 type, uint32 entry, float x, float y, float z, float o, float rotation0, float rotation1, float rotation2, float rotation3, uint32 respawnTime = 0);
         void SpawnBGCreature(ObjectGuid guid, uint32 respawntime);
+        Creature* AddCreature(uint32 entry, uint32 type, uint32 teamval, float x, float y, float z, float o, uint32 respawntime = 0);
+        bool AddSpiritGuide(uint32 type, float x, float y, float z, float o, uint32 team);
         bool DelObject(uint32 type);
+        bool DelCreature(uint32 type);
 
         void DoorOpen(ObjectGuid guid);
         void DoorClose(ObjectGuid guid);
-        void DeactivateGameObject(ObjectGuid guid);
-        void ActivateGameObject(ObjectGuid guid);
 
         virtual bool HandlePlayerUnderMap(Player * /*plr*/) { return false; }
 
@@ -602,6 +631,8 @@ class BattleGround
         // creatures will get added wrong
         // door-events are automaticly added - but _ALL_ other must be in this vector
         std::map<uint8, uint8> m_ActiveEvents;
+
+        uint32 GetDamageDoneForTeam(Team team);
 
 
     protected:
@@ -647,6 +678,7 @@ class BattleGround
         bool   m_IsRated;                                   // is this battle rated?
         bool   m_PrematureCountDown;
         uint32 m_PrematureCountDownTimer;
+        bool   m_ArenaEnded;
         char const *m_Name;
 
         /* Player lists */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ void BattleGroundAV::HandleKillUnit(Creature *creature, Player *killer)
     DEBUG_LOG("BattleGroundAV: HandleKillUnit %i", creature->GetEntry());
     if (GetStatus() != STATUS_IN_PROGRESS)
         return;
-    uint8 event1 = (sBattleGroundMgr.GetCreatureEventIndex(creature->GetDBTableGUIDLow())).event1;
+    uint8 event1 = (sBattleGroundMgr.GetCreatureEventIndex(creature->GetGUIDLow())).event1;
     if (event1 == BG_EVENT_NONE)
         return;
     switch(event1)
@@ -75,7 +75,7 @@ void BattleGroundAV::HandleKillUnit(Creature *creature, Player *killer)
                 return;
             RewardReputationToTeam(BG_AV_FACTION_H, m_RepCaptain, HORDE);
             RewardHonorToTeam(GetBonusHonorFromKill(BG_AV_KILL_CAPTAIN), HORDE);
-            RewardXpToTeam(0, 0.91, HORDE);
+            RewardXpToTeam(0, 0.91f, HORDE);
             UpdateScore(BG_TEAM_ALLIANCE, (-1) * BG_AV_RES_CAPTAIN);
             // spawn destroyed aura
             SpawnEvent(BG_AV_NodeEventCaptainDead_A, 0, true);
@@ -85,7 +85,7 @@ void BattleGroundAV::HandleKillUnit(Creature *creature, Player *killer)
                 return;
             RewardReputationToTeam(BG_AV_FACTION_A, m_RepCaptain, ALLIANCE);
             RewardHonorToTeam(GetBonusHonorFromKill(BG_AV_KILL_CAPTAIN), ALLIANCE);
-            RewardXpToTeam(0, 0.91, HORDE);
+            RewardXpToTeam(0, 0.91f, HORDE);
             UpdateScore(BG_TEAM_HORDE, (-1) * BG_AV_RES_CAPTAIN);
             // spawn destroyed aura
             SpawnEvent(BG_AV_NodeEventCaptainDead_H, 0, true);
@@ -328,7 +328,7 @@ void BattleGroundAV::EndBattleGround(Team winner)
         {
             RewardReputationToTeam(faction[i], tower_survived[i] * m_RepSurviveTower, team[i]);
             RewardHonorToTeam(GetBonusHonorFromKill(tower_survived[i] * BG_AV_KILL_SURVIVING_TOWER), team[i]);
-            RewardXpToTeam(0, 0.6, team[i]);
+            RewardXpToTeam(0, 0.6f, team[i]);
         }
         DEBUG_LOG("BattleGroundAV: EndbattleGround: bgteam: %u towers:%u honor:%u rep:%u", i, tower_survived[i], GetBonusHonorFromKill(tower_survived[i] * BG_AV_KILL_SURVIVING_TOWER), tower_survived[i] * BG_AV_REP_SURVIVING_TOWER);
         if (graves_owned[i])
@@ -441,7 +441,7 @@ void BattleGroundAV::EventPlayerDestroyedPoint(BG_AV_Nodes node)
         UpdateScore(GetOtherTeamIndex(ownerTeamIdx), (-1) * BG_AV_RES_TOWER);
         RewardReputationToTeam((ownerTeam == ALLIANCE) ? BG_AV_FACTION_A : BG_AV_FACTION_H, m_RepTowerDestruction, ownerTeam);
         RewardHonorToTeam(GetBonusHonorFromKill(BG_AV_KILL_TOWER), ownerTeam);
-        RewardXpToTeam(0, 0.91, ownerTeam);
+        RewardXpToTeam(0, 0.91f, ownerTeam);
         SendYell2ToAll(LANG_BG_AV_TOWER_TAKEN, LANG_UNIVERSAL, GetSingleCreatureGuid(BG_AV_HERALD, 0), GetNodeName(node), (ownerTeam == ALLIANCE) ? LANG_BG_ALLY : LANG_BG_HORDE);
     }
     else
@@ -518,11 +518,11 @@ void BattleGroundAV::EventPlayerClickedOnFlag(Player *source, GameObject* target
     if (GetStatus() != STATUS_IN_PROGRESS)
         return;
     DEBUG_LOG("BattleGroundAV: using gameobject %i", target_obj->GetEntry());
-    uint8 event = (sBattleGroundMgr.GetGameObjectEventIndex(target_obj->GetDBTableGUIDLow())).event1;
+    uint8 event = (sBattleGroundMgr.GetGameObjectEventIndex(target_obj->GetGUIDLow())).event1;
     if (event >= BG_AV_NODES_MAX)                           // not a node
         return;
     BG_AV_Nodes node = BG_AV_Nodes(event);
-    switch ((sBattleGroundMgr.GetGameObjectEventIndex(target_obj->GetDBTableGUIDLow())).event2 % BG_AV_MAX_STATES)
+    switch ((sBattleGroundMgr.GetGameObjectEventIndex(target_obj->GetGUIDLow())).event2 % BG_AV_MAX_STATES)
     {
         case POINT_CONTROLLED:
             EventPlayerAssaultsPoint(source, node);

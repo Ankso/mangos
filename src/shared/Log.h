@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,9 +50,10 @@ enum LogFilters
     LOG_FILTER_COMBAT             = 0x0800,                 // attack states/roll attack results/etc
     LOG_FILTER_SPELL_CAST         = 0x1000,                 // spell cast/aura apply/spell proc events
     LOG_FILTER_DB_STRICTED_CHECK  = 0x2000,                 // stricted DB data checks output (with possible false reports) for DB devs
+    LOG_FILTER_PATHFINDING        = 0x4000,                 // pathfinding
 };
 
-#define LOG_FILTER_COUNT            14
+#define LOG_FILTER_COUNT            15
 
 struct LogFilterData
 {

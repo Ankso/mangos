@@ -830,14 +830,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\InstanceSaveMgr.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\game\InstanceSaveMgr.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\game\ItemHandler.cpp"
 				>
 			</File>
@@ -873,12 +865,35 @@
 				RelativePath="..\..\src\game\MapManager.h"
 				>
 			</File>
-			<File
-				RelativePath="..\..\src\game\MapUpdater.cpp"
+<<<<<<< HEAD
+            <File
+				RelativePath="..\..\src\game\MoveMap.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\MapUpdater.h"
+				RelativePath="..\..\src\game\MoveMap.h"
+				>
+			</File>
+            <File
+				RelativePath="..\..\src\game\MoveMapSharedDefines.h"
+				>
+			</File>
+=======
+>>>>>>> 4c43e35... drop VC* support. use cmake instead.
+			<File
+				RelativePath="..\..\src\game\MapPersistentStateMgr.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\game\MapPersistentStateMgr.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\game\MassMailMgr.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\game\MassMailMgr.h"
 				>
 			</File>
 			<File
@@ -942,11 +957,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\ScriptCalls.cpp"
+				RelativePath="..\..\src\game\ScriptMgr.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\ScriptCalls.h"
+				RelativePath="..\..\src\game\ScriptMgr.h"
 				>
 			</File>
 			<File

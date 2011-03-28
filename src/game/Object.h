@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,6 +88,28 @@ struct WorldLocation
         : mapid(loc.mapid), coord_x(loc.coord_x), coord_y(loc.coord_y), coord_z(loc.coord_z), orientation(loc.orientation) {}
 };
 
+
+//use this class to measure time between world update ticks
+//essential for units updating their spells after cells become active
+class WorldUpdateCounter
+{
+    public:
+        WorldUpdateCounter() : m_tmStart(0) {}
+
+        time_t timeElapsed()
+        {
+            if(!m_tmStart)
+                m_tmStart = WorldTimer::tickPrevTime();
+
+            return WorldTimer::getMSTimeDiff(m_tmStart, WorldTimer::tickTime());
+        }
+
+        void Reset() { m_tmStart = WorldTimer::tickTime(); }
+
+    private:
+        uint32 m_tmStart;
+};
+
 class MANGOS_DLL_SPEC Object
 {
     public:
@@ -137,6 +159,7 @@ class MANGOS_DLL_SPEC Object
         virtual void AddToClientUpdateList();
         virtual void RemoveFromClientUpdateList();
         virtual void BuildUpdateData(UpdateDataMapType& update_players);
+        void MarkForClientUpdate();
 
         void BuildValuesUpdateBlockForPlayer( UpdateData *data, Player *target ) const;
         void BuildOutOfRangeUpdateBlock( UpdateData *data ) const;
@@ -384,9 +407,31 @@ class MANGOS_DLL_SPEC WorldObject : public Object
     friend struct WorldObjectChangeAccumulator;
 
     public:
+
+        //class is used to manipulate with WorldUpdateCounter
+        //it is needed in order to get time diff between two object's Update() calls
+        class MANGOS_DLL_SPEC UpdateHelper
+        {
+            public:
+                explicit UpdateHelper(WorldObject * obj) : m_obj(obj) {}
+                ~UpdateHelper() { }
+
+                void Update( uint32 time_diff )
+                {
+                    m_obj->Update( m_obj->m_updateTracker.timeElapsed(), time_diff);
+                    m_obj->m_updateTracker.Reset();
+                }
+
+            private:
+                UpdateHelper( const UpdateHelper& );
+                UpdateHelper& operator=( const UpdateHelper& );
+
+                WorldObject * const m_obj;
+        };
+
         virtual ~WorldObject ( ) {}
 
-        virtual void Update ( uint32 /*time_diff*/ ) { }
+        virtual void Update ( uint32 /*update_diff*/, uint32 /*time_diff*/ ) {}
 
         void _Create(ObjectGuid guid, uint32 phaseMask);
 
@@ -420,6 +465,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
 
         bool IsPositionValid() const;
         void UpdateGroundPositionZ(float x, float y, float &z, float maxDiff = 30.0f) const;
+        bool IsAtGroundLevel(float x, float y, float z) const;
         void UpdateAllowedPositionZ(float x, float y, float &z) const;
 
         void GetRandomPoint( float x, float y, float z, float distance, float &rand_x, float &rand_y, float &rand_z ) const;
@@ -444,6 +490,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         virtual const char* GetNameForLocaleIdx(int32 /*locale_idx*/) const { return GetName(); }
 
         float GetDistance( const WorldObject* obj ) const;
+        float GetDistanceSqr(float x, float y, float z) const;
         float GetDistance(float x, float y, float z) const;
         float GetDistance2d(const WorldObject* obj) const;
         float GetDistance2d(float x, float y) const;
@@ -475,6 +522,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
 
         float GetAngle( const WorldObject* obj ) const;
         float GetAngle( const float x, const float y ) const;
+        bool HasInArc( const float arcangle, const float x, const float y) const;
         bool HasInArc( const float arcangle, const WorldObject* obj ) const;
         bool isInFrontInMap(WorldObject const* target,float distance, float arc = M_PI) const;
         bool isInBackInMap(WorldObject const* target, float distance, float arc = M_PI) const;
@@ -512,6 +560,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         void AddObjectToRemoveList();
 
         void UpdateObjectVisibility();
+        virtual void UpdateVisibilityAndView();             // update visibility for object and object for all around
 
         // main visibility check function in normal case (ignore grey zone distance check)
         bool isVisibleFor(Player const* u, WorldObject const* viewPoint) const { return isVisibleForInState(u,viewPoint,false); }
@@ -545,6 +594,9 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         bool IsGroupLootRecipient() const { return m_lootGroupRecipientId; }
         void SetLootRecipient(Unit* unit);
         Player* GetOriginalLootRecipient() const;           // ignore group changes/etc, not for looting
+
+        // helper functions to select units
+        void GetCreatureListWithEntryInGrid(std::list<Creature*>& lList, uint32 uiEntry, float fMaxSearchRange);
 
         bool isActiveObject() const { return m_isActiveObject || m_viewPoint.hasViewers(); }
 
@@ -580,6 +632,8 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         float m_orientation;
 
         ViewPoint m_viewPoint;
+
+        WorldUpdateCounter m_updateTracker;
 };
 
 #endif

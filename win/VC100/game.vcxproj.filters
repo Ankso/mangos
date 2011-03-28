@@ -147,9 +147,6 @@
     <ClCompile Include="..\..\src\game\InstanceData.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\game\InstanceSaveMgr.cpp">
-      <Filter>World/Handlers</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\game\ItemHandler.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
@@ -168,7 +165,10 @@
     <ClCompile Include="..\..\src\game\MapManager.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\game\MapUpdater.cpp">
+    <ClCompile Include="..\..\src\game\MapPersistentStateMgr.cpp">
+      <Filter>World/Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\MassMailMgr.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\MiscHandler.cpp">
@@ -201,7 +201,7 @@
     <ClCompile Include="..\..\src\game\QuestHandler.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\game\ScriptCalls.cpp">
+    <ClCompile Include="..\..\src\game\ScriptMgr.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\SkillDiscovery.cpp">
@@ -451,6 +451,12 @@
     <ClCompile Include="..\..\src\game\CharacterDatabaseCleaner.cpp">
       <Filter>Tool</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\game\PathFinder.cpp">
+      <Filter>Motion generators</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\MoveMap.cpp">
+      <Filter>World/Handlers</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\game\Camera.cpp">
       <Filter>Object</Filter>
     </ClCompile>
@@ -491,6 +497,9 @@
       <Filter>vmaps</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\LFGMgr.cpp">
+      <Filter>World/Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\MapUpdater.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
   </ItemGroup>
@@ -591,9 +600,6 @@
     <ClInclude Include="..\..\src\game\InstanceData.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\game\InstanceSaveMgr.h">
-      <Filter>World/Handlers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\game\Mail.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
@@ -603,7 +609,10 @@
     <ClInclude Include="..\..\src\game\MapManager.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\game\MapUpdater.h">
+    <ClInclude Include="..\..\src\game\MapPersistentStateMgr.h">
+      <Filter>World/Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\MassMailMgr.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\NPCHandler.h">
@@ -621,7 +630,7 @@
     <ClInclude Include="..\..\src\game\QuestDef.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\game\ScriptCalls.h">
+    <ClInclude Include="..\..\src\game\ScriptMgr.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\SkillDiscovery.h">
@@ -889,6 +898,9 @@
     <ClInclude Include="..\..\src\game\CharacterDatabaseCleaner.h">
       <Filter>Tool</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\game\PathFinder.h">
+      <Filter>Motion generators</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\game\Camera.h">
       <Filter>Object</Filter>
     </ClInclude>
@@ -900,6 +912,12 @@
     </ClInclude>
     <ClInclude Include="..\..\src\game\AuctionHouseBot.h">
       <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\MoveMap.h">
+      <Filter>World/Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\MoveMapSharedDefines.h">
+      <Filter>World/Handlers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\vmap\BIH.h">
       <Filter>vmaps</Filter>
@@ -937,5 +955,11 @@
     <ClInclude Include="..\..\src\game\LFGMgr.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\game\MapUpdater.h">
+      <Filter>World/Handlers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
 </Project>

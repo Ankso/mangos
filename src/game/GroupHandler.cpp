@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -830,7 +830,7 @@ void WorldSession::HandleRequestPartyMemberStatsOpcode( WorldPacket &recv_data )
     ObjectGuid guid;
     recv_data >> guid;
 
-    Player *player = sObjectMgr.GetPlayer(guid);
+    Player * player = HashMapHolder<Player>::Find(guid);
     if(!player)
     {
         WorldPacket data(SMSG_PARTY_MEMBER_STATS_FULL, 3+4+2);
@@ -852,18 +852,44 @@ void WorldSession::HandleRequestPartyMemberStatsOpcode( WorldPacket &recv_data )
     if(pet)
         mask1 = 0x7FFFFFFF;                                 // for hunters and other classes with pets
 
+    uint16 online_status = GetPlayer()->IsReferAFriendLinked(player) ?  (MEMBER_STATUS_ONLINE | MEMBER_STATUS_RAF) : MEMBER_STATUS_ONLINE;
+
     Powers powerType = player->getPowerType();
     data << uint32(mask1);                                  // group update mask
-    data << uint16(MEMBER_STATUS_ONLINE);                   // member's online status
+    data << uint16(online_status);                          // member's online status
     data << uint32(player->GetHealth());                    // GROUP_UPDATE_FLAG_CUR_HP
     data << uint32(player->GetMaxHealth());                 // GROUP_UPDATE_FLAG_MAX_HP
     data << uint8(powerType);                               // GROUP_UPDATE_FLAG_POWER_TYPE
     data << uint16(player->GetPower(powerType));            // GROUP_UPDATE_FLAG_CUR_POWER
     data << uint16(player->GetMaxPower(powerType));         // GROUP_UPDATE_FLAG_MAX_POWER
     data << uint16(player->getLevel());                     // GROUP_UPDATE_FLAG_LEVEL
-    data << uint16(player->GetZoneId());                    // GROUP_UPDATE_FLAG_ZONE
-    data << uint16(player->GetPositionX());                 // GROUP_UPDATE_FLAG_POSITION
-    data << uint16(player->GetPositionY());                 // GROUP_UPDATE_FLAG_POSITION
+
+    //verify player coordinates and zoneid to send to teammates
+    uint16 iZoneId = 0;
+    uint16 iCoordX = 0;
+    uint16 iCoordY = 0;
+
+    if (player->IsInWorld())
+    {
+        iZoneId = player->GetZoneId();
+        iCoordX = player->GetPositionX();
+        iCoordY = player->GetPositionY();
+    }
+    else if (player->IsBeingTeleported())               // Player is in teleportation
+    {
+        WorldLocation& loc = player->GetTeleportDest(); // So take teleportation destination
+        iZoneId = sTerrainMgr.GetZoneId(loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z);
+        iCoordX = loc.coord_x;
+        iCoordY = loc.coord_y;
+    }
+    else
+    {
+        //unknown player status.
+    }
+
+    data << uint16(iZoneId);                              // GROUP_UPDATE_FLAG_ZONE
+    data << uint16(iCoordX);                              // GROUP_UPDATE_FLAG_POSITION
+    data << uint16(iCoordY);                              // GROUP_UPDATE_FLAG_POSITION
 
     uint64 auramask = 0;
     size_t maskPos = data.wpos();

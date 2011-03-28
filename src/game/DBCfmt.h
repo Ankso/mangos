@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@ const char CreatureFamilyfmt[]="nfifiiiiixssssssssssssssssxx";
 const char CreatureSpellDatafmt[]="niiiixxxx";
 const char CreatureTypefmt[]="nxxxxxxxxxxxxxxxxxx";
 const char CurrencyTypesfmt[]="xnxi";
+const char DungeonEncounterfmt[]="niiiissssssssssssssssxx";
 const char DurabilityCostsfmt[]="niiiiiiiiiiiiiiiiiiiiiiiiiiiii";
 const char DurabilityQualityfmt[]="nf";
 const char EmotesEntryfmt[]="nxxiiix";
@@ -76,7 +77,7 @@ const char LFGDungeonEntryfmt[]="nxxxxxxxxxxxxxxxxxiiiiiiixixxixixxxxxxxxxxxxxxx
 const char LockEntryfmt[]="niiiiiiiiiiiiiiiiiiiiiiiixxxxxxxx";
 const char MailTemplateEntryfmt[]="nxxxxxxxxxxxxxxxxxssssssssssssssssx";
 const char MapEntryfmt[]="nxixxssssssssssssssssxixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxixiffxiix";
-const char MapDifficultyEntryfmt[]="diixxxxxxxxxxxxxxxxxiix";
+const char MapDifficultyEntryfmt[]="diissssssssssssssssiiix";
 const char MovieEntryfmt[]="nxx";
 const char OverrideSpellDatafmt[]="niiiiiiiiiix";
 const char QuestFactionRewardfmt[]="niiiiiiiiii";
@@ -93,7 +94,7 @@ const char SpellCastTimefmt[]="nixx";
 const char SpellDurationfmt[]="niii";
 const char SpellDifficultyfmt[]="niiii";
 const char SpellEntryfmt[]="niiiiiiiiiiiixixiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiifxiiiiiiiiiiiiiiiiiiiiiiiiiiiifffiiiiiiiiiiiiiiiiiiiiifffiiiiiiiiiiiiiiifffiiiiiiiiiiiiixssssssssssssssssxssssssssssssssssxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxiiiiiiiiiiixfffxxxiiiiixxxxxxi";
-const std::string CustomSpellEntryfmt="pappppppppaapaaapaaaaaaaaaaapaaapapppppppaaaaapaapaaaaaaaaaaaaaaaaaappppppppppppppppppppppppppppppppppppaaaaaapppppppppaaapppppppppaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaappppppppapppaaaaappaaaaaaa";
+const std::string CustomSpellEntryfmt="pappppppppaapapapaaaaaaaaaaapaaapapppppppaaaaapaapaaaaaaaaaaaaaaaaaappppppppppppppppppppppppppppppppppppaaaaaapppppppppaaapppppppppaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaappppppppapppaaaaappaaaaaaa";
 const std::string CustomSpellEntryIndex = "Id";
 const char SpellFocusObjectfmt[]="nxxxxxxxxxxxxxxxxx";
 const char SpellItemEnchantmentfmt[]="nxiiiiiixxxiiissssssssssssssssxiiiiiii";

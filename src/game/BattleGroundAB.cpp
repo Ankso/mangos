@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -136,7 +136,7 @@ void BattleGroundAB::Update(uint32 diff)
                 }
                 if (m_ExperiencesTicks[team] >= BG_AB_ExperiencesTicks)
                 {
-                    RewardXpToTeam(0, 0.8, team);
+                    RewardXpToTeam(0, 0.8f, team);
                     m_ExperiencesTicks[team] -= BG_AB_ExperiencesTicks;
                 }
 
@@ -341,7 +341,7 @@ void BattleGroundAB::EventPlayerClickedOnFlag(Player *source, GameObject* target
     if (GetStatus() != STATUS_IN_PROGRESS)
         return;
 
-    uint8 event = (sBattleGroundMgr.GetGameObjectEventIndex(target_obj->GetDBTableGUIDLow())).event1;
+    uint8 event = (sBattleGroundMgr.GetGameObjectEventIndex(target_obj->GetGUIDLow())).event1;
     if (event >= BG_AB_NODES_MAX)                           // not a node
         return;
     BG_AB_Nodes node = BG_AB_Nodes(event);
@@ -502,9 +502,9 @@ void BattleGroundAB::EndBattleGround(Team winner)
     RewardHonorToTeam(GetBonusHonorFromKill(1), HORDE);
     RewardHonorToTeam(GetBonusHonorFromKill(1), ALLIANCE);
 
-    RewardXpToTeam(0, 0.8, winner);
-    RewardXpToTeam(0, 0.8, HORDE);
-    RewardXpToTeam(0, 0.8, ALLIANCE);
+    RewardXpToTeam(0, 0.8f, winner);
+    RewardXpToTeam(0, 0.8f, HORDE);
+    RewardXpToTeam(0, 0.8f, ALLIANCE);
 
     BattleGround::EndBattleGround(winner);
 }

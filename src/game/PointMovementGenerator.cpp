@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,9 +34,21 @@ void PointMovementGenerator<T>::Initialize(T &unit)
     unit.addUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
 
     Traveller<T> traveller(unit);
-    i_destinationHolder.SetDestination(traveller, i_x, i_y, i_z);
+    i_destinationHolder.SetDestination(traveller, i_x, i_y, i_z, !m_usePathfinding);
 
-    if (unit.GetTypeId() == TYPEID_UNIT && ((Creature*)&unit)->CanFly())
+    if(m_usePathfinding)
+    {
+        PathInfo path(&unit, i_x, i_y, i_z);
+        PointPath pointPath = path.getFullPath();
+
+        float speed = traveller.Speed() * 0.001f; // in ms
+        uint32 traveltime = uint32(pointPath.GetTotalLength() / speed);
+        SplineFlags flags = (unit.GetTypeId() == TYPEID_UNIT) ? ((Creature*)&unit)->GetSplineFlags() : SPLINEFLAG_WALKMODE;
+        unit.SendMonsterMoveByPath(pointPath, 1, pointPath.size(), flags, traveltime);
+    }
+
+    if (unit.GetTypeId() == TYPEID_UNIT && ((Creature*)&unit)->CanFly() &&
+        !(((Creature*)&unit)->CanWalk() && ((Creature*)&unit)->IsAtGroundLevel(i_x, i_y, i_z)))
         ((Creature&)unit).AddSplineFlag(SPLINEFLAG_UNKNOWN7);
 }
 
@@ -86,6 +98,10 @@ bool PointMovementGenerator<T>::Update(T &unit, const uint32 &diff)
     {
         unit.clearUnitState(UNIT_STAT_ROAMING_MOVE);
         MovementInform(unit);
+
+        if (!IsActive(unit))
+            return true;
+
         return false;
     }
 

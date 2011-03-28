@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -148,7 +148,8 @@ namespace MaNGOS
     {
         DynamicObject &i_dynobject;
         Unit* i_check;
-        DynamicObjectUpdater(DynamicObject &dynobject, Unit* caster) : i_dynobject(dynobject)
+        bool i_positive;
+        DynamicObjectUpdater(DynamicObject &dynobject, Unit* caster, bool positive) : i_dynobject(dynobject), i_positive(positive)
         {
             i_check = caster;
             Unit* owner = i_check->GetOwner();
@@ -538,18 +539,29 @@ namespace MaNGOS
 
                 return i_fobj->IsWithinDistInMap(u, i_range);
             }
-            bool operator()(Corpse* u)
-            {
-                // ignore bones
-                if(u->GetType() == CORPSE_BONES)
-                    return false;
-
-                return i_fobj->IsWithinDistInMap(u, i_range);
-            }
+            bool operator()(Corpse* u);
             bool operator()(Creature* u)
             {
                 if ( u->isAlive() || u->IsDeadByDefault() || u->IsTaxiFlying() ||
                    ( u->GetCreatureTypeMask() & CREATURE_TYPEMASK_HUMANOID_OR_UNDEAD) == 0 )
+                    return false;
+
+                return i_fobj->IsWithinDistInMap(u, i_range);
+            }
+            template<class NOT_INTERESTED> bool operator()(NOT_INTERESTED*) { return false; }
+        private:
+            WorldObject const* i_fobj;
+            float i_range;
+    };
+
+    class RaiseAllyObjectCheck
+    {
+        public:
+            RaiseAllyObjectCheck(WorldObject const* fobj, float range) : i_fobj(fobj), i_range(range) {}
+            WorldObject const& GetFocusObject() const { return *i_fobj; }
+            bool operator()(Player* u)
+            {
+                if( u->isAlive() || u->IsTaxiFlying() || !i_fobj->IsFriendlyTo(u) )
                     return false;
 
                 return i_fobj->IsWithinDistInMap(u, i_range);
@@ -779,20 +791,6 @@ namespace MaNGOS
             GameObjectEntryInPosRangeCheck(GameObjectEntryInPosRangeCheck const&);
     };
 
-    class GameObjectWithDbGUIDCheck
-    {
-        public:
-            GameObjectWithDbGUIDCheck(WorldObject const& obj,uint32 db_guid) : i_obj(obj), i_db_guid(db_guid) {}
-            WorldObject const& GetFocusObject() const { return i_obj; }
-            bool operator()(GameObject const* go) const
-            {
-                return go->GetDBTableGUIDLow() == i_db_guid;
-            }
-        private:
-            WorldObject const& i_obj;
-            uint32 i_db_guid;
-    };
-
     // Unit checks
 
     class MostHPMissingInRangeCheck
@@ -958,7 +956,7 @@ namespace MaNGOS
                 : i_obj(obj), i_originalCaster(originalCaster), i_range(range)
             {
                 i_targetForUnit = i_originalCaster->isType(TYPEMASK_UNIT);
-                i_targetForPlayer = (i_originalCaster->GetTypeId() == TYPEID_PLAYER);
+                i_targetForPlayer = (i_originalCaster->GetObjectGuid().IsVehicle() ? ((Unit*)i_originalCaster)->GetCharmerOrOwnerOrSelf()->GetTypeId() == TYPEID_PLAYER : i_originalCaster->GetTypeId() == TYPEID_PLAYER);
             }
             WorldObject const& GetFocusObject() const { return *i_obj; }
             bool operator()(Unit* u)
@@ -1216,6 +1214,25 @@ namespace MaNGOS
         private:
             WorldObject const* i_obj;
             float i_range;
+    };
+
+    class AllCreaturesOfEntryInRange
+    {
+        public:
+            AllCreaturesOfEntryInRange(const WorldObject* pObject, uint32 uiEntry, float fMaxRange) : m_pObject(pObject), m_uiEntry(uiEntry), m_fRange(fMaxRange) {}
+            WorldObject const& GetFocusObject() const { return *m_pObject; }
+            bool operator() (Unit* pUnit)
+            {
+                if (pUnit->GetEntry() == m_uiEntry && m_pObject->IsWithinDist(pUnit,m_fRange,false))
+                    return true;
+
+                return false;
+            }
+
+        private:
+            const WorldObject* m_pObject;
+            uint32 m_uiEntry;
+            float m_fRange;
     };
 
     // Player checks and do
