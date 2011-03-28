@@ -463,6 +463,19 @@ SpellAuraProcResult Unit::HandleHasteAuraProc(Unit *pVictim, uint32 damage, Aura
             }
             break;
         }
+		case SPELLFAMILY_WARRIOR:
+		{
+			switch(hasteSpell->Id)
+			{
+				case 12970:
+				{
+					basepoints0 = 31;
+					triggered_spell_id = hasteSpell->Id;
+					break;
+				}
+			}
+			break;
+		}
     }
 
     // processed charge only counting case

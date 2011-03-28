@@ -196,6 +196,7 @@ class MANGOS_DLL_SPEC ObjectGuid
                 case HIGHGUID_UNIT:
                 case HIGHGUID_PET:
                 case HIGHGUID_VEHICLE:
+                case HIGHGUID_GROUP:
                 default:
                     return true;
             }
