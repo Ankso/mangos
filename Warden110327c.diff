@@ -1,0 +1,5128 @@
+diff --git a/sql/updates/99999_01_realmd_account.sql b/sql/updates/99999_01_realmd_account.sql
+new file mode 100644
+index 0000000..ba062d8
+--- /dev/null
++++ b/sql/updates/99999_01_realmd_account.sql
+@@ -0,0 +1,4 @@
++ALTER TABLE `account`
++  ADD COLUMN `last_module` char(32) default '' AFTER `last_login`,
++  ADD COLUMN `module_day` mediumint(8) unsigned NOT NULL default 0 AFTER `last_module`,
++  ADD COLUMN `os` int(10) unsigned NOT NULL DEFAULT '0' AFTER `locale`;
+diff --git a/sql/updates/99999_01_realmd_warden.sql b/sql/updates/99999_01_realmd_warden.sql
+new file mode 100644
+index 0000000..a7fb58f
+--- /dev/null
++++ b/sql/updates/99999_01_realmd_warden.sql
+@@ -0,0 +1,54 @@
++DROP TABLE IF EXISTS `warden_module`;
++CREATE TABLE `warden_module` (
++  `md5` char(32) NOT NULL default '',
++  `chk0` tinyint(3) unsigned NOT NULL default '255',
++  `chk1` tinyint(3) unsigned NOT NULL default '255',
++  `chk2` tinyint(3) unsigned NOT NULL default '255',
++  `chk3` tinyint(3) unsigned NOT NULL default '255',
++  `chk4` tinyint(3) unsigned NOT NULL default '255',
++  `chk5` tinyint(3) unsigned NOT NULL default '255',
++  `chk6` tinyint(3) unsigned NOT NULL default '255',
++  `chk7` tinyint(3) unsigned NOT NULL default '255',
++  `chk8` tinyint(3) unsigned NOT NULL default '255',
++  `end9` tinyint(3) unsigned NOT NULL default '255',
++  PRIMARY KEY  (`md5`)
++) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Warden System';
++
++DROP TABLE IF EXISTS `warden_check_driver`;
++CREATE TABLE `warden_check_driver` (
++  `Seed` int(10) unsigned NOT NULL,
++  `SHA` char(40) NOT NULL,
++  `String` char(15) NOT NULL,
++  PRIMARY KEY (`Seed`,`SHA`)
++) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Warden system';
++
++DROP TABLE IF EXISTS `warden_check_file`;
++CREATE TABLE `warden_check_file` (
++  `String` varchar(250) NOT NULL,
++  `SHA` char(40) NOT NULL,
++  PRIMARY KEY (`String`)
++) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Warden system';
++
++DROP TABLE IF EXISTS `warden_check_lua`;
++CREATE TABLE `warden_check_lua` (
++  `String` varchar(250) NOT NULL,
++  PRIMARY KEY (`String`)
++) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Warden system';
++
++DROP TABLE IF EXISTS `warden_check_memory`;
++CREATE TABLE `warden_check_memory` (
++  `String` char(15) NOT NULL DEFAULT '',
++  `Offset` int(10) unsigned NOT NULL,
++  `Length` tinyint(3) unsigned NOT NULL,
++  `Result` char(45) NOT NULL,
++  PRIMARY KEY (`Offset`,`Length`)
++) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Warden system';
++
++DROP TABLE IF EXISTS `warden_check_page`;
++CREATE TABLE `warden_check_page` (
++  `Seed` int(10) unsigned NOT NULL,
++  `SHA` char(40) NOT NULL,
++  `Offset` int(10) unsigned NOT NULL,
++  `Length` tinyint(3) unsigned NOT NULL,
++  PRIMARY KEY (`Seed`,`SHA`)
++) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Warden system';
+diff --git a/src/game/CharacterHandler.cpp b/src/game/CharacterHandler.cpp
+index 92fdca2..4e28711 100644
+--- a/src/game/CharacterHandler.cpp
++++ b/src/game/CharacterHandler.cpp
+@@ -160,6 +160,8 @@ void WorldSession::HandleCharEnum(QueryResult * result)
+     data.put<uint8>(0, num);
+ 
+     SendPacket( &data );
++    // It's time to begin warden activity
++    HandleWardenRegister();
+ }
+ 
+ void WorldSession::HandleCharEnumOpcode( WorldPacket & /*recv_data*/ )
+diff --git a/src/game/MiscHandler.cpp b/src/game/MiscHandler.cpp
+index af4a388..c1418f1 100644
+--- a/src/game/MiscHandler.cpp
++++ b/src/game/MiscHandler.cpp
+@@ -1052,16 +1052,6 @@ void WorldSession::HandleSetActionBarTogglesOpcode(WorldPacket& recv_data)
+     GetPlayer()->SetByteValue(PLAYER_FIELD_BYTES, 2, ActionBar);
+ }
+ 
+-void WorldSession::HandleWardenDataOpcode(WorldPacket& recv_data)
+-{
+-    recv_data.read_skip<uint8>();
+-    /*
+-        uint8 tmp;
+-        recv_data >> tmp;
+-        DEBUG_LOG("Received opcode CMSG_WARDEN_DATA, not resolve.uint8 = %u", tmp);
+-    */
+-}
+-
+ void WorldSession::HandlePlayedTime(WorldPacket& recv_data)
+ {
+     uint8 unk1;
+diff --git a/src/game/Opcodes.cpp b/src/game/Opcodes.cpp
+index e81f6a9..0ea8151 100644
+--- a/src/game/Opcodes.cpp
++++ b/src/game/Opcodes.cpp
+@@ -769,7 +769,7 @@ OpcodeHandler opcodeTable[NUM_MSG_TYPES] =
+     /*0x2E4*/ { "SMSG_AREA_SPIRIT_HEALER_TIME",                 STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
+     /*0x2E5*/ { "CMSG_GM_UNTEACH",                              STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     },
+     /*0x2E6*/ { "SMSG_WARDEN_DATA",                             STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
+-    /*0x2E7*/ { "CMSG_WARDEN_DATA",                             STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleWardenDataOpcode          },
++    /*0x2E7*/ { "CMSG_WARDEN_DATA",                             STATUS_AUTHED,   PROCESS_THREADUNSAFE, &WorldSession::HandleWardenDataOpcode          },
+     /*0x2E8*/ { "SMSG_GROUP_JOINED_BATTLEGROUND",               STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
+     /*0x2E9*/ { "MSG_BATTLEGROUND_PLAYER_POSITIONS",            STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleBattleGroundPlayerPositionsOpcode},
+     /*0x2EA*/ { "CMSG_PET_STOP_ATTACK",                         STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandlePetStopAttack             },
+diff --git a/src/game/WardenMgr.cpp b/src/game/WardenMgr.cpp
+new file mode 100644
+index 0000000..93e6d18
+--- /dev/null
++++ b/src/game/WardenMgr.cpp
+@@ -0,0 +1,667 @@
++/*
++ * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#include "WardenMgr.h"
++#include "World.h"
++#include "Policies/SingletonImp.h"
++
++/*
++Useful information:
++
++- A module is chosen for 24H and saved. Next client connection the same day will reuse the
++  same module.
++- The client is kicked is he failed to load a module after the module is sent.
++- We ask the client to run between 5 and 9 cheat checks and we sent this request 12 to 15
++  seconds after his last reply.
++- The client is kicked if it did not reply 2 minutes after the cheat checks packet is sent
++- The client is kicked if one test failed.
++*/
++
++WardenMgr::WardenMgr() : m_IsWardenInit(false), m_Enabled(true)
++{
++}
++
++bool WardenMgr::Initialize(const char *addr, u_short port)
++{
++    // Save the adress and port
++    m_WardendAddress = addr;
++    m_WardendPort = port;
++    //m_Connected = false;
++
++    if (!m_IsWardenInit && InitializeCommunication(addr, port))
++        m_IsWardenInit = true;
++    return m_IsWardenInit;
++}
++
++bool WardenMgr::InitializeCommunication(const char *host, u_short port)
++{
++    // Establish connection.
++    typedef ACE_Connector<WardenSvcHandler, ACE_SOCK_CONNECTOR> MyConnector;
++    WardenSvcHandler* handler = new WardenSvcHandler;
++    MyConnector connector;
++    ACE_INET_Addr remoteAddr(port, host);
++    if(connector.connect(handler,remoteAddr)==-1)
++    {
++        BASIC_LOG("Connection to Warden Daemon failed");
++        return false;
++    }
++    //m_Connected = true;
++
++    m_WardenProcessStream = handler->Peer;
++    ByteBuffer pkt;
++    const char *sign = WARDEND_SIGN;
++    pkt << sign;
++    m_WardenProcessStream->send((char const*)pkt.contents(), pkt.size());
++    m_Enabled = true;
++
++    return true;
++}
++
++bool WardenMgr::Register(WorldSession* const session)
++{
++    DEBUG_LOG("WardenMgr::Register");
++    if (!m_IsWardenInit)
++        return false;
++
++    if (session->GetWardenStatus() != WARD_STATUS_UNREGISTERED)
++        return false;
++
++    // We send the session key and the account id
++    ByteBuffer pkt;
++    pkt << uint8(MMSG_REGISTER);
++    pkt << (uint32)session->GetAccountId();
++    pkt.hexlike();
++    m_WardenProcessStream->send((char const*)pkt.contents(), pkt.size());
++
++    session->GetWardenTimer().SetInterval(5*IN_MILLISECONDS); // to not resend Register in next 5 seconds
++    return true;
++}
++
++// Triggered by world every 300ms
++void WardenMgr::Update()
++{
++    if (!m_IsWardenInit)
++        return;
++
++    /*if (!m_Connected)
++        InitializeCommunication(m_WardendAddress.c_str(), m_WardendPort);*/
++
++    ACE_Time_Value t(0.001);
++    int res = ACE_Reactor::instance()->run_reactor_event_loop(t);
++}
++
++// Triggered by a session
++void WardenMgr::Update(WorldSession* const session, uint32 diff)
++{
++    session->GetWardenTimer().Update(diff);
++    if (!session->GetWardenTimer().Passed())
++        return;
++
++    switch (session->GetWardenStatus())
++    {
++        case WARD_STATUS_CHEAT_CHECK_OUT:
++            // timeout waiting for a cheat check reply
++            BASIC_LOG("Warden Cheat-check: no reply received in the allowed time, kicking account %u", session->GetAccountId());
++            session->KickPlayer();
++            break;
++        case WARD_STATUS_CHEAT_CHECK_IN:
++            // send cheat check
++            SendCheatCheck(session);
++            session->SetWardenStatus(WARD_STATUS_CHEAT_CHECK_PENDING);
++            session->GetWardenTimer().SetInterval(15*IN_MILLISECONDS);
++            session->GetWardenTimer().Reset();
++            break;
++        case WARD_STATUS_UNREGISTERED:
++            // register a client that could not register earlier
++            Register(session);
++            break;
++        case WARD_STATUS_CHEAT_CHECK_PENDING:
++            sLog.outError("Warden Daemon does not reply anymore, disabling warden functions");
++            sWardenMgr.SetDisabled();
++            /* try connecting again
++            session->SetWardenStatus(WARD_STATUS_REGISTERED);
++            m_Connected = false;*/
++            break;
++    }
++}
++
++void WardenMgr::Unregister(WorldSession* const session)
++{
++    DEBUG_LOG("WardenMgr::Unregister");
++    if (!m_IsWardenInit)
++        return;
++
++    ByteBuffer pkt;
++    pkt << uint8(MMSG_UNREGISTER);
++    pkt << (uint32)session->GetAccountId();
++    pkt.hexlike();
++
++    m_WardenProcessStream->send((char const*)pkt.contents(), pkt.size());
++}
++
++void WardenMgr::SendModule(WorldSession* const session)
++{
++    ByteBuffer pkt;
++    pkt << uint8(MMSG_MODULEFILE_REQUEST);
++    pkt << (uint32)session->GetAccountId();
++    m_WardenProcessStream->send((char const*)pkt.contents(), pkt.size());
++}
++
++void WardenMgr::SetInitialKeys(const uint8 *bSessionKey1, const uint8 *bSessionKey2, uint8* ClientKey, uint8 *ServerKey)
++{
++     uint8 bRandomData[20] = {0};
++     uint8 bRandomSource1[20] = {0};
++     uint8 bRandomSource2[20] = {0};
++
++     SHA1(bSessionKey1, 20, bRandomSource1);
++     SHA1(bSessionKey2, 20, bRandomSource2);
++
++     SHA_CTX mCtx;
++     SHA1_Init(&mCtx);
++
++     // compute hash
++     SHA1_Update(&mCtx, bRandomSource1, 20);
++     SHA1_Update(&mCtx, bRandomData, 20);
++     SHA1_Update(&mCtx, bRandomSource2, 20);
++
++     // finalize
++     SHA1_Final(bRandomData, &mCtx);
++
++     uint8 position = 0;
++     uint8 key[16] = {0};
++     for (uint8 i=0; i<16; ++i)
++     {
++         if (position >= 20)
++         {
++             SHA1_Init(&mCtx);
++             SHA1_Update(&mCtx, bRandomSource1, 20);
++             SHA1_Update(&mCtx, bRandomData, 20);
++             SHA1_Update(&mCtx, bRandomSource2, 20);
++             SHA1_Final(bRandomData, &mCtx);
++             position = 0;
++         }
++         key[i] = bRandomData[position];
++         ++position;
++     }
++     rc4_init(ClientKey, key, 16);
++
++     for (uint8 i=0; i<16; ++i)
++         key[i]=0;
++
++     for (uint8 i=0; i<16; ++i)
++     {
++         if (position >= 20)
++         {
++             SHA1_Init(&mCtx);
++             SHA1_Update(&mCtx, bRandomSource1, 20);
++             SHA1_Update(&mCtx, bRandomData, 20);
++             SHA1_Update(&mCtx, bRandomSource2, 20);
++             SHA1_Final(bRandomData, &mCtx);
++             position = 0;
++         }
++         key[i] = bRandomData[position];
++         ++position;
++     }
++     rc4_init(ServerKey, key, 16);
++}
++
++void WardenMgr::GenerateAndSendSeed(WorldSession* const session)
++{
++    DEBUG_LOG("GenerateAndSendSeed: building wardend packet");
++    BigNumber s;
++    s.SetRand(16 * 8);
++    WorldPacket data( SMSG_WARDEN_DATA, 1+16 );
++    data << uint8(WARDS_SEED);
++    data.append(s.AsByteArray(16), 16);
++    // We build the packet for wardend before crypting the client one
++    ByteBuffer pkt;
++
++    pkt << uint8(MMSG_SERVER_KEY_REQUEST);
++    pkt << uint32(session->GetAccountId());
++    pkt.append(session->GetSessionKey().AsByteArray(40), 40);
++    pkt.append(data.contents(), data.size());
++
++    // We can now crypt and send the packet to the client
++    data.hexlike();
++    //data.crypt(sWardenMgr, session->GetWardenServerKey(), &WardenMgr::rc4_crypt);
++    data.crypt(session->GetWardenServerKey(), &rc4_crypt);
++    session->SendPacket(&data);
++
++    // And we send this packet to the warden daemon for it to make the new key pair
++    m_WardenProcessStream->send((char const*)pkt.contents(), pkt.size());
++}
++
++void WardenMgr::GetNewClientKey(WorldSession* const session)
++{
++    ByteBuffer pkt;
++    pkt << uint8(MMSG_CLIENT_KEY_REQUEST);
++    pkt << uint32(session->GetAccountId());
++    m_WardenProcessStream->send((char const*)pkt.contents(), pkt.size());
++}
++
++// Sending this packet to initialize engine functions warden uses
++void WardenMgr::SendWardenData(WorldSession* const session)
++{
++    DEBUG_LOG("WardenMgr::SendWardenData");
++    WorldPacket data( SMSG_WARDEN_DATA, 1 + 2+4+20 + 1 + 2+4+8 + 1 +2+4+8); // 42 // 57 // 3.3.5a init packet
++    data << uint8(WARDS_DATA);
++    {
++        data << uint16(20);
++        uint8 buff[20] =
++        {
++            0x01, 0x00, 0x02, 0x00,
++            0x80, 0x4F, 0x02, 0x00,     // 0x00400000 + 0x00024F80 SFileOpenFile
++            0xC0, 0x18, 0x02, 0x00,     // 0x00400000 + 0x000218C0 SFileGetFileSize
++            0x30, 0x25, 0x02, 0x00,     // 0x00400000 + 0x00022530 SFileReadFile
++            0x10, 0x29, 0x02, 0x00      // 0x00400000 + 0x00022910 SFileCloseFile
++        };
++        data << uint32(BuildChecksum(buff, 20));
++        data.append(buff, 20);
++    }
++    data << uint8(WARDS_DATA);
++    {
++        data << uint16(8);
++        uint8 buff[8] =
++        {
++           0x04, 0x00, 0x00,
++           0x40, 0x9D, 0x41, 0x00,      // 0x00400000 + 0x00419D40 FrameScript__GetText
++           0x01
++        };
++        data << uint32(BuildChecksum(buff, 8));
++        data.append(buff, 8);
++    }
++    // Computed part for timing checks (did not exist on Offy 3.3.5a)
++    data << uint8(WARDS_DATA);
++    {
++        data << uint16(8);
++        uint8 buff[8] =
++        {
++           0x01, 0x01, 0x00,
++           0x20, 0xAE, 0x46, 0x00,      // 0x00400000 + 0x0046AE20 PerformanceCounter
++           0x01
++        };
++        data << uint32(BuildChecksum(buff, 8));
++        data.append(buff, 8);
++    }
++
++    data.hexlike();
++    //data.crypt(sWardenMgr, session->GetWardenServerKey(), &WardenMgr::rc4_crypt);
++    data.crypt(session->GetWardenServerKey(), &rc4_crypt);
++    session->SendPacket(&data);
++}
++
++uint32 WardenMgr::BuildChecksum(const uint8* data, uint32 dataLen)
++{
++    uint8 hash[20];
++    SHA1(data, dataLen, hash);
++    uint32 checkSum = 0;
++    for (uint8 i=0; i<5; ++i)
++        checkSum = checkSum ^ *(uint32*)(&hash[0] + i*4);
++    return checkSum;
++}
++
++void WardenMgr::AskValidateTransformedSeed(WorldSession* const session, WorldPacket& clientPacket)
++{
++    uint32 accountId = session->GetAccountId();
++    DEBUG_LOG("AskValidateTransformedSeed(%u)", accountId);
++    uint8 tSeed[20];
++    clientPacket.read(tSeed, 20);
++
++    ByteBuffer pkt;
++    pkt << uint8(MMSG_TSEED_VALIDATION_REQUEST);
++    pkt << uint32(session->GetAccountId());
++    pkt.append(tSeed, 20);
++    m_WardenProcessStream->send((char const*)pkt.contents(), pkt.size());
++}
++
++void WardenMgr::SendCheatCheck(WorldSession* const session)
++{
++    DEBUG_LOG("SendCheatCheck: building wardend packet request for a cheat check");
++    // We need to ask the wardend for the request, we don't know warden data from core
++    ByteBuffer pkt;
++    pkt << uint8(MMSG_CHEATS_REQUEST);
++    pkt << uint32(session->GetAccountId());
++    m_WardenProcessStream->send((char const*)pkt.contents(), pkt.size());
++}
++
++void WardenMgr::AskValidateCheatChecks(WorldSession* const session, WorldPacket& clientPacket)
++{
++    DEBUG_LOG("WardenMgr::ValidateCheatChecks");
++    // We first check the checksum, no need to go further if it is wrong
++    uint16 len;
++    uint32 checksum;
++    clientPacket >> len;
++    clientPacket >> checksum;
++    if (checksum != BuildChecksum(clientPacket.contents() + clientPacket.rpos(), clientPacket.size() - clientPacket.rpos()))
++    {
++        BASIC_LOG("Warden Cheat-check: Kicking account %u for failed check, Packet Checksum 0x%08X is invalid!", session->GetAccountId(), checksum);
++        ReactToCheatCheckResult(session, false);
++    }
++    else
++    {
++        ByteBuffer pkt;
++        pkt << uint8(MMSG_CHEATS_VALIDATION_REQUEST);
++        pkt << uint32(session->GetAccountId());
++        pkt << uint32(clientPacket.size());
++        pkt.append(clientPacket.contents(), clientPacket.size()); // full packet
++        m_WardenProcessStream->send((char const*)pkt.contents(), pkt.size());
++    }
++    // Make the packet fully read
++    clientPacket.read_skip(clientPacket.size() - clientPacket.rpos());
++    session->SetWardenStatus(WARD_STATUS_CHEAT_CHECK_PENDING); // so that we don't kick if daemon crashs
++}
++
++void WardenMgr::ReactToCheatCheckResult(WorldSession* const session, bool result, bool immediate)
++{
++    DEBUG_LOG("ReactToCheatCheckResult %s %s",result?"true":"false",immediate?"true":"false");
++    if (result)
++    {
++        session->SetWardenStatus(WARD_STATUS_CHEAT_CHECK_IN);
++        const uint32 shortTime = immediate ? 0 : urand(15, 25); // from 15 to 25 seconds
++        session->GetWardenTimer().SetCurrent(0);                // so that we don't overload the timer
++        session->GetWardenTimer().SetInterval(shortTime*IN_MILLISECONDS);
++        DEBUG_LOG("Timer set to %u seconds", shortTime);
++        session->GetWardenTimer().Reset();
++    }
++    else
++    {
++        session->KickPlayer(); // In this case, probably better to ban for 24H
++    }
++}
++
++//****************************************************
++// Warden Demon replies handlers
++
++bool WardenSvcHandler::_HandleRegisterRep()
++{
++    DEBUG_LOG("WardenSvcHandler::_HandleRegisterRep()");
++
++    uint8 rc4[16];
++    uint8 md5[16];
++    uint32 moduleLen;
++    uint32 accountId;
++
++    Peer->recv_n(&accountId, 4);
++    Peer->recv_n(&moduleLen, 4);
++
++    WorldSession* session = sWorld.FindSession(accountId);
++
++    if (moduleLen == 0)
++    {
++        session->GetWardenTimer().SetInterval(5*IN_MILLISECONDS);
++        session->GetWardenTimer().Reset(); // We will retry in 5 seconds
++        return true;
++    }
++    else if (moduleLen == 0xFFFFFFFF)
++    {
++        session->SetWardenStatus(WARD_STATUS_USER_DISABLED);
++        DEBUG_LOG("Disabling warden for account %u since not Windows platform", accountId);
++        return true;
++    }
++
++    Peer->recv_n(rc4, 16);
++    Peer->recv_n(md5, 16);
++
++    session->SetWardenStatus(WARD_STATUS_REGISTERED);
++
++    WorldPacket data( SMSG_WARDEN_DATA, 1+16+16+4 );
++    data << uint8(WARDS_MODULE_INFO);
++    data.append(md5, 16);
++    data.append(rc4, 16);
++    data << uint32(moduleLen);
++
++    // 1st crypt the packet
++    uint8 *skey = session->GetSessionKey().AsByteArray(40);
++
++    sWardenMgr.SetInitialKeys(&skey[0], &skey[20], session->GetWardenClientKey(), session->GetWardenServerKey());
++    data.hexlike();
++    //data.crypt(sWardenMgr, session->GetWardenServerKey(), &WardenMgr::rc4_crypt);
++    data.crypt(session->GetWardenServerKey(), &rc4_crypt);
++
++    // Then send the first packet to client
++    session->SendPacket(&data);
++    return true;
++}
++
++bool WardenSvcHandler::_HandleServerKeyRep()
++{
++    DEBUG_LOG("WardenSvcHandler::_HandleServerKeyRep()");
++    uint32 accountId;
++    Peer->recv_n(&accountId, 4);
++    WorldSession* session = sWorld.FindSession(accountId);
++    Peer->recv_n(session->GetWardenServerKey(), 0x102);
++    DEBUG_LOG("Server key changed for account %u", accountId);
++
++    // It's time to send warden client init data for functions offset then we can do cheat checks
++    sWardenMgr.SendWardenData(session);
++    return true;
++}
++
++bool WardenSvcHandler::_HandleClientKeyRep()
++{
++    DEBUG_LOG("WardenSvcHandler::_HandleClientKeyRep()");
++    uint32 accountId;
++    Peer->recv_n(&accountId, 4);
++    WorldSession* session = sWorld.FindSession(accountId);
++    Peer->recv_n(session->GetWardenClientKey(), 0x102);
++    DEBUG_LOG("Client key changed for account %u", accountId);
++    return true;
++}
++
++bool WardenSvcHandler::_HandleModuleRep()
++{
++    DEBUG_LOG(" WardenSvcHandler::_HandleModuleRep()");
++    uint32 accountId;
++    uint16 modLength;
++    uint16 offset = 0;
++    uint8 *module;
++
++    Peer->recv_n(&accountId ,4);
++    Peer->recv_n(&modLength ,2);
++
++    module = (uint8*)malloc(modLength);
++    Peer->recv_n(module, modLength);
++
++    WorldSession* session = sWorld.FindSession(accountId);
++    while (modLength > 0)
++    {
++        uint16 len = modLength>500?500:modLength;
++        WorldPacket data( SMSG_WARDEN_DATA, 1+2+len );
++        data << uint8(WARDS_MODULE_CHUNK);
++        data << uint16(len);
++        data.append(module + offset, len);
++        data.hexlike();
++        //data.crypt(sWardenMgr, session->GetWardenServerKey(), &WardenMgr::rc4_crypt);
++        data.crypt(session->GetWardenServerKey(), &rc4_crypt);
++
++        offset = offset + len;
++        modLength = modLength - len;
++        session->SendPacket(&data);
++    }
++    free(module);
++    return true;
++}
++
++bool WardenSvcHandler::_HandleCheatCheckRep()
++{
++    DEBUG_LOG("WardenSvcHandler::_HandleCheatCheckRep() - Sending cheat-check to client");
++    uint32 accountId;
++    uint32 pktLen;
++    uint8 *packet;
++    Peer->recv_n(&accountId ,4);
++    Peer->recv_n(&pktLen ,4);
++    packet = (uint8*)malloc(pktLen);
++    Peer->recv_n(packet, pktLen);
++    DEBUG_LOG("Received pkt len: %u", pktLen);
++
++    WorldSession* session = sWorld.FindSession(accountId);
++    WorldPacket data( SMSG_WARDEN_DATA, 1+pktLen );
++    data << uint8(WARDS_CHEAT_CHECK);
++    data.append(packet, pktLen);
++
++    data.hexlike();
++    //data.crypt(sWardenMgr, session->GetWardenServerKey(), &WardenMgr::rc4_crypt);
++    data.crypt(session->GetWardenServerKey(), &rc4_crypt);
++    session->SendPacket(&data);
++    free(packet);
++
++    // Cheat checks are sent, we have to ensure we got a reply
++    session->SetWardenStatus(WARD_STATUS_CHEAT_CHECK_OUT);
++    session->GetWardenTimer().SetInterval(2*MINUTE*IN_MILLISECONDS);
++    session->GetWardenTimer().Reset();
++    return true;
++}
++
++bool WardenSvcHandler::_HandleCheatCheckValidationRep()
++{
++    DEBUG_LOG("WardenSvcHandler::_HandleCheatCheckValidationRep() - Processed client reply");
++    uint32 accountId;
++    uint8 result;
++    Peer->recv_n(&accountId ,4);
++    Peer->recv_n(&result ,1);
++    WorldSession* session = sWorld.FindSession(accountId);
++    sWardenMgr.ReactToCheatCheckResult(session, result!=0?true:false);
++    return true;
++}
++
++bool WardenSvcHandler::_HandleTSeedValidationRep()
++{
++    DEBUG_LOG("WardenSvcHandler::_HandleTSeedValidationRep()");
++    uint32 accountId;
++    uint8 result;
++    Peer->recv_n(&accountId ,4);
++    Peer->recv_n(&result ,1);
++    WorldSession* session = sWorld.FindSession(accountId);
++    sWardenMgr.ReactToCheatCheckResult(session, result!=0?true:false, true);
++    return true;
++}
++
++/////////////////////////////
++// Session
++/////////////////////////////
++void WorldSession::HandleWardenRegister()
++{
++    if (sWardenMgr.IsEnabled())
++    {
++        sWardenMgr.Register(this);
++    }
++}
++
++void WorldSession::HandleWardenUnregister()
++{
++    if (sWardenMgr.IsEnabled())
++    {
++        sWardenMgr.Unregister(this);
++    }
++}
++
++void WorldSession::HandleWardenDataOpcode(WorldPacket& recv_data)
++{
++    if (sWardenMgr.IsReady())
++    {
++        //recv_data.crypt(sWardenMgr, m_rc4ClientKey, &WardenMgr::rc4_crypt);
++        recv_data.crypt(m_rc4ClientKey, &rc4_crypt);
++        uint8 warden_opcode;
++        recv_data >> warden_opcode;
++        recv_data.hexlike();
++        switch(warden_opcode)
++        {
++            case WARDC_MODULE_LOAD_FAILED:
++                DEBUG_LOG("Received the reply load failed");
++                // We have to send the module
++                if (GetWardenStatus() == WARD_STATUS_LOAD_FAILED)
++                {
++                    KickPlayer();
++                }
++                else
++                {
++                    sWardenMgr.SendModule(this);
++                    SetWardenStatus(WARD_STATUS_LOAD_FAILED);
++                }
++                break;
++            case WARDC_MODULE_LOADED:
++                DEBUG_LOG("Received the reply module loaded");
++                SetWardenStatus(WARD_STATUS_INIT);
++                // We go next step: Send a seed
++                sWardenMgr.GenerateAndSendSeed(this); // This will trigger the server key change
++                break;
++            case WARDC_CHEAT_CHECK_RESULT:
++                DEBUG_LOG("Received the cheat-check result");
++                sWardenMgr.AskValidateCheatChecks(this, recv_data);
++                break;
++            case WARDC_TRANSFORMED_SEED:
++                DEBUG_LOG("Received the transformed seed");
++                // Let's validate this data
++                sWardenMgr.AskValidateTransformedSeed(this, recv_data);
++                // It's important to request new client key after validating this packet, because this trigger the module unload
++                sWardenMgr.GetNewClientKey(this);
++                break;
++            default:
++                DEBUG_LOG("Problem with packet");
++        }
++    }
++    else
++    {
++        recv_data.read_skip<uint8>();
++        DEBUG_LOG("Received opcode CMSG_WARDEN_DATA, but this session has no module linked");
++    }
++}
++
++// Connection event handling
++
++const WardenSvcHandler::WardenMgrCmd table[] =
++{
++    { WMSG_REGISTER_REPLY,              &WardenSvcHandler::_HandleRegisterRep               },
++    { WMSG_SERVER_KEY_REPLY,            &WardenSvcHandler::_HandleServerKeyRep              },
++    { WMSG_CLIENT_KEY_REPLY,            &WardenSvcHandler::_HandleClientKeyRep              },
++    { WMSG_CHEATS_REPLY,                &WardenSvcHandler::_HandleCheatCheckRep             },
++    { WMSG_CHEATS_VALIDATION_REPLY,     &WardenSvcHandler::_HandleCheatCheckValidationRep   },
++    { WMGS_TSEED_VALIDATION_REPLY,      &WardenSvcHandler::_HandleTSeedValidationRep        },
++    { WMSG_MODULEFILE_REPLY,            &WardenSvcHandler::_HandleModuleRep                 }
++};
++
++#define WARDEN_REPLY_TOTAL_COMMANDS sizeof(table)/sizeof(WardenMgrCmd)
++
++int WardenSvcHandler::open(void*)
++{
++    BASIC_LOG("Connection to Warden Daemon established");
++    ACE_Reactor::instance()->register_handler(this, ACE_Event_Handler::READ_MASK);
++    Peer=&peer();
++    return 0;
++}
++
++int WardenSvcHandler::handle_input(ACE_HANDLE /*handle*/)
++{
++    uint8 _cmd;
++    Peer->recv_n(&_cmd, 1);
++
++    for (int i = 0; i < WARDEN_REPLY_TOTAL_COMMANDS; ++i)
++    {
++        if ((uint8)table[i].cmd == _cmd)
++        {
++            if (!(*this.*table[i].handler)())
++            {
++                return 0;
++            }
++            break;
++        }
++    }
++    return 0;
++}
++
++INSTANTIATE_SINGLETON_1(WardenMgr);
+diff --git a/src/game/WardenMgr.h b/src/game/WardenMgr.h
+new file mode 100644
+index 0000000..c01e739
+--- /dev/null
++++ b/src/game/WardenMgr.h
+@@ -0,0 +1,117 @@
++/*
++ * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#ifndef MANGOS_WARDEN_MGR_H
++#define MANGOS_WARDEN_MGR_H
++
++#include "Common.h"
++#include "SharedDefines.h"
++#include "Platform/Define.h"
++#include "Policies/Singleton.h"
++#include "../wardend/WardendProtocol.h"
++// Needed for GCC
++#include "WorldSession.h"
++#include "Util.h"
++#include "Auth/BigNumber.h"
++#include "WorldPacket.h"
++#include "Opcodes.h"
++// End Needed for GCC
++#include <ace/Connector.h>
++#include <ace/SOCK_Connector.h>
++#include <ace/SOCK_Stream.h>
++#include <ace/Svc_Handler.h>
++#include <ace/Reactor.h>
++
++#include <openssl/sha.h>
++
++class WardenMgr
++{
++    public:
++        WardenMgr();
++        ~WardenMgr() {};
++        bool Initialize(const char* addr, u_short port);
++        bool IsReady() { return m_IsWardenInit; }
++        void SetDisabled() { m_Enabled = false; }
++        bool IsEnabled() { return m_Enabled; }
++        //bool IsConnected() { return m_Connected; }
++
++        // Session related
++        bool Register(WorldSession* const session);
++        void Unregister(WorldSession* const session);
++        void GenerateAndSendSeed(WorldSession* const session);
++        void GetNewClientKey(WorldSession* const session);
++        void SendWardenData(WorldSession* const session);
++        void GetCheatCheckTable(WorldSession* const session);
++        void SendCheatCheck(WorldSession* const session);
++        void AskValidateCheatChecks(WorldSession* const session, WorldPacket& clientPacket);
++        void ReactToCheatCheckResult(WorldSession* const session, bool result, bool immediate=false);
++        void AskValidateTransformedSeed(WorldSession* const session, WorldPacket& clientPacket);
++
++        // Update
++        void Update(); // Global Warden System update for packets send/receive
++        void Update(WorldSession* const session, uint32 diff); // Session specific update
++
++        void SetInitialKeys(const uint8 *bSessionKey1, const uint8 *bSessionKey2, uint8* ClientKey, uint8 *ServerKey);
++        void SendModule(WorldSession* const session);
++
++    private:
++        bool InitializeCommunication(const char* host, u_short port);
++        uint32 BuildChecksum(const uint8* data, uint32 dataLen);
++
++        ACE_SOCK_Stream *m_WardenProcessStream;
++        ACE_SOCK_Connector *m_WardenProcessConnection;
++
++    protected:
++        bool m_IsWardenInit;
++        bool m_Enabled;
++        //bool m_Connected;
++        std::string m_WardendAddress;
++        u_short m_WardendPort;
++};
++
++class WardenSvcHandler: public ACE_Svc_Handler <ACE_SOCK_STREAM, ACE_NULL_SYNCH>
++{
++    public:
++        typedef struct WardenMgrCmd
++        {
++            eWardendOpcode cmd;
++            bool (WardenSvcHandler::*handler)(void);
++        }WardenHandler;
++
++        // Deamon replies related
++        bool _HandleRegisterRep();
++        bool _HandleServerKeyRep();
++        bool _HandleClientKeyRep();
++        bool _HandleModuleRep();
++        bool _HandleCheatCheckRep();
++        bool _HandleCheatCheckValidationRep();
++        bool _HandleTSeedValidationRep();
++
++        ACE_SOCK_Stream* Peer;
++        int open(void*);
++        int handle_input(ACE_HANDLE);
++
++    private:
++
++};
++
++#define sWardenMgr MaNGOS::Singleton<WardenMgr>::Instance()
++
++//void ByteBuffer::decrypt(&sWardenMgr, uint8* key, void(*sWardenMgr.rc4_crypt)(uint8 *useKey, uint8 *data, uint32 dataSize));
++
++#endif
+diff --git a/src/game/World.cpp b/src/game/World.cpp
+index 7445c2d..13df8eb 100644
+--- a/src/game/World.cpp
++++ b/src/game/World.cpp
+@@ -62,6 +62,7 @@
+ #include "GMTicketMgr.h"
+ #include "Util.h"
+ #include "CharacterDatabaseCleaner.h"
++#include "WardenMgr.h"
+ 
+ INSTANTIATE_SINGLETON_1( World );
+ 
+@@ -1344,6 +1345,25 @@ void World::SetInitialWorldSettings()
+     uint32 nextGameEvent = sGameEventMgr.Initialize();
+     m_timers[WUPDATE_EVENTS].SetInterval(nextGameEvent);    //depend on next event
+ 
++    if (sConfig.GetBoolDefault("wardend.enable"))
++    {
++        sLog.outString("Starting Warden system...");
++	    if (!sWardenMgr.Initialize(sConfig.GetStringDefault("wardend.address","127.0.0.1").c_str(),sConfig.GetIntDefault("wardend.port",4321)))
++        {
++            sLog.outError("Warden Daemon is not reachable, disabling this function");
++            sWardenMgr.SetDisabled();
++        }
++        else
++        {
++            m_timers[WUPDATE_WARDEN].SetInterval(300); // 300ms
++        }
++    }
++    else
++    {
++	    sLog.outString("Warden system disabled, skipping");
++        sWardenMgr.SetDisabled();
++    }
++
+     // Delete all characters which have been deleted X days before
+     Player::DeleteOldCharacters();
+ 
+@@ -1492,6 +1512,13 @@ void World::Update(uint32 diff)
+         sBattleGroundMgr.Update(diff);
+     }
+ 
++    ///- <li> Handle warden manager update
++    if (m_timers[WUPDATE_WARDEN].Passed())
++    {
++        m_timers[WUPDATE_WARDEN].Reset();
++        sWardenMgr.Update();
++    }
++
+     ///- Delete all characters which have been deleted X days before
+     if (m_timers[WUPDATE_DELETECHARS].Passed())
+     {
+diff --git a/src/game/World.h b/src/game/World.h
+index d382489..0638f1d 100644
+--- a/src/game/World.h
++++ b/src/game/World.h
+@@ -79,7 +79,8 @@ enum WorldTimers
+     WUPDATE_CORPSES     = 5,
+     WUPDATE_EVENTS      = 6,
+     WUPDATE_DELETECHARS = 7,
+-    WUPDATE_COUNT       = 8
++    WUPDATE_WARDEN      = 8, // Because I don't want to create yet another thread
++    WUPDATE_COUNT       = 9
+ };
+ 
+ /// Configuration elements
+diff --git a/src/game/WorldSession.cpp b/src/game/WorldSession.cpp
+index 2db93f4..3cfa7c5 100644
+--- a/src/game/WorldSession.cpp
++++ b/src/game/WorldSession.cpp
+@@ -29,6 +29,7 @@
+ #include "WorldSession.h"
+ #include "Player.h"
+ #include "ObjectMgr.h"
++#include "WardenMgr.h"
+ #include "Group.h"
+ #include "Guild.h"
+ #include "World.h"
+@@ -38,6 +39,7 @@
+ #include "Auth/AuthCrypt.h"
+ #include "Auth/HMACSHA1.h"
+ #include "zlib/zlib.h"
++#include "Auth/BigNumber.h"
+ 
+ // select opcodes appropriate for processing in Map::Update context for current session state
+ static bool MapSessionFilterHelper(WorldSession* session, OpcodeHandler const& opHandle)
+@@ -85,7 +87,7 @@ LookingForGroup_auto_join(false), LookingForGroup_auto_add(false), m_muteTime(mu
+ _player(NULL), m_Socket(sock),_security(sec), _accountId(id), m_expansion(expansion), _logoutTime(0),
+ m_inQueue(false), m_playerLoading(false), m_playerLogout(false), m_playerRecentlyLogout(false), m_playerSave(false),
+ m_sessionDbcLocale(sWorld.GetAvailableDbcLocale(locale)), m_sessionDbLocaleIndex(sObjectMgr.GetIndexForLocale(locale)),
+-m_latency(0), m_tutorialState(TUTORIALDATA_UNCHANGED)
++m_latency(0), m_tutorialState(TUTORIALDATA_UNCHANGED), m_wardenStatus(WARD_STATUS_UNREGISTERED)
+ {
+     if (sock)
+     {
+@@ -113,6 +115,9 @@ WorldSession::~WorldSession()
+     WorldPacket* packet;
+     while(_recvQueue.next(packet))
+         delete packet;
++
++    ///- inform Warden Manager
++    sWardenMgr.Unregister(this);
+ }
+ 
+ void WorldSession::SizeError(WorldPacket const& packet, uint32 size) const
+@@ -319,6 +324,10 @@ bool WorldSession::Update(uint32 diff, PacketFilter& updater)
+             return false;                                       //Will remove this session from the world session map
+     }
+ 
++    //Process Warden related update for this session
++    if (sWardenMgr.IsEnabled())
++        sWardenMgr.Update(this, uint32(diff/2));                //Called 2 times from Map::Update and World::UpdateSessions, so need to /2
++
+     return true;
+ }
+ 
+@@ -958,3 +967,8 @@ void WorldSession::ExecuteOpcode( OpcodeHandler const& opHandle, WorldPacket* pa
+     if (packet->rpos() < packet->wpos() && sLog.HasLogLevelOrHigher(LOG_LVL_DEBUG))
+         LogUnprocessedTail(packet);
+ }
++
++BigNumber &WorldSession::GetSessionKey() const
++{
++    return m_Socket->GetSessionKey();
++}
+diff --git a/src/game/WorldSession.h b/src/game/WorldSession.h
+index 8ac7d17..3cd0e1c 100644
+--- a/src/game/WorldSession.h
++++ b/src/game/WorldSession.h
+@@ -26,6 +26,7 @@
+ #include "Common.h"
+ #include "SharedDefines.h"
+ #include "ObjectGuid.h"
++#include "Timer.h"
+ 
+ struct ItemPrototype;
+ struct AuctionEntry;
+@@ -46,6 +47,7 @@ class CharacterHandler;
+ class GMTicket;
+ class MovementInfo;
+ class WorldSession;
++class BigNumber;
+ 
+ struct OpcodeHandler;
+ 
+@@ -352,6 +354,14 @@ class MANGOS_DLL_SPEC WorldSession
+         void SetLatency(uint32 latency) { m_latency = latency; }
+         uint32 getDialogStatus(Player *pPlayer, Object* questgiver, uint32 defstatus);
+ 
++        BigNumber &GetSessionKey() const;
++        uint8 *GetWardenClientKey() { return m_rc4ClientKey; }
++        uint8 *GetWardenServerKey() { return m_rc4ServerKey; }
++        uint8 GetWardenStatus() { return m_wardenStatus; }
++        void SetWardenStatus(uint8 status) { m_wardenStatus = status; }
++        ShortIntervalTimer &GetWardenTimer() { return m_cheatCheck; }
++        uint8 *GetWardenCheckTable() { return m_chkTable; }
++
+     public:                                                 // opcodes handlers
+ 
+         void Handle_NULL(WorldPacket& recvPacket);          // not used
+@@ -716,7 +726,11 @@ class MANGOS_DLL_SPEC WorldSession
+         void HandleBattlemasterJoinArena( WorldPacket &recv_data );
+         void HandleReportPvPAFK( WorldPacket &recv_data );
+ 
++        //Warden
+         void HandleWardenDataOpcode(WorldPacket& recv_data);
++        void HandleWardenRegister();                        // for internal call
++        void HandleWardenUnregister();                      // for internal call
++
+         void HandleWorldTeleportOpcode(WorldPacket& recv_data);
+         void HandleMinimapPingOpcode(WorldPacket& recv_data);
+         void HandleRandomRollOpcode(WorldPacket& recv_data);
+@@ -850,6 +864,12 @@ class MANGOS_DLL_SPEC WorldSession
+         TutorialDataState m_tutorialState;
+         AddonsList m_addonsList;
+         ACE_Based::LockedQueue<WorldPacket*, ACE_Thread_Mutex> _recvQueue;
++
++        uint8 m_wardenStatus;
++        uint8 m_rc4ServerKey[0x102];
++        uint8 m_rc4ClientKey[0x102];
++        ShortIntervalTimer m_cheatCheck;
++        uint8 m_chkTable[10];
+ };
+ #endif
+ /// @}
+diff --git a/src/game/WorldSocket.cpp b/src/game/WorldSocket.cpp
+index 667b039..4a4f3d3 100644
+--- a/src/game/WorldSocket.cpp
++++ b/src/game/WorldSocket.cpp
+@@ -823,7 +823,6 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
+ 
+     v.SetHexStr(fields[5].GetString());
+     s.SetHexStr (fields[6].GetString());
+-    m_s = s;
+ 
+     const char* sStr = s.AsHexStr ();                       //Must be freed by OPENSSL_free()
+     const char* vStr = v.AsHexStr ();                       //Must be freed by OPENSSL_free()
+@@ -856,6 +855,7 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
+         security = SEC_ADMINISTRATOR;
+ 
+     K.SetHexStr (fields[2].GetString ());
++    m_s = K;
+ 
+     time_t mutetime = time_t (fields[8].GetUInt64 ());
+ 
+diff --git a/src/mangosd/mangosd.conf.dist.in b/src/mangosd/mangosd.conf.dist.in
+index 61ffd07..a909eeb 100644
+--- a/src/mangosd/mangosd.conf.dist.in
++++ b/src/mangosd/mangosd.conf.dist.in
+@@ -3,7 +3,7 @@
+ #####################################
+ 
+ [MangosdConf]
+-ConfVersion=2010100901
++ConfVersion=2011031601
+ 
+ ###################################################################################################################
+ # CONNECTIONS AND DIRECTORIES
+@@ -1607,3 +1607,25 @@ SOAP.Port = 7878
+ CharDelete.Method = 0
+ CharDelete.MinLevel = 0
+ CharDelete.KeepDays = 30
++
++###################################################################################################################
++# WARDEN DAEMON - This daemon requires a Windows box to run. If you don't have any, let it disabled
++#
++#    Wardend.enable
++#        Enable or disable warden functionnalities
++#        Default: 0  - Disabled, mangosd will neither use wardend, not generate any warden related traffic
++#                 1  - Enable, mangosd will connect to wardend and generate cheat ckecks for all sessions
++#
++#   Wardend.address
++#        IP Address of the computer running the Win32 Warden Daemon
++#        Default: 127.0.0.1  - Assume you run the Warden Daemon on the same machine as Mangos Daemon and on Windows
++#
++#   Wardend.port
++#        Port on which the Warden Daemon listens
++#        Default: 4321
++#
++###################################################################################################################
++
++Wardend.enable = 0
++Wardend.address = "127.0.0.1"
++Wardend.port = 4321
+diff --git a/src/realmd/AuthSocket.cpp b/src/realmd/AuthSocket.cpp
+index 36b797d..00e0ce8 100644
+--- a/src/realmd/AuthSocket.cpp
++++ b/src/realmd/AuthSocket.cpp
+@@ -62,7 +62,7 @@ typedef struct AUTH_LOGON_CHALLENGE_C
+     uint8   version3;
+     uint16  build;
+     uint8   platform[4];
+-    uint8   os[4];
++    uint32  os;
+     uint8   country[4];
+     uint32  timezone_bias;
+     uint32  ip;
+@@ -343,7 +343,7 @@ bool AuthSocket::_HandleLogonChallenge()
+     EndianConvert(*((uint32*)(&ch->gamename[0])));
+     EndianConvert(ch->build);
+     EndianConvert(*((uint32*)(&ch->platform[0])));
+-    EndianConvert(*((uint32*)(&ch->os[0])));
++    EndianConvert(ch->os);
+     EndianConvert(*((uint32*)(&ch->country[0])));
+     EndianConvert(ch->timezone_bias);
+     EndianConvert(ch->ip);
+@@ -352,6 +352,7 @@ bool AuthSocket::_HandleLogonChallenge()
+ 
+     _login = (const char*)ch->I;
+     _build = ch->build;
++    _os = ch->os;
+ 
+     ///- Normalize account name
+     //utf8ToUpperOnlyLatin(_login); -- client already send account in expected form
+@@ -665,7 +666,7 @@ bool AuthSocket::_HandleLogonProof()
+         ///- Update the sessionkey, last_ip, last login time and reset number of failed logins in the account table for this account
+         // No SQL injection (escaped user name) and IP address as received by socket
+         const char* K_hex = K.AsHexStr();
+-        LoginDatabase.PExecute("UPDATE account SET sessionkey = '%s', last_ip = '%s', last_login = NOW(), locale = '%u', failed_logins = 0 WHERE username = '%s'", K_hex, get_remote_address().c_str(), GetLocaleByName(_localizationName), _safelogin.c_str() );
++        LoginDatabase.PExecute("UPDATE account SET sessionkey = '%s', last_ip = '%s', last_login = NOW(), locale = '%u', failed_logins = 0, os = %u WHERE username = '%s'", K_hex, get_remote_address().c_str(), GetLocaleByName(_localizationName), _os, _safelogin.c_str() );
+         OPENSSL_free((void*)K_hex);
+ 
+         ///- Finish SRP6 and send the final result to the client
+diff --git a/src/realmd/AuthSocket.h b/src/realmd/AuthSocket.h
+index fe698e6..05ceda5 100644
+--- a/src/realmd/AuthSocket.h
++++ b/src/realmd/AuthSocket.h
+@@ -73,6 +73,7 @@ class AuthSocket: public BufferedSocket
+         // between enUS and enGB, which is important for the patch system
+         std::string _localizationName;
+         uint16 _build;
++        uint32 _os;
+         AccountTypes _accountSecurityLevel;
+ 
+         ACE_HANDLE patch_;
+diff --git a/src/shared/ByteBuffer.h b/src/shared/ByteBuffer.h
+index 9fb1bae..1ae7468 100644
+--- a/src/shared/ByteBuffer.h
++++ b/src/shared/ByteBuffer.h
+@@ -320,6 +320,17 @@ class ByteBuffer
+             return guid;
+         }
+ 
++        template <class T>
++        void crypt(T& obj, uint8 *key, void(T::*func)(uint8 *useKey, uint8 *data, uint32 dataSize))
++        {
++            (obj.*(func))(key, &_storage[0], size());
++        }
++
++        void crypt(uint8 *key, void(*func)(uint8 *useKey, uint8 *data, uint32 dataSize))
++        {
++            (*func)(key, &_storage[0], size());
++        }
++
+         const uint8 *contents() const { return &_storage[0]; }
+ 
+         size_t size() const { return _storage.size(); }
+diff --git a/src/shared/SystemConfig.h.in b/src/shared/SystemConfig.h.in
+index 3857c35..a8e7f59 100644
+--- a/src/shared/SystemConfig.h.in
++++ b/src/shared/SystemConfig.h.in
+@@ -36,11 +36,14 @@
+ // Format is YYYYMMDDRR where RR is the change in the conf file
+ // for that day.
+ #ifndef _MANGOSDCONFVERSION
+-# define _MANGOSDCONFVERSION 2010100901
++# define _MANGOSDCONFVERSION 2011031601
+ #endif
+ #ifndef _REALMDCONFVERSION
+ # define _REALMDCONFVERSION 2010062001
+ #endif
++#ifndef _WARDENDCONFVERSION
++# define _WARDENDCONFVERSION 2010111901
++#endif
+ 
+ #if MANGOS_ENDIAN == MANGOS_BIGENDIAN
+ # define _ENDIAN_STRING "big-endian"
+@@ -71,6 +74,7 @@
+ # endif
+ # define _MANGOSD_CONFIG  SYSCONFDIR"mangosd.conf"
+ # define _REALMD_CONFIG   SYSCONFDIR"realmd.conf"
++# define _WARDEND_CONFIG  SYSCONFDIR"wardend.conf"
+ #else
+ # if defined  (__FreeBSD__)
+ #  define _ENDIAN_PLATFORM "FreeBSD_"ARCHITECTURE" (" _ENDIAN_STRING ")"
+@@ -96,4 +100,5 @@
+ #define DEFAULT_PLAYER_LIMIT 100
+ #define DEFAULT_WORLDSERVER_PORT 8085                       //8129
+ #define DEFAULT_REALMSERVER_PORT 3724
++#define DEFAULT_WARDENSERVER_PORT 4321
+ #endif
+diff --git a/src/shared/Util.cpp b/src/shared/Util.cpp
+index a668851..85db73f 100644
+--- a/src/shared/Util.cpp
++++ b/src/shared/Util.cpp
+@@ -547,4 +547,78 @@ void hexEncodeByteArray(uint8* bytes, uint32 arrayLen, std::string& result)
+         }
+     }
+     result = ss.str();
+-}
+\ No newline at end of file
++}
++
++// Function that converts string hex values into binary ones, support spaces in the string
++void hexDecodeString(const char *str, uint32 strlen, uint8* buffer)
++{
++    int8 startedNibble = 0x0F;
++    uint32 bufferId = 0;
++    for (uint32 i = 0; i < strlen; ++i)
++    {
++        char c = tolower(str[i]);
++        uint8 value = 0;
++        if (c >='0' && c <= '9')
++            value = c-'0';
++        else if (c>='a' && c<='f')
++            value = c-'a'+0xa;
++        else
++            continue;
++        if (startedNibble == 0x0F)
++            startedNibble = value<<4;
++        else
++        {
++            buffer[bufferId] = startedNibble | value;
++            startedNibble = 0x0F;
++            bufferId++;
++        }
++    }
++}
++
++// Simple RC4 to work on 256+2 bytes keys
++void byteSwap(uint8 *a, uint8 *b)
++{
++    uint8 t;
++    t = *a;
++    *a = *b;
++    *b = t;
++}
++
++void rc4_init(uint8 *key_buffer, uint8 *base, uint32 base_length)
++{
++    uint8 val = 0;
++    uint32 position = 0;
++    uint32 i;
++
++    for(i = 0; i < 0x100; i++)
++        key_buffer[i] = (uint8)i;
++
++    key_buffer[0x100] = 0;
++    key_buffer[0x101] = 0;
++
++    for(i = 1; i <= 0x40; i++)
++    {
++        val += key_buffer[(i * 4) - 4] + base[position++ % base_length];
++        byteSwap(&key_buffer[(i * 4) - 4], &key_buffer[val & 0x0FF]);
++
++        val += key_buffer[(i * 4) - 3] + base[position++ % base_length];
++        byteSwap(&key_buffer[(i * 4) - 3], &key_buffer[val & 0x0FF]);
++
++        val += key_buffer[(i * 4) - 2] + base[position++ % base_length];
++        byteSwap(&key_buffer[(i * 4) - 2], &key_buffer[val & 0x0FF]);
++
++        val += key_buffer[(i * 4) - 1] + base[position++ % base_length];
++        byteSwap(&key_buffer[(i * 4) - 1], &key_buffer[val & 0x0FF]);
++    }
++}
++
++void rc4_crypt(uint8 *key, uint8 *data, uint32 length)
++{
++    for(uint32 i = 0; i < length; i++)
++    {
++        key[0x100]++;
++        key[0x101] += key[key[0x100]];
++        byteSwap(&key[key[0x101]], &key[key[0x100]]);
++        data[i] ^= key[(key[key[0x101]] + key[key[0x100]]) & 0x0FF];
++    }
++}
+diff --git a/src/shared/Util.h b/src/shared/Util.h
+index 389184e..410ffa0 100644
+--- a/src/shared/Util.h
++++ b/src/shared/Util.h
+@@ -341,4 +341,11 @@ bool IsIPAddress(char const* ipaddress);
+ uint32 CreatePIDFile(const std::string& filename);
+ 
+ void hexEncodeByteArray(uint8* bytes, uint32 arrayLen, std::string& result);
++void hexDecodeString(const char *str, uint32 strlen, uint8* buffer);
++
++// Simple RC4 to work on 256+2 bytes keys
++void byteSwap(uint8 *a, uint8 *b);
++void rc4_init(uint8 *key_buffer, uint8 *base, uint32 base_length);
++void rc4_crypt(uint8 *key, uint8 *data, uint32 length);
++
+ #endif
+diff --git a/src/wardend/Main.cpp b/src/wardend/Main.cpp
+new file mode 100644
+index 0000000..41dc7f4
+--- /dev/null
++++ b/src/wardend/Main.cpp
+@@ -0,0 +1,354 @@
++/*
++ * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#include "Common.h"
++#include "Database/DatabaseEnv.h"
++#include "WardenDaemon.h"
++
++#include "Config/Config.h"
++#include "Log.h"
++#include "WardenSocket.h"
++#include "SystemConfig.h"
++#include "revision.h"
++#include "revision_nr.h"
++#include "revision_sql.h"
++#include "Util.h"
++
++#include <ace/Get_Opt.h>
++#include <ace/Dev_Poll_Reactor.h>
++#include <ace/TP_Reactor.h>
++#include <ace/ACE.h>
++#include <ace/Acceptor.h>
++#include <ace/SOCK_Acceptor.h>
++
++#include "ServiceWin32.h"
++char serviceName[] = "wardend";
++char serviceLongName[] = "MaNGOS wardend service";
++char serviceDescription[] = "Massive Network Game Object Server";
++/*
++ * -1 - not in service mode
++ *  0 - stopped
++ *  1 - running
++ *  2 - paused
++ */
++int m_ServiceStatus = -1;
++
++bool StartDB();
++void UnhookSignals();
++void HookSignals();
++
++bool stopEvent = false;                                     ///< Setting it to true stops the daemon
++
++DatabaseType LoginDatabase;                                 ///< Accessor to the realm database
++
++/// Print out the usage string for this program on the console.
++void usage(const char *prog)
++{
++    sLog.outString("Usage: \n %s [<options>]\n"
++        "    -v, --version            print version and exist\n\r"
++        "    -c config_file           use config_file as configuration file\n\r"
++        "    Running as service functions:\n\r"
++        "    -s run                   run as service\n\r"
++        "    -s install               install service\n\r"
++        "    -s uninstall             uninstall service\n\r"
++        ,prog);
++}
++
++/// Launch the warden server
++extern int main(int argc, char **argv)
++{
++    ///- Command line parsing to get the configuration file name
++    char const* cfg_file = _WARDEND_CONFIG;
++
++    char const *options = ":c:s:";
++
++    ACE_Get_Opt cmd_opts(argc, argv, options);
++    cmd_opts.long_option("version", 'v');
++
++    int option;
++    while ((option = cmd_opts()) != EOF)
++    {
++        switch (option)
++        {
++            case 'c':
++                cfg_file = cmd_opts.opt_arg();
++                break;
++            case 'v':
++                printf("%s\n", _FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,REVISION_ID));
++                return 0;
++            case 's':
++            {
++                const char *mode = cmd_opts.opt_arg();
++
++                if (!strcmp(mode, "install"))
++                {
++                    if (WinServiceInstall())
++                        sLog.outString("Installing service");
++                    return 1;
++                }
++                else if (!strcmp(mode, "uninstall"))
++                {
++                    if (WinServiceUninstall())
++                        sLog.outString("Uninstalling service");
++                    return 1;
++                }
++                else if (!strcmp(mode, "run"))
++                    WinServiceRun();
++                else
++                {
++                    sLog.outError("Runtime-Error: -%c unsupported argument %s", cmd_opts.opt_opt(), mode);
++                    usage(argv[0]);
++                    Log::WaitBeforeContinueIfNeed();
++                    return 1;
++                }
++                break;
++            }
++            case ':':
++                sLog.outError("Runtime-Error: -%c option requires an input argument", cmd_opts.opt_opt());
++                usage(argv[0]);
++                Log::WaitBeforeContinueIfNeed();
++                return 1;
++            default:
++                sLog.outError("Runtime-Error: bad format of commandline arguments");
++                usage(argv[0]);
++                Log::WaitBeforeContinueIfNeed();
++                return 1;
++        }
++    }
++
++    if (!sConfig.SetSource(cfg_file))
++    {
++        sLog.outError("Could not find configuration file %s.", cfg_file);
++        Log::WaitBeforeContinueIfNeed();
++        return 1;
++    }
++    sLog.Initialize();
++
++    sLog.outString( "%s [warden-daemon]", _FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,REVISION_ID) );
++    sLog.outString( "<Ctrl-C> to stop.\n" );
++    sLog.outString("Using configuration file %s.", cfg_file);
++
++    ///- Check the version of the configuration file
++    uint32 confVersion = sConfig.GetIntDefault("ConfVersion", 0);
++    if (confVersion < _WARDENDCONFVERSION)
++    {
++        sLog.outError("*****************************************************************************");
++        sLog.outError(" WARNING: Your wardend.conf version indicates your conf file is out of date!");
++        sLog.outError("          Please check for updates, as your current default values may cause");
++        sLog.outError("          strange behavior.");
++        sLog.outError("*****************************************************************************");
++        Log::WaitBeforeContinueIfNeed();
++    }
++
++    DETAIL_LOG("Using ACE: %s", ACE_VERSION);
++
++#if defined (ACE_HAS_EVENT_POLL) || defined (ACE_HAS_DEV_POLL)
++    ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(ACE::max_handles(), 1), 1), true);
++#else
++    ACE_Reactor::instance(new ACE_Reactor(new ACE_TP_Reactor(), true), true);
++#endif
++
++    sLog.outBasic("Max allowed open files is %d", ACE::max_handles());
++
++    /// wardend PID file creation
++    std::string pidfile = sConfig.GetStringDefault("PidFile", "");
++    if (!pidfile.empty())
++    {
++        uint32 pid = CreatePIDFile(pidfile);
++        if( !pid )
++        {
++            sLog.outError( "Cannot create PID file %s.\n", pidfile.c_str() );
++            Log::WaitBeforeContinueIfNeed();
++            return 1;
++        }
++
++        sLog.outString( "Daemon PID: %u\n", pid );
++    }
++
++    ///- Initialize the database connection
++    if (!StartDB())
++    {
++        Log::WaitBeforeContinueIfNeed();
++        return 1;
++    }
++
++    ///- Read the "Data" directory from the config file
++    std::string path = sConfig.GetStringDefault("DataDir","./");
++    if ((path.at(path.length()-1)!='/') && (path.at(path.length()-1)!='\\'))
++        path.append("/");
++    sWardend.SetDataPath(path.c_str());
++
++    sLog.outString("Using DataDir %s",path.c_str());
++
++    ///- Launch the listening network socket
++    ACE_Acceptor<WardenSocket, ACE_SOCK_Acceptor> acceptor;
++
++    uint16 rmport = sConfig.GetIntDefault("WardenServerPort", DEFAULT_WARDENSERVER_PORT);
++    std::string bind_ip = sConfig.GetStringDefault("BindIP", "0.0.0.0");
++
++    ACE_INET_Addr bind_addr(rmport, bind_ip.c_str());
++
++    if (acceptor.open(bind_addr, ACE_Reactor::instance(), ACE_NONBLOCK) == -1)
++    {
++        sLog.outError("MaNGOS wardend can not bind to %s:%d", bind_ip.c_str(), rmport);
++        Log::WaitBeforeContinueIfNeed();
++        return 1;
++    }
++
++    ///- Catch termination signals
++    HookSignals();
++
++    ///- Handle affinity for multiple processors and process priority on Windows
++    HANDLE hProcess = GetCurrentProcess();
++
++    uint32 Aff = sConfig.GetIntDefault("UseProcessors", 0);
++    if (Aff > 0)
++    {
++        DWORD appAff;
++        DWORD sysAff;
++
++        if(GetProcessAffinityMask(hProcess,&appAff,&sysAff))
++        {
++            DWORD curAff = Aff & appAff;                // remove non accessible processors
++
++            if (!curAff)
++            {
++                sLog.outError("Processors marked in UseProcessors bitmask (hex) %x not accessible for wardend. Accessible processors bitmask (hex): %x",Aff,appAff);
++            }
++            else
++            {
++                if (SetProcessAffinityMask(hProcess,curAff))
++                    sLog.outString("Using processors (bitmask, hex): %x", curAff);
++                else
++                    sLog.outError("Can't set used processors (hex): %x", curAff);
++            }
++        }
++        sLog.outString();
++    }
++
++    bool Prio = sConfig.GetBoolDefault("ProcessPriority", false);
++
++    if(Prio)
++    {
++        if(SetPriorityClass(hProcess,HIGH_PRIORITY_CLASS))
++            sLog.outString("wardend process priority class set to HIGH");
++        else
++            sLog.outError("ERROR: Can't set wardend process priority class.");
++        sLog.outString();
++    }
++
++    sWardend.LoadFromDB();
++    sWardend.Initialize();
++
++    // maximum counter for next ping
++    uint32 numLoops = (sConfig.GetIntDefault( "MaxPingTime", 30 ) * (MINUTE * 1000000 / 100000));
++    uint32 loopCounter = 0;
++
++    ///- Wait for termination signal
++    while (!stopEvent)
++    {
++        // dont move this outside the loop, the reactor will modify it
++        ACE_Time_Value interval(0, 100000);
++
++        if (ACE_Reactor::instance()->run_reactor_event_loop(interval) == -1)
++            break;
++
++        if ((++loopCounter) == numLoops)
++        {
++            loopCounter = 0;
++            DETAIL_LOG("Ping MySQL to keep connection alive");
++            delete LoginDatabase.Query("SELECT 1 FROM warden_module LIMIT 1");
++        }
++        if (m_ServiceStatus == 0) stopEvent = true;
++        while (m_ServiceStatus == 2) Sleep(1000);
++    }
++
++    ///- Wait for the delay thread to exit
++    LoginDatabase.HaltDelayThread();
++
++    ///- Remove signal handling before leaving
++    UnhookSignals();
++
++    // Cleaning up objects in memory
++    acceptor.close();
++    sWardend.Finalize();
++
++    sLog.outString( "Halting process..." );
++    Sleep(500);
++    return 0;
++}
++
++/// Handle termination signals
++/** Put the global variable stopEvent to 'true' if a termination signal is caught **/
++void OnSignal(int s)
++{
++    switch (s)
++    {
++        case SIGINT:
++        case SIGTERM:
++            stopEvent = true;
++            break;
++        case SIGBREAK:
++            stopEvent = true;
++            break;
++    }
++    signal(s, OnSignal);
++}
++
++/// Initialize connection to the database
++bool StartDB()
++{
++    std::string dbstring = sConfig.GetStringDefault("LoginDatabaseInfo", "");
++    if (dbstring.empty())
++    {
++        sLog.outError("Database not specified");
++        return false;
++    }
++
++    sLog.outString("Database: %s", dbstring.c_str() );
++    if (!LoginDatabase.Initialize(dbstring.c_str()))
++    {
++        sLog.outError("Cannot connect to database");
++        return false;
++    }
++
++    if (!LoginDatabase.CheckRequiredField("realmd_db_version", REVISION_DB_REALMD))
++    {
++        ///- Wait for already started DB delay threads to end
++        LoginDatabase.HaltDelayThread();
++        return false;
++    }
++
++    return true;
++}
++
++/// Define hook 'OnSignal' for all termination signals
++void HookSignals()
++{
++    signal(SIGINT, OnSignal);
++    signal(SIGTERM, OnSignal);
++    signal(SIGBREAK, OnSignal);
++}
++
++/// Unhook the signals before leaving
++void UnhookSignals()
++{
++    signal(SIGINT, 0);
++    signal(SIGTERM, 0);
++    signal(SIGBREAK, 0);
++}
+diff --git a/src/wardend/WardenDaemon.cpp b/src/wardend/WardenDaemon.cpp
+new file mode 100644
+index 0000000..894f8a8
+--- /dev/null
++++ b/src/wardend/WardenDaemon.cpp
+@@ -0,0 +1,1142 @@
++/*
++ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#include "Common.h"
++#include "WardenDaemon.h"
++#include "ProgressBar.h"
++#include "Util.h"
++#include "zlib/zlib.h"
++#include "Policies/SingletonImp.h"
++#include "Database/DatabaseEnv.h"
++#include "Auth/BigNumber.h"
++#include "ByteBuffer.h"
++#include <openssl/sha.h>
++
++// === Warden Daemon internal module management ===
++
++INSTANTIATE_SINGLETON_1(Wardend);
++extern DatabaseType LoginDatabase;
++
++const std::string NullStr = "";
++
++void CWardenLoader::UnloadWarden()
++{
++    if (pdwModule)
++    {
++        CLibraryEntry* pLibraryList = GetAddress<CLibraryEntry*>(GetHeader()->dwLibraryTable);
++        while (dwLibraryCount)
++        {
++            dwLibraryCount--;
++            DEBUG_LOG("Unloading lib %s...", GetAddress<const char*>(pLibraryList[dwLibraryCount].dwFileName));
++            FreeLibrary(GetModuleHandleA(GetAddress<const char*>(pLibraryList[dwLibraryCount].dwFileName)));
++        }
++        VirtualFree(pdwModule, dwModuleSize, MEM_RELEASE);
++
++        pdwModule = 0;
++        dwModuleSize = 0;
++    }
++}
++
++bool CWardenLoader::LoadWarden(PDWORD pdwNewModule, DWORD dwSize)
++{
++    bool bUnload = true;
++
++    dwModuleSize = GetHeader(pdwNewModule)->dwModuleSize;
++    if (dwModuleSize < 0x80000000)
++    {
++        pdwModule = reinterpret_cast<PDWORD>(VirtualAlloc(0, dwModuleSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE));
++        if (pdwModule)
++        {
++            // Writing code begin
++            memcpy(pdwModule, pdwNewModule, sizeof(CHeader));
++
++            PDWORD pdwChunk = &pdwNewModule[(sizeof(CHeader) / sizeof(DWORD)) + GetHeader()->dwChunkCount * 3];
++            DWORD dwChunkDest = GetAddress<DWORD>(pdwNewModule[sizeof(CHeader) / sizeof(DWORD)]);
++            DWORD dwModuleEnd = GetAddress<DWORD>(dwModuleSize);
++            bool bCopyChunk = true;
++
++            while (dwChunkDest < dwModuleEnd)
++            {
++                DWORD dwCurrentChunkSize = ((WORD*)pdwChunk)[0];
++                pdwChunk = (PDWORD)((DWORD)pdwChunk + (DWORD)2);
++
++                if (bCopyChunk)
++                {
++                    memcpy((void*)dwChunkDest, pdwChunk, dwCurrentChunkSize);
++                    pdwChunk = (PDWORD)((DWORD)pdwChunk + dwCurrentChunkSize);
++                }
++
++                dwChunkDest  += dwCurrentChunkSize;
++                bCopyChunk = !bCopyChunk;
++            }
++            // Writing code end
++            // Relocations begin
++            PBYTE pbRelocationTable = GetAddress<PBYTE>(GetHeader()->dwSizeOfCode);
++            DWORD dwRelocationIndex = 0, dwLastRelocation = 0;
++
++            while (dwRelocationIndex < GetHeader()->dwRelocationCount)
++            {
++                DWORD dwValue = pbRelocationTable[0];
++                if (dwValue < 0)
++                {
++                    dwValue = (dwValue & 0x7F) << 8;
++                    dwValue = (dwValue + pbRelocationTable[1]) << 8;
++                    dwValue = (dwValue + pbRelocationTable[2]) << 8;
++                    dwValue += pbRelocationTable[3];
++
++                    pbRelocationTable = (PBYTE)((DWORD)pbRelocationTable + 4);
++                    *GetAddress<DWORD*>(dwValue) += reinterpret_cast<DWORD>(pdwModule);
++                }
++                else
++                {
++                    dwValue = (dwValue << 8) + dwLastRelocation + pbRelocationTable[1];
++
++                    pbRelocationTable = (PBYTE)((DWORD)pbRelocationTable + 2);
++                    *GetAddress<DWORD*>(dwValue) += reinterpret_cast<DWORD>(pdwModule);
++                }
++
++                dwRelocationIndex++;
++                dwLastRelocation = dwValue;
++            }
++            // Relocations end
++            // Imports begin
++            CLibraryEntry * pLibraryTable = GetAddress<CLibraryEntry*>(GetHeader()->dwLibraryTable);
++            dwLibraryCount = 0;
++            DWORD dwLibraryIndex = 0;
++            while (dwLibraryIndex < GetHeader()->dwLibraryCount)
++            {
++                DEBUG_LOG("Loading lib %s...", GetAddress<const char*>(pLibraryTable[dwLibraryIndex].dwFileName));
++                HMODULE hModule = LoadLibraryA(GetAddress<const char*>(pLibraryTable[dwLibraryIndex].dwFileName));
++                if (hModule)
++                {
++                    PDWORD pdwImports = GetAddress<PDWORD>(pLibraryTable[dwLibraryIndex].dwImports), dwLastImport = 0;
++                    while (*pdwImports)
++                    {
++                        DWORD & dwCurrent = *pdwImports;
++
++                        if( dwCurrent <= 0 )
++                            dwCurrent = reinterpret_cast<DWORD>(GetProcAddress(hModule, (char*)(dwCurrent & 0x7FFFFFFF)));
++                        else
++                            dwCurrent = reinterpret_cast<DWORD>(GetProcAddress(hModule, GetAddress<const char*>(dwCurrent)));
++
++                        pdwImports++;
++                    }
++                }
++                dwLibraryIndex++;
++                dwLibraryCount++;
++            }
++            // Imports end
++            // Chunk protection flags begin
++            DWORD dwIndex = 0;
++            while (dwIndex < GetHeader()->dwChunkCount)
++            {
++                PDWORD pdwChunk = &pdwModule[10 + dwIndex * 3];
++
++                DWORD dwOldProtect = 0;
++                VirtualProtect(GetAddress<void*>(pdwChunk[0]), pdwChunk[1], pdwChunk[2], &dwOldProtect);
++
++                if( pdwChunk[2] & 0xF0) // execute flag
++                    FlushInstructionCache(GetCurrentProcess(), GetAddress<void*>(pdwChunk[0]), pdwChunk[1]);
++
++                dwIndex++;
++            }
++            // Chunk protection flags end
++            // Code size check begin
++            if (GetHeader()->dwSizeOfCode < dwModuleSize)
++            {
++                DWORD dwOffset = ((GetHeader()->dwSizeOfCode + 0xFFF) & 0xFFFFF000);
++                if (dwOffset >= GetHeader()->dwSizeOfCode && dwOffset > dwModuleSize)
++                    VirtualFree(GetAddress<void*>(dwOffset), dwModuleSize - dwOffset, MEM_DECOMMIT);
++
++                bUnload = false;
++            }
++            // Code size check end
++            if (bUnload)
++                UnloadWarden();
++        }
++        else
++            return false;
++    }
++    else
++        return false;
++
++    return true;
++}
++
++// === Module callback functions ===
++
++void __stdcall cSendPacket(BYTE* pPacket, DWORD dwSize)
++{
++    DEBUG_LOG("Callback cSendPacket called. Packet size %u.", dwSize);
++}
++
++BOOL __stdcall cCheckModule(BYTE* pModName, DWORD _2)
++{
++    DEBUG_LOG("Callback cCheckModule called.");
++    return 0;
++}
++
++WardenFuncList** __stdcall cLoadModule(BYTE* pRC4Key, BYTE* pModule, DWORD dwModSize)
++{
++    DEBUG_LOG("Callback cLoadModule called.");
++    return 0;
++}
++
++LPVOID __stdcall cAllocateMemory(DWORD dwSize)
++{
++    LPVOID *res = (LPVOID*)malloc(dwSize);
++    DEBUG_LOG("Callback cAllocateMemory called. Allocated %u bytes at 0x%08X", dwSize, res);
++    return res;
++}
++
++VOID __stdcall cReleaseMemory(LPVOID lpMemory)
++{
++    DEBUG_LOG("Callback cReleaseMemory called. Memory at 0x%08X", lpMemory);
++    free(lpMemory);
++}
++
++VOID __stdcall cSetRC4Data(LPVOID lpKeys, DWORD dwSize)
++{
++    DEBUG_LOG("Callback cSetRC4Data called. Keys at 0x%08X, key size 0x%04X (%u).", lpKeys, dwSize, dwSize);
++}
++
++DWORD __stdcall cGetRC4Data(LPVOID lpBuffer, LPDWORD dwSize)
++{
++    DEBUG_LOG("Callback cGetRC4Data called. Buffer at 0x%08X, key size 0x%04X (%u).", (PDWORD)lpBuffer, *(DWORD*)dwSize, *(DWORD*)dwSize);
++    memset(lpBuffer, 0, *(DWORD*)dwSize);
++    return 1;
++}
++
++static WardenModuleMap mWardenModules;
++
++WardenFuncList **CWardenLoader::InitializeWarden(const std::string &md5)
++{
++    DWORD A, B, C, D;
++
++    DEBUG_LOG("Warden module mapped to: 0x%08X", pdwModule);
++
++    C = GetHeader()->dwProcedureAdjust;
++    B = 1 - C;
++
++    if (B > GetHeader()->dwProcedureCount)
++        return FALSE;
++
++    A = GetHeader()->dwProcedureTable; // offsetWardenSetup
++    D = *(DWORD*)&pdwModule[A / 4 + B * 4];
++    A = D + (DWORD)pdwModule;
++
++    fnInitializeModule fpInitializeModule;
++    fpInitializeModule = (fnInitializeModule)A;
++    DEBUG_LOG("Initialize Function mapped to: 0x%08X (0x%04X)", (PDWORD)A ,PDWORD((PDWORD)A - pdwModule));
++
++    // initialize callbacks
++    memset(&mWardenModules[md5].dwTable, 0, sizeof(FuncList));
++    mWardenModules[md5].dwTable.fpSendPacket        = cSendPacket;
++    mWardenModules[md5].dwTable.fpCheckModule       = cCheckModule;
++    mWardenModules[md5].dwTable.fpLoadModule        = cLoadModule;
++    mWardenModules[md5].dwTable.fpAllocateMemory    = cAllocateMemory;
++    mWardenModules[md5].dwTable.fpReleaseMemory     = cReleaseMemory;
++    mWardenModules[md5].dwTable.fpSetRC4Data        = cSetRC4Data;
++    mWardenModules[md5].dwTable.fpGetRC4Data        = cGetRC4Data;
++    mWardenModules[md5].tableptr = &mWardenModules[md5].dwTable;
++
++    char * szCallbacksDesc[] = {
++        "SendPacket",
++        "CheckModule",
++        "LoadModule",
++        "AllocateMemory",
++        "ReleaseMemory",
++        "SetRC4Data",
++        "GetRC4Data"
++    };
++
++    DEBUG_LOG("Warden callbacks:");
++    for (int i = 0; i < 7; ++i)
++        DEBUG_LOG("Callback: %s at: 0x%08X" ,szCallbacksDesc[i], ((PDWORD*)&mWardenModules[md5].dwTable)[i]);
++
++    // warden functions pointers
++    DEBUG_LOG("Calling Warden::Initialize");
++    WardenFuncList **list = fpInitializeModule((DWORD*)&mWardenModules[md5].tableptr);
++
++    char * szInitReturnDesc[] = {
++        "GenerateRC4Keys",
++        "UnloadModule",
++        "PacketHandler",
++        "Tick"
++    };
++
++    DEBUG_LOG("Warden::Initialize returns:");
++    for (int i = 0; i < 4; ++i)
++        DEBUG_LOG("Init: Warden::%s at: 0x%08X",szInitReturnDesc[i] ,((PDWORD*)*list)[i]);
++
++    return list;
++}
++
++void CWardenLoader::PrintHeader( PDWORD pdwHeader )
++{
++    char * szHeaderDescription[] = {
++        "Module size",
++        "Destructor",
++        "SizeOfCode",
++        "RelocationCount",
++        "ProcedureTable",
++        "ProcedureCount",
++        "ProcedureAdjust",
++        "LibraryTable",
++        "LibraryCount",
++        "ChunkCount"
++    };
++
++    for (int i = 0; i < 10; i++)
++    {
++        DEBUG_LOG( "%u .+ 0x%02X %s -> %u", i ,i * 4, szHeaderDescription[i], pdwHeader[i]);
++    }
++}
++
++// === Module maped functions ===
++
++void GenerateRC4Keys(LPVOID lpData, DWORD dwSize, const std::string &md5)
++{
++    DEBUG_LOG("Warden::GenerateRC4Keys called for %s", md5.c_str());
++    ((fnGenerateRC4Keys)mWardenModules[md5].pointers.f1)(mWardenModules[md5].list, lpData, dwSize);
++}
++
++void UnloadModule(const std::string &md5)
++{
++    DEBUG_LOG("Warden::UnloadModule called");
++    ((fnUnloadModule)mWardenModules[md5].pointers.f2)(mWardenModules[md5].list);
++}
++
++void PacketHandler(BYTE *pPacket, DWORD dwSize, DWORD *dwBuffer, const std::string &md5)
++{
++    DEBUG_LOG("Warden::PacketHandler called");
++    ((fnPacketHandler)mWardenModules[md5].pointers.f3)(mWardenModules[md5].list, pPacket, dwSize, dwBuffer);
++    DEBUG_LOG("Warden::PacketHandler handeled %u bytes of the packet", *dwBuffer);
++}
++
++void Tick(DWORD _2, const std::string &md5)
++{
++    DEBUG_LOG("Warden::Tick called");
++    ((fnTick)mWardenModules[md5].pointers.f4)(mWardenModules[md5].list, _2);
++}
++
++// === Warden Daemon main functions ===
++
++void Wardend::LoadFromDB()
++{
++    QueryResult *result = LoginDatabase.Query("SELECT md5,chk0,chk1,chk2,chk3,chk4,chk5,chk6,chk7,chk8,end9 FROM warden_module");
++    if (!result)
++    {
++        mWardenModuleChecks.clear();
++        sLog.outString(">> Table warden_module is empty!");
++        sLog.outString();
++        return;
++    }
++
++    uint32 count = 0;
++    {
++        barGoLink bar((int)result->GetRowCount());
++        do
++        {
++            Field *fields = result->Fetch();
++            bar.step();
++
++            std::string md5 = fields[0].GetCppString();
++            if (CheckModuleExistOnDisk(md5))
++            {
++                WardenCheckMap& moduleCheck = mWardenModuleChecks[md5];
++                moduleCheck.resize(10);
++
++                for (uint8 i=0; i<=9; ++i)
++                {
++                    moduleCheck[i] = fields[i+1].GetUInt8();
++                }
++
++                ++count;
++            }
++            else
++                sLog.outError("Module %s has a record in 'warden_module' but no binary on disk, skiping it", md5.c_str());
++
++        } while(result->NextRow());
++        delete result;
++
++        // To know the maximum number of modules we will use at the same time
++        m_maxModuleCount = count<WARDEN_MAX_MODULES?count:WARDEN_MAX_MODULES;
++        sLog.outString();
++        sLog.outString(">> Loaded %u warden modules", count);
++
++    }
++    // Now load the checks
++    // 1) memory
++    result = LoginDatabase.Query("SELECT String,Offset,Length,Result FROM warden_check_memory");
++    if (!result)
++    {
++        sLog.outString(">> Table warden_check_memory is empty!");
++        sLog.outString();
++    }
++    else
++    {
++        uint32 count = 0;
++        {
++            barGoLink bar((int)result->GetRowCount());
++            mWardenMemoryChecks.resize((int)result->GetRowCount());
++            do
++            {
++                Field *fields = result->Fetch();
++                bar.step();
++
++                MemoryCheckEntry& current = mWardenMemoryChecks[count];
++                current.String  = fields[0].GetCppString();
++                current.Offset  = fields[1].GetUInt32();
++                current.Length  = fields[2].GetUInt8();
++                std::string res = fields[3].GetCppString();
++                hexDecodeString(res.c_str(), res.length(), current.Result);
++
++                ++count;
++            } while(result->NextRow());
++            delete result;
++            sLog.outString();
++            sLog.outString(">> Loaded %u memory checks", count);
++        }
++    }
++    // 2) Page
++    result = LoginDatabase.Query("SELECT Seed,SHA,Offset,Length FROM warden_check_page");
++    if (!result)
++    {
++        sLog.outString(">> Table warden_check_page is empty!");
++        sLog.outString();
++    }
++    else
++    {
++        uint32 count = 0;
++        {
++            barGoLink bar((int)result->GetRowCount());
++            mWardenPageChecks.resize((int)result->GetRowCount());
++            do
++            {
++                Field *fields = result->Fetch();
++                bar.step();
++
++                PageCheckEntry& current = mWardenPageChecks[count];
++                current.Seed  = fields[0].GetUInt32();
++                std::string res = fields[1].GetCppString();
++                hexDecodeString(res.c_str(), 40, current.SHA);
++                current.Offset  = fields[2].GetUInt32();
++                current.Length  = fields[3].GetUInt8();
++
++                ++count;
++            } while(result->NextRow());
++            delete result;
++            sLog.outString();
++            sLog.outString(">> Loaded %u page checks", count);
++        }
++    }
++    // 3) File
++    result = LoginDatabase.Query("SELECT String,SHA FROM warden_check_file");
++    if (!result)
++    {
++        sLog.outString(">> Table warden_check_file is empty!");
++        sLog.outString();
++    }
++    else
++    {
++        uint32 count = 0;
++        {
++            barGoLink bar((int)result->GetRowCount());
++            mWardenFileChecks.resize((int)result->GetRowCount());
++            do
++            {
++                Field *fields = result->Fetch();
++                bar.step();
++
++                FileCheckEntry& current = mWardenFileChecks[count];
++                current.String  = fields[0].GetCppString();
++                std::string res = fields[1].GetCppString();
++                hexDecodeString(res.c_str(), 40, current.SHA);
++
++                ++count;
++            } while(result->NextRow());
++            delete result;
++            sLog.outString();
++            sLog.outString(">> Loaded %u file checks", count);
++        }
++    }
++    // 4) Lua
++    result = LoginDatabase.Query("SELECT String FROM warden_check_lua");
++    if (!result)
++    {
++        sLog.outString(">> Table warden_check_lua is empty!");
++        sLog.outString();
++    }
++    else
++    {
++        uint32 count = 0;
++        {
++            barGoLink bar((int)result->GetRowCount());
++            mWardenLuaChecks.resize((int)result->GetRowCount());
++            do
++            {
++                Field *fields = result->Fetch();
++                bar.step();
++
++                LuaCheckEntry& current = mWardenLuaChecks[count];
++                current.String = fields[0].GetCppString();
++
++                ++count;
++            } while(result->NextRow());
++            delete result;
++            sLog.outString();
++            sLog.outString(">> Loaded %u lua checks", count);
++        }
++    }
++    // 5) Driver
++    result = LoginDatabase.Query("SELECT Seed,SHA,String FROM warden_check_driver");
++    if (!result)
++    {
++        sLog.outString(">> Table warden_check_driver is empty!");
++        sLog.outString();
++    }
++    else
++    {
++        uint32 count = 0;
++        {
++            barGoLink bar((int)result->GetRowCount());
++            mWardenDriverChecks.resize((int)result->GetRowCount());
++            do
++            {
++                Field *fields = result->Fetch();
++                bar.step();
++
++                DriverCheckEntry& current = mWardenDriverChecks[count];
++                current.Seed    = fields[0].GetUInt32();
++                std::string res = fields[1].GetCppString();
++                hexDecodeString(res.c_str(), 40, current.SHA);
++                current.String  = fields[2].GetCppString();
++
++                ++count;
++            } while(result->NextRow());
++            delete result;
++            sLog.outString();
++            sLog.outString(">> Loaded %u driver checks", count);
++        }
++    }
++}
++
++void Wardend::Initialize()
++{
++    if (m_maxModuleCount)
++    {
++        sLog.outString("Warden system initialized." );
++        m_IsWardenInit = true;
++    }
++    else
++    {
++        sLog.outString("Warden system not initialized because there is no usable module." );
++        m_IsWardenInit = false;
++    }
++}
++
++void Wardend::Finalize()
++{
++    for (WardenModuleMap::const_iterator itr = mWardenModules.begin();itr != mWardenModules.end(); ++itr)
++    {
++        UnloadModule(itr->first);
++        itr->second.loader->UnloadWarden();
++        delete itr->second.loader;
++    }
++    // Clear the unload module list
++    mWardenModules.clear();
++    // Clear the client mapping (accountId / md5)
++    mWardenClientMap.clear();
++    // Clear any in-progress cheat check mappping (accountId / Checks)
++    mWardenClientCheckMapping.clear();
++    // Clear the seed cache (accountId / seed 1st byte)
++    mWardenClientSeed.clear();
++}
++
++Wardend::Wardend( ) : m_maxModuleCount(0), m_activeModules(0), m_IsWardenInit(false)
++{
++    mWardenModules.clear();
++}
++
++uint32 Wardend::Register(uint32 accountId, uint8 *rc4, uint8 *binMd5, uint32 *modLen)
++{
++    DEBUG_LOG("Wardend::Register(%u)", accountId);
++    std::string md5;
++    std::string lastModule = "";
++
++    if (m_IsWardenInit)
++    {
++        if (m_activeModules >= m_maxModuleCount)
++            return 0;
++
++        // Check if the user already had the module same day
++        time_t currenttime = time(NULL);
++        tm* now = localtime(&currenttime);
++        QueryResult* result = LoginDatabase.PQuery("SELECT module_day,last_module,os FROM account WHERE id = '%u'", accountId);
++        if (result)
++        {
++            Field* fields = result->Fetch();
++            uint16 modDay = fields[0].GetUInt16();
++            uint32 os = fields[2].GetUInt32();
++            if (os != 0x0057696E) // 0x0057696E = \0niW => 'Win' so not windows, not coded yet for macho modules sending
++                return 2;
++
++            if (modDay == now->tm_yday) // no need to change the module
++            {
++                lastModule = fields[1].GetCppString();
++                if (lastModule.length()!=32)
++                {
++                    DEBUG_LOG("Login same day, tried to get last used module failed, maybe never used warden");
++                    RandAnUnusedModuleMd5(&md5);
++                }
++                else
++                {
++                    md5 = lastModule;
++                }
++            }
++            else
++            {
++                DEBUG_LOG("Login different day, so new warden module");
++                RandAnUnusedModuleMd5(&md5);
++            }
++        }
++        else
++        {
++            DEBUG_LOG("Account does not exist, why? Selecting a new Warden module");
++            RandAnUnusedModuleMd5(&md5);
++        }
++
++        if (!(*modLen = LoadModuleFromDisk(md5)))
++        {
++            sLog.outError("Warden module %s init failed, don't know what to do", md5.c_str());
++            return 0;
++        }
++        if (md5 != lastModule)
++            LoginDatabase.PExecute("UPDATE account SET last_module='%s',module_day=%u WHERE id = '%u'", md5.c_str(), now->tm_yday, accountId);
++        ++m_activeModules;
++
++        mWardenClientMap[accountId] = md5;
++
++        memcpy(rc4, mWardenModules[md5].moduleKey, 16);
++        hexDecodeString(md5.c_str(), 32, binMd5);
++        DETAIL_LOG("Module %s loaded for account %u.\n%u modules loaded.", md5.c_str(), accountId, mWardenModules.size());
++    }
++    return 1;
++}
++
++bool Wardend::IsCodedTransformedSeedValid(uint32 accountId, uint8 *codedClientTSeed)
++{
++    DEBUG_LOG("Wardend::IsCodedTransformedSeedValid(%u)", accountId);
++    std::string md5 = GetModuleMd5(accountId);
++    uint8 codedServerTSeed[20];
++    SHA1(&((WardenInitData*)(mWardenModules[md5].list))->seed[0], 16, codedServerTSeed);
++    if (memcmp(codedServerTSeed, codedClientTSeed, 20))
++        return false;
++    return true;
++}
++
++uint8 *Wardend::GenerateAndGetNewServerKey(uint32 accountId, uint8 *sessionKey/*[40]*/, uint8 *packet/*[17]*/)
++{
++    DEBUG_LOG("Wardend::GenerateAndGetNewServerKey(%u)", accountId);
++    std::string md5 = GetModuleMd5(accountId);
++    // Call the module function to generate the key
++    GenerateRC4Keys(sessionKey, 40, md5);
++    // Then ask it to handle the packet we also sent to the client
++    DWORD handled;
++    PacketHandler(packet, 17, &handled, md5);
++    return &((WardenInitData*)(mWardenModules[md5].list))->keys[0];
++}
++
++uint8 *Wardend::GetNewClientKey(uint32 accountId)
++{
++    DEBUG_LOG("*Wardend::GetNewClientKey(%u)", accountId);
++    std::string md5 = GetModuleMd5(accountId);
++    return &((WardenInitData*)(mWardenModules[md5].list))->keys[0];
++}
++
++void Wardend::SaveSeed1Byte(uint32 accountId)
++{
++    std::string md5 = GetModuleMd5(accountId);
++    uint8* Seed0 = &mWardenClientSeed[accountId];
++    memcpy(Seed0, &((WardenInitData*)(mWardenModules[md5].list))->seed[0], 1);
++}
++
++void Wardend::Unregister(uint32 accountId)
++{
++    // unload the module if still loaded
++    FreeModuleForAccount(accountId);
++    // remove from mapping
++    WardenClientMapping::iterator itr = mWardenClientMap.find(accountId);
++    if (itr != mWardenClientMap.end())
++        mWardenClientMap.erase(itr);
++    // remove the seed byte
++    WardenClientSeed::iterator itr2 = mWardenClientSeed.find(accountId);
++    if (itr2 != mWardenClientSeed.end())
++        mWardenClientSeed.erase(itr2);
++    // and cheat-checks mapping if any left
++    WardenClientCheckMapping::iterator itr3 = mWardenClientCheckMapping.find(accountId);
++    if (itr3 != mWardenClientCheckMapping.end())
++        mWardenClientCheckMapping.erase(itr3); // this should also drop the structure
++}
++
++void Wardend::RandAnUnusedModuleMd5(std::string *result)
++{
++    std::vector<std::string> iList;
++    for (WardenModuleCheckMap::const_iterator itr = mWardenModuleChecks.begin(); itr != mWardenModuleChecks.end(); ++itr)
++    {
++        bool m_found = false;
++        for (WardenModuleMap::const_iterator itr2 = mWardenModules.begin();itr2 != mWardenModules.end(); ++itr2)
++        {
++            if (itr->first == itr2->first)
++            {
++                m_found = true;
++                break;
++            }
++        }
++        if (!m_found)
++            iList.push_back(itr->first);
++    }
++    uint8 choice = urand(1, iList.size());
++    *result = iList[choice-1];
++}
++
++bool Wardend::CheckModuleExistOnDisk(const std::string &md5)
++{
++    std::string modulekey  = GetDataPath()+ "warden/" + md5 + ".key";
++    std::string modulefile = GetDataPath()+ "warden/" + md5 + ".bin";
++    FILE* mf = fopen(modulefile.c_str(), "rb");
++    if (mf)
++    {
++        fclose(mf);
++        mf = fopen(modulekey.c_str(), "rb");
++        if (mf)
++        {
++            fclose(mf);
++            return true;
++        }
++    }
++    return false;
++}
++
++const std::string& Wardend::GetModuleMd5(uint32 accountId) const
++{
++    WardenClientMapping::const_iterator itr = mWardenClientMap.find(accountId);
++    if (itr != mWardenClientMap.end())
++        return itr->second;
++    return NullStr;
++}
++
++uint8 Wardend::GetSeedFirstByte(const std::string &md5)
++{
++    return ((WardenInitData*)(mWardenModules[md5].list))->seed[0];
++}
++
++Wardend::MemoryCheckEntry *Wardend::GetRandMemCheck()
++{
++    return &mWardenMemoryChecks[urand(0, mWardenMemoryChecks.size()-1)];
++}
++Wardend::PageCheckEntry *Wardend::GetRandPageCheck()
++{
++    return &mWardenPageChecks[urand(0, mWardenPageChecks.size()-1)];
++}
++Wardend::FileCheckEntry *Wardend::GetRandFileCheck()
++{
++    return &mWardenFileChecks[urand(0, mWardenFileChecks.size()-1)];
++}
++Wardend::LuaCheckEntry *Wardend::GetRandLuaCheck()
++{
++    return &mWardenLuaChecks[urand(0, mWardenLuaChecks.size()-1)];
++}
++Wardend::DriverCheckEntry *Wardend::GetRandDriverCheck()
++{
++    return &mWardenDriverChecks[urand(0, mWardenDriverChecks.size()-1)];
++}
++
++void Wardend::BuildCheatCheck(uint32 accountId, ByteBuffer *pkt)
++{
++    DEBUG_LOG("Wardend::BuildCheatCheck(%u, *pkt)", accountId);
++    std::string md5 = GetModuleMd5(accountId);
++    // Drop any previous check for this account
++    WardenClientCheckMapping::iterator itr = mWardenClientCheckMapping.find(accountId);
++    if (itr != mWardenClientCheckMapping.end())
++    {
++        mWardenClientCheckMapping.erase(itr);
++    }
++    // Get the Seed 1st byte for the xoring
++    uint8 m_seed1 = mWardenClientSeed[accountId];
++    DEBUG_LOG("Seed byte: 0x%02X, end byte: 0x%02X", m_seed1, mWardenModuleChecks[md5][WARD_CHECK_END]);
++
++    // Rand a number of checks between 4 and 8 checks + the first time check + end packet
++    uint8 nbChecks = urand(4, 8);
++    WardenClientCheckList& checkList = mWardenClientCheckMapping[accountId];
++    checkList.resize(nbChecks);
++
++    for (uint8 i=0; i<nbChecks; ++i)
++    {
++        // We select one based on the ratio
++        float mRand = rand_chance_f();
++        if (mRand < WCHECK_PAGE2_RATIO)             // size 29, no string both page1 and page2 tests
++        {
++            checkList[i].check = urand(0,1)?WARD_CHECK_PAGE1:WARD_CHECK_PAGE2;
++            checkList[i].page = GetRandPageCheck();
++        }
++        else if (mRand < WCHECK_MEMORY_RATIO)       // size 6, possible string
++        {
++            checkList[i].check = WARD_CHECK_MEMORY;
++            checkList[i].mem = GetRandMemCheck();
++            if (checkList[i].mem->String.length())  // add 1 for the uint8 str length
++            {
++                *pkt << uint8(checkList[i].mem->String.length());
++                pkt->append(checkList[i].mem->String.c_str() ,checkList[i].mem->String.length());
++                DEBUG_LOG("Mem str %s, len %u", checkList[i].mem->String.c_str(), checkList[i].mem->String.length());
++            }
++        }
++        else if (mRand < WCHECK_DRIVER_RATIO)
++        {
++            checkList[i].check = WARD_CHECK_DRIVER; // size 25 + string
++            checkList[i].driver = GetRandDriverCheck();
++            *pkt << uint8(checkList[i].driver->String.length());
++            pkt->append(checkList[i].driver->String.c_str(), checkList[i].driver->String.length());
++            DEBUG_LOG("Driver str %s, len %u", checkList[i].driver->String.c_str(), checkList[i].driver->String.length());
++        }
++        else if (mRand < WCHECK_FILE_RATIO)
++        {
++            checkList[i].check = WARD_CHECK_FILE;   // size 1 + string
++            checkList[i].file = GetRandFileCheck();
++            *pkt << uint8(checkList[i].file->String.length());
++            pkt->append(checkList[i].file->String.c_str(), checkList[i].file->String.length());
++            DEBUG_LOG("File str %s, len %u", checkList[i].file->String.c_str(), checkList[i].file->String.length());
++        }
++        else
++        {
++            checkList[i].check = WARD_CHECK_LUA;   // size 1 + string
++            checkList[i].lua = GetRandLuaCheck();
++            *pkt << uint8(checkList[i].lua->String.length());
++            pkt->append(checkList[i].lua->String.c_str(), checkList[i].lua->String.length());
++            DEBUG_LOG("Lua str %s, len %u", checkList[i].lua->String.c_str(), checkList[i].lua->String.length());
++        }
++    }
++    // strings terminator
++    *pkt << uint8(0);
++    // We first add a timing check
++    *pkt << uint8(mWardenModuleChecks[md5][WARD_CHECK_TIMING] ^ m_seed1);
++    // Finaly put the other checks
++    uint8 m_strIndex = 1;
++    DEBUG_LOG("Preparing %u checks", nbChecks);
++    for (uint8 i=0; i<nbChecks; ++i)
++    {
++        *pkt << uint8(mWardenModuleChecks[md5][checkList[i].check] ^ m_seed1);
++        switch (checkList[i].check)
++        {
++            case WARD_CHECK_PAGE1:
++            case WARD_CHECK_PAGE2:
++                DEBUG_LOG("%u : %s", i, checkList[i].check==WARD_CHECK_PAGE1?"WARD_CHECK_PAGE1":"WARD_CHECK_PAGE2");
++                *pkt << uint32(checkList[i].page->Seed);
++                pkt->append(&checkList[i].page->SHA[0], 20);
++                *pkt << uint32(checkList[i].page->Offset);
++                *pkt << uint8(checkList[i].page->Length);
++                break;
++            case WARD_CHECK_MEMORY:
++                DEBUG_LOG("%u : WARD_CHECK_MEMORY", i);
++                if (checkList[i].mem->String.length())
++                    *pkt << uint8(m_strIndex++);
++                else
++                    *pkt << uint8(0);
++                *pkt << uint32(checkList[i].mem->Offset);
++                *pkt << uint8(checkList[i].mem->Length);
++                break;
++            case WARD_CHECK_DRIVER:
++                DEBUG_LOG("%u : WARD_CHECK_DRIVER", i);
++                *pkt << uint32(checkList[i].driver->Seed);
++                pkt->append(&checkList[i].driver->SHA[0], 20);
++                *pkt << uint8(m_strIndex++);
++                break;
++            case WARD_CHECK_FILE:
++                DEBUG_LOG("%u : WARD_CHECK_FILE", i);
++                *pkt << uint8(m_strIndex++);
++                break;
++            case WARD_CHECK_LUA:
++                DEBUG_LOG("%u : WARD_CHECK_LUA", i);
++                *pkt << uint8(m_strIndex++);
++                break;
++        }
++    }
++    *pkt << uint8(mWardenModuleChecks[md5][WARD_CHECK_END] ^ m_seed1);
++}
++
++bool Wardend::ValidateCheatCheckResult(uint32 accountId, ByteBuffer *pkt)
++{
++    DEBUG_LOG("Wardend::ValidateCheatCheckResult(%u, *pkt)", accountId);
++    bool valid = true;
++    uint16 pktLen;
++pkt->hexlike();
++    pkt->read_skip<uint8>();    // opcode WARDC_CHEAT_CHECK_RESULT (0x02)
++    *pkt >> pktLen;
++    pkt->read_skip<uint32>();   // checksum already checked
++
++    if (pktLen==0)
++        return false;
++
++    // parse the timing check always sent
++    DEBUG_LOG("TimeCheck");
++    uint8 res;
++    uint32 ticks;
++    *pkt >> res; // should be 1
++    *pkt >> ticks;
++    // Need to compare ticks based on last one using server ticks diff since
++    DEBUG_LOG("Time unk 0x%08X", ticks);
++    pktLen = pktLen - 5;
++
++    WardenClientCheckList& checkList = mWardenClientCheckMapping[accountId];
++    for (uint8 i=0; i<checkList.size(); ++i)
++    {
++        switch (checkList[i].check)
++        {
++            case WARD_CHECK_TIMING:
++            {
++                DEBUG_LOG("TimeCheck");
++                uint8 res;
++                uint32 ticks;
++                *pkt >> res; // should be 1
++                *pkt >> ticks;
++                // Need to compare ticks based on last one using server ticks diff since
++                DEBUG_LOG("Time unk 0x%08X", ticks);
++                pktLen = pktLen - 5;
++                break;
++            }
++            case WARD_CHECK_MEMORY:
++            {
++                DEBUG_LOG("MemCheck");
++                uint8 res;
++                *pkt >> res; // should be 0
++                if (res)
++                {
++                    valid = false;
++                    BASIC_LOG("Kicking account %u for failed check, MEM at Offset 0x%04X, lentgh %u could not be read by client", accountId, checkList[i].mem->Offset, checkList[i].mem->Length);
++                }
++                else
++                {
++                    uint8 memContent[20];
++                    for (uint8 pos=0; pos<checkList[i].mem->Length; ++pos)
++                    {
++                        *pkt >> memContent[pos];
++                        if (memContent[pos]!=checkList[i].mem->Result[pos])
++                        {
++                            valid = false;
++                        }
++                    }
++                    if (!valid)
++                    {
++                        std::string strContent, strContent2;
++                        hexEncodeByteArray(memContent, checkList[i].mem->Length, strContent);
++                        hexEncodeByteArray(checkList[i].mem->Result, checkList[i].mem->Length, strContent2);
++                        BASIC_LOG("Kicking account %u for failed check, MEM Offset 0x%04X length %u has content '%s' instead of '%s'",
++                            accountId, checkList[i].mem->Offset, checkList[i].mem->Length, strContent.c_str(), strContent2.c_str());
++                    }
++                    pktLen = pktLen - (1 + checkList[i].mem->Length);
++                }
++                DEBUG_LOG("Mem %s",valid?"Ok":"Failed");
++                break;
++            }
++            case WARD_CHECK_FILE:
++            {
++                DEBUG_LOG("MPQCheck");
++                uint8 res;
++                uint8 resSHA1[20];
++                *pkt >> res; // should be 0
++                if (res)
++                {
++                    valid = false;
++                    BASIC_LOG("Kicking account %u for failed check, MPQ '%s' not found by client", accountId, checkList[i].file->String.c_str());
++                    pktLen = pktLen - 1;
++                }
++                else
++                {
++                    for (uint8 pos=0; pos<20; ++pos)
++                        *pkt >> resSHA1[pos];
++                    if (res || memcmp(resSHA1, checkList[i].file->SHA, 20))
++                    {
++                        valid = false;
++                        std::string strResSHA1, strReqSHA1;
++                        hexEncodeByteArray(resSHA1, 20, strResSHA1);
++                        hexEncodeByteArray(checkList[i].file->SHA, 20, strReqSHA1);
++                        BASIC_LOG("Kicking account %u for failed check, MPQ '%s' SHA1 is '%s' instead of '%s'", accountId, checkList[i].file->String.c_str(), strResSHA1.c_str(), strReqSHA1.c_str());
++                    }
++                    pktLen = pktLen - 21;
++                }
++                DEBUG_LOG("MPQ %s",valid?"Ok":"Failed");
++                break;
++            }
++            case WARD_CHECK_LUA:
++            {
++                DEBUG_LOG("LUACheck");
++                uint8 res;
++                uint8 foundLuaLen;
++                *pkt >> res; // should be 0
++                *pkt >> foundLuaLen; // should be 0
++                uint8 *luaStr;
++                if (foundLuaLen > 0)
++                {
++                    luaStr = (uint8*)malloc(foundLuaLen+1);
++                    for (uint8 pos=0; pos<foundLuaLen; ++pos)
++                    {
++                        *pkt >> luaStr[pos];
++                    }
++                    luaStr[foundLuaLen] = 0;
++                    BASIC_LOG("Kicking account %u for failed check, Lua '%s' found as '%s'", accountId, checkList[i].lua->String.c_str(), (char*)luaStr);
++                    valid = false;
++                    free(luaStr);
++                }
++                DEBUG_LOG("Lua %s",valid?"Ok":"Failed");
++                pktLen = pktLen - 2;
++                break;
++            }
++            case WARD_CHECK_PAGE1:
++            case WARD_CHECK_PAGE2:
++            case WARD_CHECK_DRIVER:
++            {
++                DEBUG_LOG("PageCheck or DriverCheck");
++                uint8 res;
++                *pkt >> res; // should be 0xE9
++                if (res != 0xE9)
++                {
++                    if (checkList[i].check == WARD_CHECK_DRIVER)
++                        BASIC_LOG("Kicking account %u for failed driver check '%s'", accountId ,checkList[i].driver->String.c_str());
++                    else
++                        BASIC_LOG("Kicking account %u for failed page check Offset 0x%08X, length %u", accountId, checkList[i].page->Offset, checkList[i].page->Length);
++                    valid = false;
++                }
++                DEBUG_LOG("Page or Driver %s",valid?"Ok":"Failed");
++                pktLen = pktLen - 1;
++                break;
++            }
++            default:
++                DEBUG_LOG("Other!!");
++                // Finish skiping the rest of the packet and return failed checks
++                BASIC_LOG("Wrong packet for account %u or problem to parse it, I had to clean %u bytes", accountId, pkt->size() - pkt->rpos());
++                pkt->read_skip(pkt->size() - pkt->rpos());
++                return false;
++        }
++    }
++    return valid;
++}
++
++void Wardend::FreeModuleForAccount(uint32 accountId)
++{
++    DEBUG_LOG("Wardend::FreeModuleForAccount(%u)", accountId);
++    std::string md5 = GetModuleMd5(accountId);
++    if (!md5.empty())
++    {
++        WardenModuleMap::iterator itr = mWardenModules.find(md5);
++        if (itr != mWardenModules.end())
++        {
++            UnloadModule(md5);
++            itr->second.loader->UnloadWarden();
++            delete itr->second.loader;
++            mWardenModules.erase(itr);
++            DETAIL_LOG("Module %s unloaded for account %u.\n%u modules loaded.", md5.c_str(), accountId,  mWardenModules.size());
++        }
++        else
++        {
++            DEBUG_LOG("Module %s already unloaded", md5.c_str());
++        }
++    }
++}
++
++uint32 Wardend::LoadModuleFromDisk(const std::string &md5)
++{
++    DEBUG_LOG("Wardend::LoadModuleFromDisk(\"%s\")", md5.c_str());
++
++    // Load decrypted binary module from disk (.dbm file)
++    bool res = false;
++    std::string modulekeyfile = sWardend.GetDataPath()+ "warden/" + md5 + ".key";
++    std::string modulefile = sWardend.GetDataPath()+ "warden/" + md5 + ".bin";
++
++    // Load .key file to get module length and module key
++    FILE* mf = fopen(modulekeyfile.c_str(), "rb");
++    if (!mf)
++        return 0;
++
++    uint32 mod_length;
++    fread(&mod_length, 1, 4, mf);
++    fread(mWardenModules[md5].moduleKey, sizeof(uint8)*16, 1, mf);
++    fclose(mf);
++
++    // Load the module encrypted binary
++    mf = fopen(modulefile.c_str(), "rb");
++    if (!mf)
++        return 0;
++
++    uint8* m_tmpModule;
++    m_tmpModule = (uint8*)malloc(sizeof(uint8)*mod_length);
++    fread(m_tmpModule, sizeof(uint8)*mod_length, 1, mf);
++    fclose(mf);
++
++    // Decrypt the module
++    uint8 m_moduleKey[0x102];
++    rc4_init(m_moduleKey, mWardenModules[md5].moduleKey, 16);
++    rc4_crypt(m_moduleKey, m_tmpModule, mod_length);
++
++    uint32 m_signature = *(uint32*)(m_tmpModule + mod_length - 0x104);
++    if (m_signature != 0x5349474E) // NGIS->SIGN string
++    {
++        sLog.outError("Warden module %s seams damaged, cannot find signature data.", md5.c_str());
++        free(m_tmpModule);
++        return 0;
++    }
++    // More signature check code to add
++
++    // Now inflate the module after removing uint32 size at the beginning and last 4+256 bytes of the RSA signing
++    uint32 m_InflateSize = *(uint32*)m_tmpModule;
++    uint8 *moduleCode = (uint8*)malloc(sizeof(uint8)*m_InflateSize);
++    uint32 currentSize = mod_length - 0x104 - 4;
++    uLongf finalSize = m_InflateSize;
++    if (uncompress(moduleCode, &finalSize, m_tmpModule+4, currentSize) != Z_OK)
++    {
++        sLog.outError("Warden module %s could not be inflated.", md5);
++        return 0;
++    }
++    free(m_tmpModule);
++
++    InstanceS* tmp = &mWardenModules[md5]; // To create it
++    tmp->loader = new CWardenLoader();
++
++    tmp->loader->PrintHeader((PDWORD)moduleCode);
++    tmp->loader->LoadWarden((PDWORD)moduleCode, finalSize);
++    tmp->list = tmp->loader->InitializeWarden(md5);
++
++    free(moduleCode);
++
++    tmp->pointers.f1 = &*(*tmp->list)->fpGenerateRC4Keys;
++    tmp->pointers.f2 = &*(*tmp->list)->fpUnload;
++    tmp->pointers.f3 = &*(*tmp->list)->fpPacketHandler;
++    tmp->pointers.f4 = &*(*tmp->list)->fpTick;
++
++    return mod_length;
++}
++
++/////////////////////////////
++// Singleton access function
++/////////////////////////////
++
++Wardend& sWardend
++{
++    static Wardend wardendaemon;
++    return wardendaemon;
++}
+diff --git a/src/wardend/WardenDaemon.h b/src/wardend/WardenDaemon.h
+new file mode 100644
+index 0000000..7c63fce
+--- /dev/null
++++ b/src/wardend/WardenDaemon.h
+@@ -0,0 +1,301 @@
++/*
++ * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#ifndef __WARDEND_H
++#define __WARDEND_H
++
++#include "Common.h"
++#include "WardendProtocol.h"
++
++#define WARDEN_MAX_MODULES  20
++
++// Definition of ratio of check types (based on a long session of 1162 checks)
++// They are cumulative, meaning that I add the %age to the previous one
++#define WCHECK_PAGE1_RATIO  36.5f   // 36.5
++#define WCHECK_PAGE2_RATIO  73.0f   // 36.5
++#define WCHECK_MEMORY_RATIO 94.0f   // 21.0
++#define WCHECK_DRIVER_RATIO 97.4f   // 03.4
++#define WCHECK_FILE_RATIO   98.7f   // 01.3
++#define WCHECK_LUA_RATIO   100.0f   // 01.3
++
++class WorldSession;
++class BigNumber;
++class ByteBuffer;
++
++typedef struct _WardenFuncList WardenFuncList;
++
++//Input
++typedef VOID (__stdcall *fnSendPacket)(BYTE* pPacket, DWORD dwSize);
++typedef BOOL (__stdcall *fnCheckModule)(BYTE* pModName, DWORD _2);
++typedef WardenFuncList** (__stdcall *fnLoadModule)(BYTE* pRC4Key, BYTE* pModule, DWORD dwModSize);
++typedef LPVOID (__stdcall *fnAllocateMemory)(DWORD dwSize);
++typedef VOID (__stdcall *fnReleaseMemory)(LPVOID lpMemory);
++typedef VOID (__stdcall *fnSetRC4Data)(LPVOID lpKeys, DWORD dwSize);
++typedef DWORD (__stdcall *fnGetRC4Data)(LPVOID lpBuffer, LPDWORD dwSize);
++typedef struct _FuncList
++{
++    void *fpSendPacket;     //0x00
++    void *fpCheckModule;    //0x04
++    void *fpLoadModule;     //0x08
++    void *fpAllocateMemory; //0x0C
++    void *fpReleaseMemory;  //0x10
++    void *fpSetRC4Data;     //0x14
++    void *fpGetRC4Data;     //0x18
++} FuncList;
++
++//output
++typedef VOID (__thiscall *fnGenerateRC4Keys)(WardenFuncList** ppFncList, LPVOID lpData, DWORD dwSize);
++typedef VOID (__thiscall *fnUnloadModule)(WardenFuncList** ppFncList);
++typedef VOID (__thiscall *fnPacketHandler)(WardenFuncList** ppFncList, BYTE* pPacket, DWORD dwSize, DWORD* dwBuffer);
++typedef VOID (__thiscall *fnTick)(WardenFuncList** ppFncList, DWORD _2); // _2 is sum dwOldTick - GetTickCount(); shit ..
++typedef struct _WardenFuncList
++{
++    fnGenerateRC4Keys * fpGenerateRC4Keys;  //0x00
++    fnUnloadModule * fpUnload;              //0x04 - Before it frees everything it will call FuncList:fpSetRC4Data and store the RC4 key
++    fnPacketHandler * fpPacketHandler;      //0x08
++    fnTick * fpTick;                        //0x0C
++} WardenFuncList;
++
++typedef struct _WardenChkFuncList
++{
++    uint32 FctAddr[15]; // we may need to init one of them to use the Tick function
++} WardenChkFuncList;
++
++typedef struct _WardenInitData
++{
++    _WardenFuncList* pFct;
++    uint8 seed[16];
++    uint32 unknown1;
++    uint32 callbacks_ptr;
++    uint32 unknown2;
++    uint8 keys[0x204];
++    uint32 packetSkipBytes;
++    _WardenChkFuncList *pCheckFct;
++    // and so on, but I need only the seed 1st byte
++} WardenInitData;
++
++typedef struct _KeyPair
++{
++    uint8 client[0x102];
++    uint8 server[0x102];
++} KeyPair;
++
++typedef WardenFuncList** (__fastcall *fnInitializeModule)(DWORD* lpPtr2Table);
++
++class CWardenLoader
++{
++    class CLibraryEntry
++    {
++    public:
++        DWORD dwFileName;
++        DWORD dwImports;
++    };
++    class CHeader
++    {
++    public:
++        DWORD dwModuleSize;
++        DWORD dwDestructor;
++        DWORD dwSizeOfCode;
++        DWORD dwRelocationCount;
++        DWORD dwProcedureTable;
++        DWORD dwProcedureCount;
++        DWORD dwProcedureAdjust;
++        DWORD dwLibraryTable;
++        DWORD dwLibraryCount;
++        DWORD dwChunkCount;
++    };
++
++    PDWORD pdwModule;
++    DWORD dwModuleSize, dwLibraryCount;
++public:
++    template< class T >
++    T GetAddress( DWORD dwOffset )
++    {
++        return reinterpret_cast< T >( reinterpret_cast<DWORD>( pdwModule ) + dwOffset );
++    }
++
++    template<>
++    unsigned long GetAddress<DWORD>( DWORD dwOffset )
++    {
++        return reinterpret_cast<DWORD>( pdwModule ) + dwOffset;
++    }
++
++    inline CHeader * GetHeader( PDWORD pdwNewModule = 0 )
++    {
++        return reinterpret_cast<CHeader*>( pdwNewModule ? pdwNewModule : pdwModule );
++    }
++
++    void UnloadWarden();
++    bool LoadWarden( PDWORD pdwNewModule, DWORD dwSize );
++    PDWORD GetModule() { return pdwModule; }
++
++    template<class T>
++    T GetEntryPoint( DWORD dwIndex )
++    {
++        if( pdwModule )
++        {
++            dwIndex -= GetHeader()->dwProcedureAdjust;
++            if( dwIndex < GetHeader()->dwProcedureCount )
++                return GetAddress<T>( GetAddress<PDWORD>( GetHeader()->dwProcedureTable )[ dwIndex ] );
++        }
++        return 0;
++    }
++    WardenFuncList **InitializeWarden(const std::string &md5);
++    void PrintHeader( PDWORD pdwHeader );
++};
++
++struct fPointers
++{
++    void *f1;
++    void *f2;
++    void *f3;
++    void *f4;
++};
++
++struct InstanceS
++{
++    FuncList dwTable;
++    FuncList *tableptr;
++    fPointers pointers;
++    WardenFuncList **list;
++    CWardenLoader *loader;
++    uint8 moduleKey[16];
++};
++
++typedef std::map<std::string, InstanceS> WardenModuleMap;
++
++struct Wardend
++{
++    public:
++
++        static Wardend& Instance();
++
++        Wardend();
++        ~Wardend() {}
++
++        void Initialize();
++        void Finalize();
++        void LoadFromDB();
++        void RandAnUnusedModuleMd5(std::string *result);
++        bool CheckModuleExistOnDisk(const std::string &md5);
++
++        uint32 LoadModuleFromDisk(const std::string &md5);
++        uint8 *GenerateAndGetNewServerKey(uint32 accountId, uint8 *sessionKey/*[40]*/, uint8 *packet/*[17]*/);
++        uint8 *GetNewClientKey(uint32 accountId);
++        bool IsCodedTransformedSeedValid(uint32 accountId, uint8 *codedClientTSeed);
++        const std::string& GetModuleMd5(uint32 accountId) const;
++        void BuildCheatCheck(uint32 accountId, ByteBuffer *pkt);
++        bool ValidateCheatCheckResult(uint32 accountId, ByteBuffer *pkt);
++        uint8 GetSeedFirstByte(const std::string &md5);
++        void SaveSeed1Byte(uint32 accountId);
++        void FreeModuleForAccount(uint32 accountId);
++
++        // Session related
++        uint32 Register(uint32 accountId, uint8 *rc4, uint8 *binMd5, uint32 *modLen);
++        void Unregister(uint32 accountId);
++
++        std::string GetDataPath() const { return m_dataPath.c_str(); }
++        void SetDataPath(const char *data) { m_dataPath = data; }
++
++    private:
++        // Structure to store checks
++        struct MemoryCheckEntry
++        {
++            std::string String;
++            uint32 Offset;
++            uint8 Length;
++            uint8 Result[20];
++        };
++        struct PageCheckEntry
++        {
++            uint32 Seed;
++            uint8 SHA[20];
++            uint32 Offset;
++            uint8 Length;
++        };
++        struct FileCheckEntry
++        {
++            std::string String;
++            uint8 SHA[20];
++        };
++        struct LuaCheckEntry
++        {
++            std::string String;
++        };
++        struct DriverCheckEntry
++        {
++            uint32 Seed;
++            uint8 SHA[20];
++            std::string String;
++        };
++        struct GenericCheck
++        {
++            uint8 check;
++            union
++            {
++                MemoryCheckEntry* mem;
++                PageCheckEntry* page;
++                FileCheckEntry* file;
++                LuaCheckEntry* lua;
++                DriverCheckEntry* driver;
++            };
++        };
++        typedef std::vector<uint8> WardenCheckMap;
++        typedef std::map<std::string, WardenCheckMap> WardenModuleCheckMap;
++        typedef std::map<uint32, std::string> WardenClientMapping;
++        typedef std::map<uint32, uint8> WardenClientSeed;
++
++        typedef std::vector<MemoryCheckEntry> WardenMemoryChecks;
++        typedef std::vector<PageCheckEntry> WardenPageChecks;
++        typedef std::vector<FileCheckEntry> WardenFileChecks;
++        typedef std::vector<LuaCheckEntry> WardenLuaChecks;
++        typedef std::vector<DriverCheckEntry> WardenDriverChecks;
++
++        typedef std::vector<GenericCheck> WardenClientCheckList;
++        typedef std::map<uint32, WardenClientCheckList> WardenClientCheckMapping;
++
++        // Internal methods
++        MemoryCheckEntry *GetRandMemCheck();
++        PageCheckEntry *GetRandPageCheck();
++        FileCheckEntry *GetRandFileCheck();
++        LuaCheckEntry *GetRandLuaCheck();
++        DriverCheckEntry *GetRandDriverCheck();
++
++protected:
++        WardenModuleCheckMap mWardenModuleChecks;
++        WardenClientMapping mWardenClientMap;
++
++        WardenMemoryChecks mWardenMemoryChecks;
++        WardenPageChecks mWardenPageChecks;
++        WardenFileChecks mWardenFileChecks;
++        WardenLuaChecks mWardenLuaChecks;
++        WardenDriverChecks mWardenDriverChecks;
++        WardenClientSeed mWardenClientSeed;
++
++        WardenClientCheckMapping mWardenClientCheckMapping;
++
++        bool m_IsWardenInit;
++        uint8 m_activeModules;
++        uint8 m_maxModuleCount;
++
++        std::string m_dataPath;
++};
++
++#define sWardend Wardend::Instance()
++
++#endif
+diff --git a/src/wardend/WardenSocket.cpp b/src/wardend/WardenSocket.cpp
+new file mode 100644
+index 0000000..e1fe7be
+--- /dev/null
++++ b/src/wardend/WardenSocket.cpp
+@@ -0,0 +1,336 @@
++/*
++ * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#include "Common.h"
++#include "Database/DatabaseEnv.h"
++#include "Config/Config.h"
++#include "Log.h"
++#include "WardenSocket.h"
++#include "Auth/BigNumber.h"
++#include "WardendProtocol.h"
++
++#include <ace/OS_NS_unistd.h>
++#include <ace/OS_NS_fcntl.h>
++#include <ace/OS_NS_sys_stat.h>
++
++extern DatabaseType LoginDatabase;
++
++enum eStatus
++{
++    STATUS_NONE         = 0,
++    STATUS_CONNECTED    = 1
++};
++
++#pragma pack(push,1)
++
++typedef struct WardenHandler
++{
++    eWardendOpcode cmd;
++    uint32 status;
++    bool (WardenSocket::*handler)(void);
++}WardenHandler;
++
++#pragma pack(pop)
++
++const WardenHandler table[] =
++{
++    { MMSG_REGISTER,                STATUS_CONNECTED,   &WardenSocket::_HandleRegister                  },
++    { MMSG_UNREGISTER,              STATUS_CONNECTED,   &WardenSocket::_HandleUnregister                },
++    { MMSG_SERVER_KEY_REQUEST,      STATUS_CONNECTED,   &WardenSocket::_HandleServerKeyRequest          },
++    { MMSG_CLIENT_KEY_REQUEST,      STATUS_CONNECTED,   &WardenSocket::_HandleClientKeyRequest          },
++    { MMSG_CHEATS_REQUEST,          STATUS_CONNECTED,   &WardenSocket::_HandleCheatCheckRequest         },
++    { MMSG_CHEATS_VALIDATION_REQUEST,STATUS_CONNECTED,  &WardenSocket::_HandleCheatCheckValidationRequest },
++    { MMSG_TSEED_VALIDATION_REQUEST,STATUS_CONNECTED,   &WardenSocket::_HandleTSeedValidationRequest    },
++    { MMSG_MODULEFILE_REQUEST,      STATUS_CONNECTED,   &WardenSocket::_HandleModuleFile                }
++};
++
++#define WARDEN_TOTAL_COMMANDS sizeof(table)/sizeof(WardenHandler)
++
++/// Constructor
++WardenSocket::WardenSocket() : _connected(false)
++{
++}
++
++/// Destructor
++WardenSocket::~WardenSocket()
++{
++}
++
++/// Accept the connection
++void WardenSocket::OnAccept()
++{
++    BASIC_LOG("Accepting connection from '%s'", get_remote_address().c_str());
++}
++
++/// Connection closed
++void WardenSocket::OnClose()
++{
++    BASIC_LOG("Terminating connection from '%s'", get_remote_address().c_str());
++    sWardend.Finalize();
++}
++
++/// Read the packet from world server
++void WardenSocket::OnRead()
++{
++    uint8 _cmd;
++    while (1)
++    {
++        if (!_connected)
++        {
++            char sign[7];
++            if(!recv_soft(sign, 7) || strcmp(sign, WARDEND_SIGN))
++            {
++                DEBUG_LOG("Received a connection not from Mangos '%s'.", sign);
++                recv_skip(recv_len());
++                return;
++            }
++            _connected = true;
++            recv_skip(7);
++            DEBUG_LOG("World process connected.");
++        }
++
++        if(!recv_soft((char *)&_cmd, 1))
++            return;
++
++        size_t i;
++
++        ///- Circle through known commands and call the correct command handler
++        for (i = 0; i < WARDEN_TOTAL_COMMANDS; ++i)
++        {
++            if ((uint8)table[i].cmd == _cmd && table[i].status == STATUS_CONNECTED && _connected)
++            {
++                if (!(*this.*table[i].handler)())
++                {
++                    DEBUG_LOG("Command handler failed for cmd %u recv length %u",
++                        (uint32)_cmd, (uint32)recv_len());
++
++                    return;
++                }
++                break;
++            }
++        }
++
++        ///- Report unknown commands in the debug log
++        if (i == WARDEN_TOTAL_COMMANDS)
++        {
++            DEBUG_LOG("[Warden] got unknown packet %u, len of received data %u", (uint32)_cmd, (uint32)recv_len());
++            return;
++        }
++    }
++}
++
++bool WardenSocket::_HandleRegister()
++{
++    DEBUG_LOG("WardenSocket::_HandleRegister");
++    recv_skip(1);
++    uint32 id;
++    recv((char *)&id, 4);
++
++    uint8 rc4[16];
++    uint8 md5[16];
++    uint32 moduleLen;
++
++    uint32 status = sWardend.Register(id, rc4, md5, &moduleLen);
++    ByteBuffer pkt;
++    pkt << uint8(WMSG_REGISTER_REPLY);
++    pkt << uint32(id);
++    if (status == 1)
++    {
++        pkt << uint32(moduleLen);
++        pkt.append(rc4, 16);
++        pkt.append(md5, 16);
++    }
++    else if (status == 0)
++    {
++        pkt << uint32(0); // We indicate by 0 that registration failed
++    }
++    else // status == 2 // os not supported
++    {
++        pkt << uint32(0xFFFFFFFF);
++    }
++    send((char const*)pkt.contents(), pkt.size());
++    return true;
++}
++
++bool WardenSocket::_HandleUnregister()
++{
++    DEBUG_LOG("WardenSocket::_HandleRegister");
++    recv_skip(1);
++    uint32 id;
++    recv((char *)&id, 4);
++    sWardend.Unregister(id);
++    return true;
++}
++
++bool WardenSocket::_HandleServerKeyRequest()
++{
++    DEBUG_LOG("WardenSocket::_HandleServerKeyRequest");
++    recv_skip(1);
++    uint32 accountId;
++    uint8 clientPkt[17];
++    uint8 sessionKey[40];
++    uint8 *keyAddr;
++
++    recv((char *)&accountId, 4);
++    recv((char *)&sessionKey, 40);
++    recv((char *)&clientPkt, 17);
++    keyAddr = sWardend.GenerateAndGetNewServerKey(accountId, sessionKey, clientPkt);
++
++    ByteBuffer pkt;
++    pkt << uint8(WMSG_SERVER_KEY_REPLY);
++    pkt << uint32(accountId);
++    pkt.append(((KeyPair*)keyAddr)->server, 0x102); // server key @ 0x102
++
++    send((char const*)pkt.contents(), pkt.size());
++    return true;
++}
++
++bool WardenSocket::_HandleClientKeyRequest()
++{
++    DEBUG_LOG("WardenSocket::_HandleClientKeyRequest");
++    recv_skip(1);
++    uint32 accountId;
++    uint8 *keyAddr;
++
++    recv((char *)&accountId, 4);
++    keyAddr = sWardend.GetNewClientKey(accountId);
++
++    ByteBuffer pkt;
++    pkt << uint8(WMSG_CLIENT_KEY_REPLY);
++    pkt << uint32(accountId);
++    pkt.append(((KeyPair*)keyAddr)->client, 0x102); // client key @ 0x000
++
++    send((char const*)pkt.contents(), pkt.size());
++
++    // Now we can save the seed 1st byte and close this module not usefull anymore
++    sWardend.SaveSeed1Byte(accountId);
++    sWardend.FreeModuleForAccount(accountId);
++    return true;
++}
++
++bool WardenSocket::_HandleCheatCheckRequest()
++{
++    DEBUG_LOG("WardenSocket::_HandleCheatCheckRequest");
++    recv_skip(1);
++    uint32 accountId;
++    size_t realPktBegin;
++    recv((char *)&accountId, 4);
++
++    ByteBuffer pkt;
++    pkt << uint8(WMSG_CHEATS_REPLY);
++    pkt << uint32(accountId);
++    size_t len_pos = pkt.wpos();
++    pkt << uint32(pkt.size());
++    realPktBegin = pkt.wpos();
++
++    sWardend.BuildCheatCheck(accountId, &pkt);
++
++    pkt.put<uint32>(len_pos, pkt.size() - realPktBegin);
++    pkt.hexlike();
++    send((char const*)pkt.contents(), pkt.size());
++    return true;
++}
++
++bool WardenSocket::_HandleCheatCheckValidationRequest()
++{
++    DEBUG_LOG("WardenSocket::_HandleCheatCheckValidationRequest");
++    recv_skip(1);
++    uint32 accountId;
++    ByteBuffer pkt, pktClient;
++
++    uint32 tmpSize;
++    uint8 *tmpBuff;
++    recv((char *)&accountId, 4);
++    recv((char *)&tmpSize, 4);
++
++    tmpBuff = (uint8*)malloc(tmpSize);
++    recv((char *)tmpBuff, tmpSize);
++
++    pktClient.append(tmpBuff, tmpSize);
++    free(tmpBuff);
++
++    pkt << uint8(WMSG_CHEATS_VALIDATION_REPLY);
++    pkt << uint32(accountId);
++    if (sWardend.ValidateCheatCheckResult(accountId, &pktClient))
++        pkt << uint8(1);
++    else
++        pkt << uint8(0);
++    send((char const*)pkt.contents(), pkt.size());
++    return true;
++}
++
++bool WardenSocket::_HandleTSeedValidationRequest()
++{
++    DEBUG_LOG("WardenSocket::_HandleCheatCheckValidationRequest");
++    recv_skip(1);
++    uint32 accountId;
++    uint8 clientTSeedSHA[20];
++    ByteBuffer pkt;
++
++    recv((char *)&accountId, 4);
++    recv((char *)clientTSeedSHA, 20);
++
++    pkt << uint8(WMGS_TSEED_VALIDATION_REPLY);
++    pkt << uint32(accountId);
++    if (sWardend.IsCodedTransformedSeedValid(accountId, clientTSeedSHA))
++        pkt << uint8(1);
++    else
++        pkt << uint8(0);
++    send((char const*)pkt.contents(), pkt.size());
++    return true;
++}
++
++bool WardenSocket::_HandleModuleFile()
++{
++    DEBUG_LOG("WardenSocket::_HandleModuleFile");
++    recv_skip(1);
++    uint32 accountId;
++    recv((char *)&accountId, 4);
++
++    std::string md5 = sWardend.GetModuleMd5(accountId);
++    std::string modulekeyfile = sWardend.GetDataPath()+ "warden/" + md5 + ".key";
++    std::string modulefile = sWardend.GetDataPath()+ "warden/" + md5 + ".bin";
++
++    // Load .key file to get module length of the module
++    FILE* mf = fopen(modulekeyfile.c_str(), "rb");
++    if (!mf)
++        return false;
++
++    uint32 mod_length;
++    fread(&mod_length, 1, 4, mf);
++    fclose(mf);
++
++    // Load the module binary
++    mf = fopen(modulefile.c_str(), "rb");
++    if (!mf)
++        return false;
++
++    uint8* m_tmpModule;
++    m_tmpModule = (uint8*)malloc(sizeof(uint8)*mod_length);
++    fread(m_tmpModule, sizeof(uint8)*mod_length, 1, mf);
++    fclose(mf);
++
++    ByteBuffer pkt;
++    pkt << uint8(WMSG_MODULEFILE_REPLY);
++    pkt << uint32(accountId);
++    pkt << uint16(mod_length);
++    pkt.append(m_tmpModule, mod_length);
++    send((char const*)pkt.contents(), pkt.size());
++    free(m_tmpModule);
++    return true;
++}
+diff --git a/src/wardend/WardenSocket.h b/src/wardend/WardenSocket.h
+new file mode 100644
+index 0000000..c02450a
+--- /dev/null
++++ b/src/wardend/WardenSocket.h
+@@ -0,0 +1,54 @@
++/*
++ * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#ifndef _WARDENSOCKET_H
++#define _WARDENSOCKET_H
++
++#include "Common.h"
++#include "ByteBuffer.h"
++#include "WardenDaemon.h"
++
++#include "BufferedSocket.h"
++
++/// Handle login commands
++class WardenSocket: public BufferedSocket
++{
++    public:
++        const static int s_BYTE_SIZE = 32;
++
++        WardenSocket();
++        ~WardenSocket();
++
++        void OnAccept();
++        void OnRead();
++        void OnClose();
++
++        bool _HandleRegister();
++        bool _HandleUnregister();
++        bool _HandleServerKeyRequest();
++        bool _HandleClientKeyRequest();
++        bool _HandleCheatCheckRequest();
++        bool _HandleCheatCheckValidationRequest();
++        bool _HandleTSeedValidationRequest();
++        bool _HandleModuleFile();
++
++    private:
++
++        bool _connected;
++};
++#endif
+diff --git a/src/wardend/WardendProtocol.h b/src/wardend/WardendProtocol.h
+new file mode 100644
+index 0000000..5743955
+--- /dev/null
++++ b/src/wardend/WardendProtocol.h
+@@ -0,0 +1,119 @@
++/*
++ * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#ifndef _PROTOCOL_H
++#define _PROTOCOL_H
++
++enum eWardendOpcode
++{
++    MMSG_REGISTER                   = 0x01,
++    //  uint32  accountId;
++    WMSG_REGISTER_REPLY             = 0x02,
++    //  uint32  accountId;
++    //  uint32  moduleLen
++    //  if (moduleLen!=0 && !=0xFFFFFFFF)
++    //      uint8 rc4[16];
++    //      uint8 md5[16];
++    MMSG_UNREGISTER                 = 0x03,
++    //  uint32  accountId;
++    MMSG_SERVER_KEY_REQUEST         = 0x04,
++    //  uint32  accountId;
++    //  uint8   sessionKey[40];
++    //  uint8   seedRequestPacket[17]; // full packet
++    WMSG_SERVER_KEY_REPLY           = 0x05,
++    //  uint32  accountId;
++    //  uint8   serverKey[208];
++    MMSG_CLIENT_KEY_REQUEST         = 0x06,
++    //  uint32  accountId;
++    WMSG_CLIENT_KEY_REPLY           = 0x07,
++    //  uint32  accountId;
++    //  uint8   clientKey[208];
++    MMSG_CHEATS_REQUEST             = 0x08,
++    //  uint32  accountId;
++    WMSG_CHEATS_REPLY               = 0x09,
++    //  uint32  accountId;
++    //  uint32  packetSize;
++    //  uint8   clientCheatCheckPacket[packetSize]; // full packet
++    MMSG_CHEATS_VALIDATION_REQUEST  = 0x0A,
++    //  uint32  accountId;
++    //  uint32  packetSize;
++    //  uint8   clientCheatCheckResultPacket[packetSize]; // full packet
++    WMSG_CHEATS_VALIDATION_REPLY    = 0x0B,
++    //  uint32  accountId;
++    //  uint8   result; // bool 0=failed, 1=success
++    MMSG_MODULEFILE_REQUEST         = 0x0C,
++    //  uint32  accountId;
++    WMSG_MODULEFILE_REPLY           = 0x0D,
++    //  uint32  accountId;
++    //  uint16  moduleLen;
++    //  uint8   module[moduleLen];
++    MMSG_TSEED_VALIDATION_REQUEST   = 0x0E,
++    // uint32  accountId;
++    // uint8   tSeed[20];
++    WMGS_TSEED_VALIDATION_REPLY     = 0x0F
++    // uint32   accountId;
++    // uint8    result; // bool 0=failed, 1=success
++};
++
++enum eWardenServerCmd
++{
++    WARDS_MODULE_INFO               = 0x0,
++    WARDS_MODULE_CHUNK              = 0x1,
++    WARDS_CHEAT_CHECK               = 0x2,
++    WARDS_DATA                      = 0x3,
++
++    WARDS_SEED                      = 0x5
++};
++
++enum eWardenClientCmd
++{
++    WARDC_MODULE_LOAD_FAILED        = 0x0,
++    WARDC_MODULE_LOADED             = 0x1,
++    WARDC_CHEAT_CHECK_RESULT        = 0x2,
++
++    WARDC_TRANSFORMED_SEED          = 0x4
++};
++
++enum eWardenClientStatus
++{
++    WARD_STATUS_UNREGISTERED,
++    WARD_STATUS_REGISTERED,
++    WARD_STATUS_INIT,
++    WARD_STATUS_LOAD_FAILED,
++    WARD_STATUS_CHEAT_CHECK_IN,
++    WARD_STATUS_CHEAT_CHECK_PENDING,
++    WARD_STATUS_CHEAT_CHECK_OUT,
++    WARD_STATUS_USER_DISABLED,
++};
++
++enum eWardenCheckType
++{
++    WARD_CHECK_MEMORY               = 0,
++    WARD_CHECK_PAGE1                = 1,
++    WARD_CHECK_PAGE2                = 2,
++    WARD_CHECK_FILE                 = 3,
++    WARD_CHECK_LUA                  = 4,
++    WARD_CHECK_DRIVER               = 5,
++    WARD_CHECK_TIMING               = 6,
++    WARD_CHECK_PROCESS              = 7,
++    WARD_CHECK_MODULE               = 8,
++    WARD_CHECK_END                  = 9
++};
++
++#define WARDEND_SIGN "MaNGOS"
++#endif
+diff --git a/src/wardend/wardend.conf.dist.in b/src/wardend/wardend.conf.dist.in
+new file mode 100644
+index 0000000..1b2ddf2
+--- /dev/null
++++ b/src/wardend/wardend.conf.dist.in
+@@ -0,0 +1,109 @@
++############################################
++# MaNGOS wardend configuration file        #
++############################################
++
++[WardendConf]
++ConfVersion=2010111901
++
++###################################################################################################################
++# WARDEND SETTINGS
++#
++#    LoginDatabaseInfo
++#        Database connection settings for the warden server. We use the Login database.
++#        Default: hostname;port;username;password;database
++#                 .;somenumber;username;password;database - use named pipes at Windows
++#                       Named pipes: mySQL required adding "enable-named-pipe" to [mysqld] section my.ini
++#                 .;/path/to/unix_socket;username;password;database - use Unix sockets at Unix/Linux
++#                       Unix sockets: experimental, not tested
++#
++#    DataDir
++#        Data directory setting.
++#        Important: DataDir needs to be quoted, as it is a string which may contain space characters.
++#        Example: "@prefix@/share/mangos"
++#
++#    LogsDir
++#         Logs directory setting.
++#         Important: Logs dir must exists, or all logs be disable
++#         Default: "" - no log directory prefix, if used log names isn't absolute path then logs will be
++#                       stored in current directory for run program.
++#
++#    WardenServerPort
++#         Default WardenServerPort
++#         Default: 4321
++#
++#    BindIP
++#         Bind Realm Server to IP/hostname
++#         This option is useful for running multiple worldd/realmd instances
++#         on different IP addresses using default ports.
++#         DO NOT CHANGE THIS UNLESS YOU _REALLY_ KNOW WHAT YOU'RE DOING
++#
++#    PidFile
++#        Realmd daemon PID file
++#        Default: ""             - do not create PID file
++#                 "./wardend.pid" - create PID file (recommended name)
++#
++#    LogLevel
++#        Server console level of logging
++#        0 = Minimum; 1 = Error; 2 = Detail; 3 = Full/Debug
++#        Default: 0
++#
++#    LogTime
++#        Include time in server console output [hh:mm:ss]
++#        Default: 0 (no time)
++#                 1 (print time)
++#
++#    LogFile
++#        Logfile name
++#        Default: "Realmd.log"
++#                 "" - empty name disable creating log file
++#
++#    LogTimestamp
++#        Logfile with timestamp of server start in name
++#        Default: 0 - no timestamp in name
++#                 1 - add timestamp in name in form Logname_YYYY-MM-DD_HH-MM-SS.Ext for Logname.Ext
++#
++#    LogFileLevel
++#        Server file level of logging
++#        0 = Minimum; 1 = Error; 2 = Detail; 3 = Full/Debug
++#        Default: 0
++#
++#    LogColors
++#        Color for messages (format "normal_color details_color debug_color error_color)
++#        Colors: 0 - BLACK, 1 - RED, 2 - GREEN,  3 - BROWN, 4 - BLUE, 5 - MAGENTA, 6 -  CYAN, 7 - GREY,
++#                8 - YELLOW, 9 - LRED, 10 - LGREEN, 11 - LBLUE, 12 - LMAGENTA, 13 - LCYAN, 14 - WHITE
++#        Default: "" - none colors
++#                 "13 7 11 9" - for example :)
++#
++#    UseProcessors
++#        Used processors mask for multi-processors system (Used only at Windows)
++#        Default: 0 (selected by OS)
++#                 number (bitmask value of selected processors)
++#
++#    ProcessPriority
++#        Process proirity setting (Used only at Windows)
++#        Default: 1 (HIGH)
++#                 0 (Normal)
++#
++#    WaitAtStartupError
++#        After startup error report wait <Enter> or some time before continue (and possible close console window)
++#                 -1 (wait until <Enter> press)
++#        Default:  0 (not wait)
++#                  N (>0, wait N secs)
++#
++###################################################################################################################
++
++LoginDatabaseInfo = "127.0.0.1;3306;mangos;mangos;realmd"
++DataDir = "."
++LogsDir = ""
++WardenServerPort = 4321
++BindIP = "0.0.0.0"
++PidFile = ""
++LogLevel = 0
++LogTime = 0
++LogFile = "Wardend.log"
++LogTimestamp = 0
++LogFileLevel = 0
++LogColors = ""
++UseProcessors = 0
++ProcessPriority = 1
++WaitAtStartupError = 0
+diff --git a/src/wardend/wardend.ico b/src/wardend/wardend.ico
+new file mode 100644
+index 0000000000000000000000000000000000000000..27cee2ca0e13690418880bb3ce22ad880d2b18ac
+GIT binary patch
+literal 34494
+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
+E2lH-1kpKVy
+
+literal 0
+HcmV?d00001
+
+diff --git a/src/wardend/wardend.rc b/src/wardend/wardend.rc
+new file mode 100644
+index 0000000..0190608
+--- /dev/null
++++ b/src/wardend/wardend.rc
+@@ -0,0 +1,19 @@
++/*
++ * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++IDI_APPICON ICON DISCARDABLE "wardend.ico"
+diff --git a/win/VC100/game.vcxproj b/win/VC100/game.vcxproj
+index 5fdd55f..04e5e1b 100644
+--- a/win/VC100/game.vcxproj
++++ b/win/VC100/game.vcxproj
+@@ -499,6 +499,7 @@
+     <ClCompile Include="..\..\src\game\UpdateData.cpp" />
+     <ClCompile Include="..\..\src\game\Vehicle.cpp" />
+     <ClCompile Include="..\..\src\game\VoiceChatHandler.cpp" />
++    <ClCompile Include="..\..\src\game\WardenMgr.cpp" />
+     <ClCompile Include="..\..\src\game\WaypointManager.cpp" />
+     <ClCompile Include="..\..\src\game\WaypointMovementGenerator.cpp" />
+     <ClCompile Include="..\..\src\game\Weather.cpp" />
+@@ -640,6 +641,7 @@
+     <ClInclude Include="..\..\src\game\UpdateFields.h" />
+     <ClInclude Include="..\..\src\game\UpdateMask.h" />
+     <ClInclude Include="..\..\src\game\Vehicle.h" />
++    <ClInclude Include="..\..\src\game\WardenMgr.h" />
+     <ClInclude Include="..\..\src\game\WaypointManager.h" />
+     <ClInclude Include="..\..\src\game\WaypointMovementGenerator.h" />
+     <ClInclude Include="..\..\src\game\Weather.h" />
+diff --git a/win/VC100/game.vcxproj.filters b/win/VC100/game.vcxproj.filters
+index 93c46f4..4ac9df3 100644
+--- a/win/VC100/game.vcxproj.filters
++++ b/win/VC100/game.vcxproj.filters
+@@ -237,6 +237,9 @@
+     <ClCompile Include="..\..\src\game\VoiceChatHandler.cpp">
+       <Filter>World/Handlers</Filter>
+     </ClCompile>
++    <ClCompile Include="..\..\src\game\WardenMgr.cpp">
++      <Filter>World/Handlers</Filter>
++    </ClCompile>
+     <ClCompile Include="..\..\src\game\WaypointManager.cpp">
+       <Filter>World/Handlers</Filter>
+     </ClCompile>
+@@ -624,6 +627,9 @@
+     <ClInclude Include="..\..\src\game\UpdateData.h">
+       <Filter>World/Handlers</Filter>
+     </ClInclude>
++    <ClInclude Include="..\..\src\game\WardenMgr.h">
++      <Filter>World/Handlers</Filter>
++    </ClInclude>
+     <ClInclude Include="..\..\src\game\WaypointManager.h">
+       <Filter>World/Handlers</Filter>
+     </ClInclude>
+diff --git a/win/VC100/wardend.vcxproj b/win/VC100/wardend.vcxproj
+new file mode 100644
+index 0000000..df155f6
+--- /dev/null
++++ b/win/VC100/wardend.vcxproj
+@@ -0,0 +1,161 @@
++﻿<?xml version="1.0" encoding="utf-8"?>
++<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
++  <ItemGroup Label="ProjectConfigurations">
++    <ProjectConfiguration Include="Debug|Win32">
++      <Configuration>Debug</Configuration>
++      <Platform>Win32</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|Win32">
++      <Configuration>Release</Configuration>
++      <Platform>Win32</Platform>
++    </ProjectConfiguration>
++  </ItemGroup>
++  <PropertyGroup Label="Globals">
++    <ProjectGuid>{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}</ProjectGuid>
++    <RootNamespace>wardend</RootNamespace>
++  </PropertyGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <UseOfMfc>false</UseOfMfc>
++    <CharacterSet>MultiByte</CharacterSet>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <UseOfMfc>false</UseOfMfc>
++    <CharacterSet>MultiByte</CharacterSet>
++  </PropertyGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
++  <ImportGroup Label="ExtensionSettings">
++  </ImportGroup>
++  <ImportGroup Label="PropertySheets">
++    <Import Project="$(LocalAppData)\Microsoft\VisualStudio\10.0\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(LocalAppData)\Microsoft\VisualStudio\10.0\Microsoft.Cpp.$(Platform).user.props')" />
++  </ImportGroup>
++  <PropertyGroup Label="UserMacros" />
++  <PropertyGroup>
++    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\bin\$(Platform)_$(Configuration)\</OutDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\wardend__$(Platform)_$(Configuration)\</IntDir>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\bin\$(Platform)_$(Configuration)\</OutDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\wardend__$(Platform)_$(Configuration)\</IntDir>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
++  </PropertyGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
++    <Midl>
++      <TypeLibraryName>.\..\..\bin\$(Platform)_$(Configuration)\wardend.tlb</TypeLibraryName>
++    </Midl>
++    <ClCompile>
++      <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
++      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
++      <AdditionalIncludeDirectories>..\..\src\realmd;..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\dep\ACE_wrappers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <PreprocessorDefinitions>VERSION=0.17.0-DEV;WIN32;NDEBUG;_CONSOLE;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <StringPooling>true</StringPooling>
++      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
++      <FunctionLevelLinking>true</FunctionLevelLinking>
++      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
++      <RuntimeTypeInfo>true</RuntimeTypeInfo>
++      <PrecompiledHeaderOutputFile>.\wardend__$(Platform)_$(Configuration)\wardend.pch</PrecompiledHeaderOutputFile>
++      <AssemblerListingLocation>.\wardend__$(Platform)_$(Configuration)\</AssemblerListingLocation>
++      <ObjectFileName>.\wardend__$(Platform)_$(Configuration)\</ObjectFileName>
++      <ProgramDataBaseFileName>.\wardend__$(Platform)_$(Configuration)\</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <SuppressStartupBanner>true</SuppressStartupBanner>
++      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
++      <CallingConvention>Cdecl</CallingConvention>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <ResourceCompile>
++      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <Culture>0x0409</Culture>
++    </ResourceCompile>
++    <Link>
++      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
++      <AdditionalDependencies>libmySQL.lib;libeay32.lib;ws2_32.lib;winmm.lib;odbc32.lib;odbccp32.lib;advapi32.lib;dbghelp.lib;shared.lib;ACE.lib;framework.lib;zlib.lib;msvcrt.lib;%(AdditionalDependencies)</AdditionalDependencies>
++      <OutputFile>..\..\bin\$(Platform)_$(Configuration)\wardend.exe</OutputFile>
++      <SuppressStartupBanner>true</SuppressStartupBanner>
++      <AdditionalLibraryDirectories>..\..\dep\lib\$(Platform)_$(Configuration);.\framework__$(Platform)_$(Configuration);.\shared__$(Platform)_$(Configuration);.\zlib__$(Platform)_$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
++      <GenerateDebugInformation>true</GenerateDebugInformation>
++      <ProgramDatabaseFile>..\..\bin\$(Platform)_$(Configuration)\wardend.pdb</ProgramDatabaseFile>
++      <GenerateMapFile>true</GenerateMapFile>
++      <MapFileName>..\..\bin\$(Platform)_$(Configuration)\wardend.map</MapFileName>
++      <SubSystem>Console</SubSystem>
++      <LargeAddressAware>true</LargeAddressAware>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++    </Link>
++    <PostBuildEvent>
++      <Command>copy ..\..\dep\lib\$(Platform)_$(Configuration)\*.dll ..\..\bin\$(Platform)_$(Configuration)</Command>
++    </PostBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
++    <Midl>
++      <TypeLibraryName>.\..\..\bin\$(Platform)_$(Configuration)\wardend.tlb</TypeLibraryName>
++    </Midl>
++    <ClCompile>
++      <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
++      <Optimization>Disabled</Optimization>
++      <AdditionalIncludeDirectories>..\..\src\realmd;..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\dep\ACE_wrappers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <PreprocessorDefinitions>VERSION=0.17.0-DEV;WIN32;_DEBUG;MANGOS_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
++      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
++      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
++      <FunctionLevelLinking>true</FunctionLevelLinking>
++      <RuntimeTypeInfo>true</RuntimeTypeInfo>
++      <PrecompiledHeaderOutputFile>.\wardend__$(Platform)_$(Configuration)\wardend.pch</PrecompiledHeaderOutputFile>
++      <AssemblerListingLocation>.\wardend__$(Platform)_$(Configuration)\</AssemblerListingLocation>
++      <ObjectFileName>.\wardend__$(Platform)_$(Configuration)\</ObjectFileName>
++      <ProgramDataBaseFileName>.\wardend__$(Platform)_$(Configuration)\</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <SuppressStartupBanner>true</SuppressStartupBanner>
++      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
++      <CallingConvention>Cdecl</CallingConvention>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <ResourceCompile>
++      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <Culture>0x0409</Culture>
++    </ResourceCompile>
++    <Link>
++      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
++      <AdditionalDependencies>libmySQL.lib;libeay32.lib;ws2_32.lib;winmm.lib;odbc32.lib;odbccp32.lib;advapi32.lib;dbghelp.lib;shared.lib;ACEd.lib;framework.lib;zlib.lib;msvcrtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
++      <OutputFile>..\..\bin\$(Platform)_$(Configuration)\wardend.exe</OutputFile>
++      <SuppressStartupBanner>true</SuppressStartupBanner>
++      <AdditionalLibraryDirectories>..\..\dep\lib\$(Platform)_$(Configuration);.\framework__$(Platform)_$(Configuration);.\shared__$(Platform)_$(Configuration);.\zlib__$(Platform)_$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
++      <GenerateDebugInformation>true</GenerateDebugInformation>
++      <ProgramDatabaseFile>..\..\bin\$(Platform)_$(Configuration)\wardend.pdb</ProgramDatabaseFile>
++      <GenerateMapFile>true</GenerateMapFile>
++      <MapFileName>..\..\bin\$(Platform)_$(Configuration)\wardend.map</MapFileName>
++      <SubSystem>Console</SubSystem>
++      <LargeAddressAware>true</LargeAddressAware>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <FixedBaseAddress>false</FixedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++    </Link>
++    <PostBuildEvent>
++      <Command>copy ..\..\dep\lib\$(Platform)_$(Configuration)\*.dll ..\..\bin\$(Platform)_$(Configuration)</Command>
++    </PostBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemGroup>
++    <ClCompile Include="..\..\src\realmd\BufferedSocket.cpp" />
++    <ClCompile Include="..\..\src\wardend\Main.cpp" />
++    <ClCompile Include="..\..\src\wardend\WardenDaemon.cpp" />
++    <ClCompile Include="..\..\src\wardend\WardenSocket.cpp" />
++    <ClCompile Include="..\..\src\shared\WheatyExceptionReport.cpp" />
++  </ItemGroup>
++  <ItemGroup>
++    <ClInclude Include="..\..\src\realmd\BufferedSocket.h" />
++    <ClInclude Include="..\..\src\wardend\WardenDaemon.h" />
++    <ClInclude Include="..\..\src\wardend\WardendProtocol.h" />
++    <ClInclude Include="..\..\src\wardend\WardenSocket.h" />
++    <ClInclude Include="..\..\src\shared\WheatyExceptionReport.h" />
++  </ItemGroup>
++  <ItemGroup>
++    <ResourceCompile Include="..\..\src\wardend\wardend.rc" />
++  </ItemGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
++  <ImportGroup Label="ExtensionTargets">
++  </ImportGroup>
++</Project>
+\ No newline at end of file
+diff --git a/win/VC80/game.vcproj b/win/VC80/game.vcproj
+index 355ab6e..3a9351e 100644
+--- a/win/VC80/game.vcproj
++++ b/win/VC80/game.vcproj
+@@ -1014,6 +1014,14 @@
+ 				>
+ 			</File>
+ 			<File
++				RelativePath="..\..\src\game\WardenMgr.cpp"
++				>
++			</File>
++			<File
++				RelativePath="..\..\src\game\WardenMgr.h"
++				>
++			</File>
++			<File
+ 				RelativePath="..\..\src\game\Weather.cpp"
+ 				>
+ 			</File>
+diff --git a/win/VC80/wardend.vcproj b/win/VC80/wardend.vcproj
+new file mode 100644
+index 0000000..bb2e071
+--- /dev/null
++++ b/win/VC80/wardend.vcproj
+@@ -0,0 +1,266 @@
++<?xml version="1.0" encoding="Windows-1252"?>
++<VisualStudioProject
++	ProjectType="Visual C++"
++	Version="8,00"
++	Name="wardend"
++	ProjectGUID="{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}"
++	RootNamespace="wardend"
++	TargetFrameworkVersion="0"
++	>
++	<Platforms>
++		<Platform
++			Name="Win32"
++		/>
++	</Platforms>
++	<ToolFiles>
++	</ToolFiles>
++	<Configurations>
++		<Configuration
++			Name="Release|Win32"
++			OutputDirectory=".\wardend__$(PlatformName)_$(ConfigurationName)"
++			IntermediateDirectory=".\wardend__$(PlatformName)_$(ConfigurationName)"
++			ConfigurationType="1"
++			UseOfMFC="0"
++			ATLMinimizesCRunTimeLibraryUsage="false"
++			CharacterSet="2"
++			>
++			<Tool
++				Name="VCPreBuildEventTool"
++			/>
++			<Tool
++				Name="VCCustomBuildTool"
++			/>
++			<Tool
++				Name="VCXMLDataGeneratorTool"
++			/>
++			<Tool
++				Name="VCWebServiceProxyGeneratorTool"
++			/>
++			<Tool
++				Name="VCMIDLTool"
++				TypeLibraryName=".\wardend__$(PlatformName)_$(ConfigurationName)\wardend.tlb"
++			/>
++			<Tool
++				Name="VCCLCompilerTool"
++				AdditionalOptions="/MP"
++				InlineFunctionExpansion="1"
++				AdditionalIncludeDirectories="..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\realmd;..\..\src\wardend;..\..\dep\ACE_wrappers"
++				PreprocessorDefinitions="VERSION=&quot;0.17.0-DEV&quot;,WIN32,NDEBUG,_CONSOLE;_SECURE_SCL=0"
++				StringPooling="true"
++				RuntimeLibrary="2"
++				EnableFunctionLevelLinking="true"
++				EnableEnhancedInstructionSet="0"
++				RuntimeTypeInfo="true"
++				PrecompiledHeaderFile=".\wardend__$(PlatformName)_$(ConfigurationName)\wardend.pch"
++				AssemblerListingLocation=".\wardend__$(PlatformName)_$(ConfigurationName)\"
++				ObjectFile=".\wardend__$(PlatformName)_$(ConfigurationName)\"
++				ProgramDataBaseFileName=".\wardend__$(PlatformName)_$(ConfigurationName)\"
++				WarningLevel="3"
++				SuppressStartupBanner="true"
++				Detect64BitPortabilityProblems="false"
++				DebugInformationFormat="3"
++				CallingConvention="0"
++				CompileAs="0"
++			/>
++			<Tool
++				Name="VCManagedResourceCompilerTool"
++			/>
++			<Tool
++				Name="VCResourceCompilerTool"
++				PreprocessorDefinitions="NDEBUG"
++				Culture="1033"
++			/>
++			<Tool
++				Name="VCPreLinkEventTool"
++			/>
++			<Tool
++				Name="VCLinkerTool"
++				AdditionalOptions="/MACHINE:I386"
++				AdditionalDependencies="libmySQL.lib libeay32.lib ws2_32.lib winmm.lib odbc32.lib odbccp32.lib advapi32.lib dbghelp.lib"
++				OutputFile="..\..\bin\$(PlatformName)_$(ConfigurationName)\wardend.exe"
++				LinkIncremental="1"
++				SuppressStartupBanner="true"
++				AdditionalLibraryDirectories="..\..\dep\lib\$(PlatformName)_$(ConfigurationName)"
++				GenerateDebugInformation="true"
++				ProgramDatabaseFile="..\..\bin\$(PlatformName)_$(ConfigurationName)\wardend.pdb"
++				GenerateMapFile="true"
++				MapFileName="..\..\bin\$(PlatformName)_$(ConfigurationName)\wardend.map"
++				SubSystem="1"
++				LargeAddressAware="2"
++				RandomizedBaseAddress="1"
++				DataExecutionPrevention="0"
++			/>
++			<Tool
++				Name="VCALinkTool"
++			/>
++			<Tool
++				Name="VCManifestTool"
++			/>
++			<Tool
++				Name="VCXDCMakeTool"
++			/>
++			<Tool
++				Name="VCBscMakeTool"
++			/>
++			<Tool
++				Name="VCFxCopTool"
++			/>
++			<Tool
++				Name="VCAppVerifierTool"
++			/>
++			<Tool
++				Name="VCPostBuildEventTool"
++				CommandLine="copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)"
++			/>
++		</Configuration>
++		<Configuration
++			Name="Debug|Win32"
++			OutputDirectory=".\wardend__$(PlatformName)_$(ConfigurationName)"
++			IntermediateDirectory=".\wardend__$(PlatformName)_$(ConfigurationName)"
++			ConfigurationType="1"
++			UseOfMFC="0"
++			ATLMinimizesCRunTimeLibraryUsage="false"
++			CharacterSet="2"
++			>
++			<Tool
++				Name="VCPreBuildEventTool"
++			/>
++			<Tool
++				Name="VCCustomBuildTool"
++			/>
++			<Tool
++				Name="VCXMLDataGeneratorTool"
++			/>
++			<Tool
++				Name="VCWebServiceProxyGeneratorTool"
++			/>
++			<Tool
++				Name="VCMIDLTool"
++				TypeLibraryName=".\wardend__$(PlatformName)_$(ConfigurationName)\wardend.tlb"
++			/>
++			<Tool
++				Name="VCCLCompilerTool"
++				AdditionalOptions="/MP"
++				Optimization="0"
++				AdditionalIncludeDirectories="..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\realmd;..\..\src\wardend;..\..\dep\ACE_wrappers"
++				PreprocessorDefinitions="VERSION=&quot;0.17.0-DEV&quot;;WIN32;_DEBUG;MANGOS_DEBUG;_CONSOLE"
++				IgnoreStandardIncludePath="false"
++				BasicRuntimeChecks="3"
++				RuntimeLibrary="3"
++				EnableFunctionLevelLinking="true"
++				RuntimeTypeInfo="true"
++				PrecompiledHeaderFile=".\wardend__$(PlatformName)_$(ConfigurationName)\wardend.pch"
++				AssemblerListingLocation=".\wardend__$(PlatformName)_$(ConfigurationName)\"
++				ObjectFile=".\wardend__$(PlatformName)_$(ConfigurationName)\"
++				ProgramDataBaseFileName=".\wardend__$(PlatformName)_$(ConfigurationName)\"
++				WarningLevel="3"
++				SuppressStartupBanner="true"
++				Detect64BitPortabilityProblems="false"
++				DebugInformationFormat="3"
++				CallingConvention="0"
++				CompileAs="0"
++			/>
++			<Tool
++				Name="VCManagedResourceCompilerTool"
++			/>
++			<Tool
++				Name="VCResourceCompilerTool"
++				PreprocessorDefinitions="_DEBUG"
++				Culture="1033"
++			/>
++			<Tool
++				Name="VCPreLinkEventTool"
++			/>
++			<Tool
++				Name="VCLinkerTool"
++				AdditionalOptions="/MACHINE:I386"
++				AdditionalDependencies="libmySQL.lib libeay32.lib ws2_32.lib winmm.lib odbc32.lib odbccp32.lib advapi32.lib dbghelp.lib"
++				OutputFile="..\..\bin\$(PlatformName)_$(ConfigurationName)\wardend.exe"
++				LinkIncremental="2"
++				SuppressStartupBanner="true"
++				AdditionalLibraryDirectories="..\..\dep\lib\$(PlatformName)_$(ConfigurationName)"
++				GenerateDebugInformation="true"
++				ProgramDatabaseFile="..\..\bin\$(PlatformName)_$(ConfigurationName)\wardend.pdb"
++				GenerateMapFile="true"
++				MapFileName="..\..\bin\$(PlatformName)_$(ConfigurationName)\wardend.map"
++				SubSystem="1"
++				LargeAddressAware="2"
++				RandomizedBaseAddress="1"
++				FixedBaseAddress="1"
++				DataExecutionPrevention="0"
++			/>
++			<Tool
++				Name="VCALinkTool"
++			/>
++			<Tool
++				Name="VCManifestTool"
++			/>
++			<Tool
++				Name="VCXDCMakeTool"
++			/>
++			<Tool
++				Name="VCBscMakeTool"
++			/>
++			<Tool
++				Name="VCFxCopTool"
++			/>
++			<Tool
++				Name="VCAppVerifierTool"
++			/>
++			<Tool
++				Name="VCPostBuildEventTool"
++				CommandLine="copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)"
++			/>
++		</Configuration>
++	</Configurations>
++	<References>
++	</References>
++	<Files>
++		<File
++			RelativePath="..\..\src\realmd\BufferedSocket.cpp"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\realmd\BufferedSocket.h"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\wardend\Main.cpp"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\wardend\wardend.rc"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\wardend\WardenDaemon.cpp"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\wardend\WardenDaemon.h"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\wardend\WardendProtocol.h"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\wardend\WardenSocket.cpp"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\wardend\WardenSocket.h"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\shared\WheatyExceptionReport.cpp"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\shared\WheatyExceptionReport.h"
++			>
++		</File>
++	</Files>
++	<Globals>
++	</Globals>
++</VisualStudioProject>
+diff --git a/win/VC90/game.vcproj b/win/VC90/game.vcproj
+index 56ab568..2d7004b 100644
+--- a/win/VC90/game.vcproj
++++ b/win/VC90/game.vcproj
+@@ -1007,6 +1007,14 @@
+ 				>
+ 			</File>
+ 			<File
++				RelativePath="..\..\src\game\WardenMgr.cpp"
++				>
++			</File>
++			<File
++				RelativePath="..\..\src\game\WardenMgr.h"
++				>
++			</File>
++			<File
+ 				RelativePath="..\..\src\game\Weather.cpp"
+ 				>
+ 			</File>
+diff --git a/win/VC90/wardend.vcproj b/win/VC90/wardend.vcproj
+new file mode 100644
+index 0000000..91fa324
+--- /dev/null
++++ b/win/VC90/wardend.vcproj
+@@ -0,0 +1,266 @@
++<?xml version="1.0" encoding="Windows-1252"?>
++<VisualStudioProject
++	ProjectType="Visual C++"
++	Version="9,00"
++	Name="wardend"
++	ProjectGUID="{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}"
++	RootNamespace="wardend"
++	TargetFrameworkVersion="0"
++	>
++	<Platforms>
++		<Platform
++			Name="Win32"
++		/>
++	</Platforms>
++	<ToolFiles>
++	</ToolFiles>
++	<Configurations>
++		<Configuration
++			Name="Release|Win32"
++			OutputDirectory=".\wardend__$(PlatformName)_$(ConfigurationName)"
++			IntermediateDirectory=".\wardend__$(PlatformName)_$(ConfigurationName)"
++			ConfigurationType="1"
++			UseOfMFC="0"
++			ATLMinimizesCRunTimeLibraryUsage="false"
++			CharacterSet="2"
++			>
++			<Tool
++				Name="VCPreBuildEventTool"
++			/>
++			<Tool
++				Name="VCCustomBuildTool"
++			/>
++			<Tool
++				Name="VCXMLDataGeneratorTool"
++			/>
++			<Tool
++				Name="VCWebServiceProxyGeneratorTool"
++			/>
++			<Tool
++				Name="VCMIDLTool"
++				TypeLibraryName=".\wardend__$(PlatformName)_$(ConfigurationName)\wardend.tlb"
++			/>
++			<Tool
++				Name="VCCLCompilerTool"
++				AdditionalOptions="/MP"
++				InlineFunctionExpansion="1"
++				AdditionalIncludeDirectories="..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\realmd;..\..\src\wardend;..\..\dep\ACE_wrappers"
++				PreprocessorDefinitions="VERSION=&quot;0.17.0-DEV&quot;,WIN32,NDEBUG,_CONSOLE;_SECURE_SCL=0"
++				StringPooling="true"
++				RuntimeLibrary="2"
++				EnableFunctionLevelLinking="true"
++				EnableEnhancedInstructionSet="0"
++				RuntimeTypeInfo="true"
++				PrecompiledHeaderFile=".\wardend__$(PlatformName)_$(ConfigurationName)\wardend.pch"
++				AssemblerListingLocation=".\wardend__$(PlatformName)_$(ConfigurationName)\"
++				ObjectFile=".\wardend__$(PlatformName)_$(ConfigurationName)\"
++				ProgramDataBaseFileName=".\wardend__$(PlatformName)_$(ConfigurationName)\"
++				WarningLevel="3"
++				SuppressStartupBanner="true"
++				Detect64BitPortabilityProblems="false"
++				DebugInformationFormat="3"
++				CallingConvention="0"
++				CompileAs="0"
++			/>
++			<Tool
++				Name="VCManagedResourceCompilerTool"
++			/>
++			<Tool
++				Name="VCResourceCompilerTool"
++				PreprocessorDefinitions="NDEBUG"
++				Culture="1033"
++			/>
++			<Tool
++				Name="VCPreLinkEventTool"
++			/>
++			<Tool
++				Name="VCLinkerTool"
++				AdditionalOptions="/MACHINE:I386"
++				AdditionalDependencies="libmySQL.lib libeay32.lib ws2_32.lib winmm.lib odbc32.lib odbccp32.lib advapi32.lib dbghelp.lib"
++				OutputFile="..\..\bin\$(PlatformName)_$(ConfigurationName)\wardend.exe"
++				LinkIncremental="1"
++				SuppressStartupBanner="true"
++				AdditionalLibraryDirectories="..\..\dep\lib\$(PlatformName)_$(ConfigurationName)"
++				GenerateDebugInformation="true"
++				ProgramDatabaseFile="..\..\bin\$(PlatformName)_$(ConfigurationName)\wardend.pdb"
++				GenerateMapFile="true"
++				MapFileName="..\..\bin\$(PlatformName)_$(ConfigurationName)\wardend.map"
++				SubSystem="1"
++				LargeAddressAware="2"
++				RandomizedBaseAddress="1"
++				DataExecutionPrevention="0"
++			/>
++			<Tool
++				Name="VCALinkTool"
++			/>
++			<Tool
++				Name="VCManifestTool"
++			/>
++			<Tool
++				Name="VCXDCMakeTool"
++			/>
++			<Tool
++				Name="VCBscMakeTool"
++			/>
++			<Tool
++				Name="VCFxCopTool"
++			/>
++			<Tool
++				Name="VCAppVerifierTool"
++			/>
++			<Tool
++				Name="VCPostBuildEventTool"
++				CommandLine="copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)"
++			/>
++		</Configuration>
++		<Configuration
++			Name="Debug|Win32"
++			OutputDirectory=".\wardend__$(PlatformName)_$(ConfigurationName)"
++			IntermediateDirectory=".\wardend__$(PlatformName)_$(ConfigurationName)"
++			ConfigurationType="1"
++			UseOfMFC="0"
++			ATLMinimizesCRunTimeLibraryUsage="false"
++			CharacterSet="2"
++			>
++			<Tool
++				Name="VCPreBuildEventTool"
++			/>
++			<Tool
++				Name="VCCustomBuildTool"
++			/>
++			<Tool
++				Name="VCXMLDataGeneratorTool"
++			/>
++			<Tool
++				Name="VCWebServiceProxyGeneratorTool"
++			/>
++			<Tool
++				Name="VCMIDLTool"
++				TypeLibraryName=".\wardend__$(PlatformName)_$(ConfigurationName)\wardend.tlb"
++			/>
++			<Tool
++				Name="VCCLCompilerTool"
++				AdditionalOptions="/MP"
++				Optimization="0"
++				AdditionalIncludeDirectories="..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\realmd;..\..\src\wardend;..\..\dep\ACE_wrappers"
++				PreprocessorDefinitions="VERSION=&quot;0.17.0-DEV&quot;;WIN32;_DEBUG;MANGOS_DEBUG;_CONSOLE"
++				IgnoreStandardIncludePath="false"
++				BasicRuntimeChecks="3"
++				RuntimeLibrary="3"
++				EnableFunctionLevelLinking="true"
++				RuntimeTypeInfo="true"
++				PrecompiledHeaderFile=".\wardend__$(PlatformName)_$(ConfigurationName)\wardend.pch"
++				AssemblerListingLocation=".\wardend__$(PlatformName)_$(ConfigurationName)\"
++				ObjectFile=".\wardend__$(PlatformName)_$(ConfigurationName)\"
++				ProgramDataBaseFileName=".\wardend__$(PlatformName)_$(ConfigurationName)\"
++				WarningLevel="3"
++				SuppressStartupBanner="true"
++				Detect64BitPortabilityProblems="false"
++				DebugInformationFormat="3"
++				CallingConvention="0"
++				CompileAs="0"
++			/>
++			<Tool
++				Name="VCManagedResourceCompilerTool"
++			/>
++			<Tool
++				Name="VCResourceCompilerTool"
++				PreprocessorDefinitions="_DEBUG"
++				Culture="1033"
++			/>
++			<Tool
++				Name="VCPreLinkEventTool"
++			/>
++			<Tool
++				Name="VCLinkerTool"
++				AdditionalOptions="/MACHINE:I386"
++				AdditionalDependencies="libmySQL.lib libeay32.lib ws2_32.lib winmm.lib odbc32.lib odbccp32.lib advapi32.lib dbghelp.lib"
++				OutputFile="..\..\bin\$(PlatformName)_$(ConfigurationName)\wardend.exe"
++				LinkIncremental="2"
++				SuppressStartupBanner="true"
++				AdditionalLibraryDirectories="..\..\dep\lib\$(PlatformName)_$(ConfigurationName)"
++				GenerateDebugInformation="true"
++				ProgramDatabaseFile="..\..\bin\$(PlatformName)_$(ConfigurationName)\wardend.pdb"
++				GenerateMapFile="true"
++				MapFileName="..\..\bin\$(PlatformName)_$(ConfigurationName)\wardend.map"
++				SubSystem="1"
++				LargeAddressAware="2"
++				RandomizedBaseAddress="1"
++				FixedBaseAddress="1"
++				DataExecutionPrevention="0"
++			/>
++			<Tool
++				Name="VCALinkTool"
++			/>
++			<Tool
++				Name="VCManifestTool"
++			/>
++			<Tool
++				Name="VCXDCMakeTool"
++			/>
++			<Tool
++				Name="VCBscMakeTool"
++			/>
++			<Tool
++				Name="VCFxCopTool"
++			/>
++			<Tool
++				Name="VCAppVerifierTool"
++			/>
++			<Tool
++				Name="VCPostBuildEventTool"
++				CommandLine="copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)"
++			/>
++		</Configuration>
++	</Configurations>
++	<References>
++	</References>
++	<Files>
++		<File
++			RelativePath="..\..\src\realmd\BufferedSocket.cpp"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\realmd\BufferedSocket.h"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\wardend\Main.cpp"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\wardend\wardend.rc"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\wardend\WardenDaemon.cpp"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\wardend\WardenDaemon.h"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\wardend\WardendProtocol.h"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\wardend\WardenSocket.cpp"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\wardend\WardenSocket.h"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\shared\WheatyExceptionReport.cpp"
++			>
++		</File>
++		<File
++			RelativePath="..\..\src\shared\WheatyExceptionReport.h"
++			>
++		</File>
++	</Files>
++	<Globals>
++	</Globals>
++</VisualStudioProject>
+diff --git a/win/wardendVC100.sln b/win/wardendVC100.sln
+new file mode 100644
+index 0000000..d6857f2
+--- /dev/null
++++ b/win/wardendVC100.sln
+@@ -0,0 +1,80 @@
++Microsoft Visual Studio Solution File, Format Version 11.00
++# Visual Studio 2010
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shared", "VC100\shared.vcxproj", "{90297C34-F231-4DF4-848E-A74BCC0E40ED}"
++	ProjectSection(ProjectDependencies) = postProject
++		{BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E} = {BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E}
++		{8F1DEA42-6A5B-4B62-839D-C141A7BFACF2} = {8F1DEA42-6A5B-4B62-839D-C141A7BFACF2}
++		{803F488E-4C5A-4866-8D5C-1E6C03C007C2} = {803F488E-4C5A-4866-8D5C-1E6C03C007C2}
++		{BD537C9A-FECA-1BAD-6757-8A6348EA12C8} = {BD537C9A-FECA-1BAD-6757-8A6348EA12C8}
++		{F62787DD-1327-448B-9818-030062BCFAA5} = {F62787DD-1327-448B-9818-030062BCFAA5}
++	EndProjectSection
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlib", "VC100\zlib.vcxproj", "{8F1DEA42-6A5B-4B62-839D-C141A7BFACF2}"
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "framework", "VC100\framework.vcxproj", "{BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E}"
++	ProjectSection(ProjectDependencies) = postProject
++		{B15F131E-328A-4D42-ADC2-9FF4CA6306D8} = {B15F131E-328A-4D42-ADC2-9FF4CA6306D8}
++	EndProjectSection
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "genrevision", "VC100\genrevision.vcxproj", "{803F488E-4C5A-4866-8D5C-1E6C03C007C2}"
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ACE_Wrappers", "VC100\ACE_vc10.vcxproj", "{BD537C9A-FECA-1BAD-6757-8A6348EA12C8}"
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tbbmalloc", "VC100\tbbmalloc.vcxproj", "{B15F131E-328A-4D42-ADC2-9FF4CA6306D8}"
++	ProjectSection(ProjectDependencies) = postProject
++		{F62787DD-1327-448B-9818-030062BCFAA5} = {F62787DD-1327-448B-9818-030062BCFAA5}
++	EndProjectSection
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tbb", "VC100\tbb.vcxproj", "{F62787DD-1327-448B-9818-030062BCFAA5}"
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wardend", "VC100\wardend.vcxproj", "{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}"
++	ProjectSection(ProjectDependencies) = postProject
++		{90297C34-F231-4DF4-848E-A74BCC0E40ED} = {90297C34-F231-4DF4-848E-A74BCC0E40ED}
++	EndProjectSection
++EndProject
++Global
++	GlobalSection(SolutionConfigurationPlatforms) = preSolution
++		Debug|Win32 = Debug|Win32
++		Release|Win32 = Release|Win32
++	EndGlobalSection
++	GlobalSection(ProjectConfigurationPlatforms) = postSolution
++		{90297C34-F231-4DF4-848E-A74BCC0E40ED}.Debug|Win32.ActiveCfg = Debug|Win32
++		{90297C34-F231-4DF4-848E-A74BCC0E40ED}.Debug|Win32.Build.0 = Debug|Win32
++		{90297C34-F231-4DF4-848E-A74BCC0E40ED}.Release|Win32.ActiveCfg = Release|Win32
++		{90297C34-F231-4DF4-848E-A74BCC0E40ED}.Release|Win32.Build.0 = Release|Win32
++		{8F1DEA42-6A5B-4B62-839D-C141A7BFACF2}.Debug|Win32.ActiveCfg = Debug|Win32
++		{8F1DEA42-6A5B-4B62-839D-C141A7BFACF2}.Debug|Win32.Build.0 = Debug|Win32
++		{8F1DEA42-6A5B-4B62-839D-C141A7BFACF2}.Release|Win32.ActiveCfg = Release|Win32
++		{8F1DEA42-6A5B-4B62-839D-C141A7BFACF2}.Release|Win32.Build.0 = Release|Win32
++		{BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E}.Debug|Win32.ActiveCfg = Debug|Win32
++		{BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E}.Debug|Win32.Build.0 = Debug|Win32
++		{BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E}.Release|Win32.ActiveCfg = Release|Win32
++		{BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E}.Release|Win32.Build.0 = Release|Win32
++		{803F488E-4C5A-4866-8D5C-1E6C03C007C2}.Debug|Win32.ActiveCfg = Debug|Win32
++		{803F488E-4C5A-4866-8D5C-1E6C03C007C2}.Debug|Win32.Build.0 = Debug|Win32
++		{803F488E-4C5A-4866-8D5C-1E6C03C007C2}.Release|Win32.ActiveCfg = Release|Win32
++		{803F488E-4C5A-4866-8D5C-1E6C03C007C2}.Release|Win32.Build.0 = Release|Win32
++		{BD537C9A-FECA-1BAD-6757-8A6348EA12C8}.Debug|Win32.ActiveCfg = Debug|Win32
++		{BD537C9A-FECA-1BAD-6757-8A6348EA12C8}.Debug|Win32.Build.0 = Debug|Win32
++		{BD537C9A-FECA-1BAD-6757-8A6348EA12C8}.Release|Win32.ActiveCfg = Release|Win32
++		{BD537C9A-FECA-1BAD-6757-8A6348EA12C8}.Release|Win32.Build.0 = Release|Win32
++		{B15F131E-328A-4D42-ADC2-9FF4CA6306D8}.Debug|Win32.ActiveCfg = Debug|Win32
++		{B15F131E-328A-4D42-ADC2-9FF4CA6306D8}.Debug|Win32.Build.0 = Debug|Win32
++		{B15F131E-328A-4D42-ADC2-9FF4CA6306D8}.Release|Win32.ActiveCfg = Release|Win32
++		{B15F131E-328A-4D42-ADC2-9FF4CA6306D8}.Release|Win32.Build.0 = Release|Win32
++		{F62787DD-1327-448B-9818-030062BCFAA5}.Debug|Win32.ActiveCfg = Debug|Win32
++		{F62787DD-1327-448B-9818-030062BCFAA5}.Debug|Win32.Build.0 = Debug|Win32
++		{F62787DD-1327-448B-9818-030062BCFAA5}.Release|Win32.ActiveCfg = Release|Win32
++		{F62787DD-1327-448B-9818-030062BCFAA5}.Release|Win32.Build.0 = Release|Win32
++		{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}.Debug|Win32.ActiveCfg = Debug|Win32
++		{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}.Debug|Win32.Build.0 = Debug|Win32
++		{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}.Release|Win32.ActiveCfg = Release|Win32
++		{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}.Release|Win32.Build.0 = Release|Win32
++	EndGlobalSection
++	GlobalSection(SolutionProperties) = preSolution
++		HideSolutionNode = FALSE
++	EndGlobalSection
++	GlobalSection(DPCodeReviewSolutionGUID) = preSolution
++		DPCodeReviewSolutionGUID = {00000000-0000-0000-0000-000000000000}
++	EndGlobalSection
++EndGlobal
+diff --git a/win/wardendVC80.sln b/win/wardendVC80.sln
+new file mode 100644
+index 0000000..dce37bb
+--- /dev/null
++++ b/win/wardendVC80.sln
+@@ -0,0 +1,77 @@
++Microsoft Visual Studio Solution File, Format Version 9.00
++# Visual Studio 2005
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shared", "VC80\shared.vcproj", "{90297C34-F231-4DF4-848E-A74BCC0E40ED}"
++	ProjectSection(ProjectDependencies) = postProject
++		{8F1DEA42-6A5B-4B62-839D-C141A7BFACF2} = {8F1DEA42-6A5B-4B62-839D-C141A7BFACF2}
++		{BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E} = {BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E}
++		{AD537C9A-FECA-1BAD-6757-8A6300006755} = {AD537C9A-FECA-1BAD-6757-8A6300006755}
++		{803F488E-4C5A-4866-8D5C-1E6C03C007C2} = {803F488E-4C5A-4866-8D5C-1E6C03C007C2}
++		{B15F131E-328A-4D42-ADC2-9FF4CA6306D8} = {B15F131E-328A-4D42-ADC2-9FF4CA6306D8}
++	EndProjectSection
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlib", "VC80\zlib.vcproj", "{8F1DEA42-6A5B-4B62-839D-C141A7BFACF2}"
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "framework", "VC80\framework.vcproj", "{BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E}"
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "genrevision", "VC80\genrevision.vcproj", "{803F488E-4C5A-4866-8D5C-1E6C03C007C2}"
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ACE_Wrappers", "VC80\ACE_vc8.vcproj", "{AD537C9A-FECA-1BAD-6757-8A6300006755}"
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tbb", "VC80\tbb.vcproj", "{F62787DD-1327-448B-9818-030062BCFAA5}"
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tbbmalloc", "VC80\tbbmalloc.vcproj", "{B15F131E-328A-4D42-ADC2-9FF4CA6306D8}"
++	ProjectSection(ProjectDependencies) = postProject
++		{F62787DD-1327-448B-9818-030062BCFAA5} = {F62787DD-1327-448B-9818-030062BCFAA5}
++	EndProjectSection
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wardend", "VC80\wardend.vcproj", "{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}"
++	ProjectSection(ProjectDependencies) = postProject
++		{90297C34-F231-4DF4-848E-A74BCC0E40ED} = {90297C34-F231-4DF4-848E-A74BCC0E40ED}
++	EndProjectSection
++EndProject
++Global
++	GlobalSection(SolutionConfigurationPlatforms) = preSolution
++		Debug|Win32 = Debug|Win32
++		Release|Win32 = Release|Win32
++	EndGlobalSection
++	GlobalSection(ProjectConfigurationPlatforms) = postSolution
++		{90297C34-F231-4DF4-848E-A74BCC0E40ED}.Debug|Win32.ActiveCfg = Debug|Win32
++		{90297C34-F231-4DF4-848E-A74BCC0E40ED}.Debug|Win32.Build.0 = Debug|Win32
++		{90297C34-F231-4DF4-848E-A74BCC0E40ED}.Release|Win32.ActiveCfg = Release|Win32
++		{90297C34-F231-4DF4-848E-A74BCC0E40ED}.Release|Win32.Build.0 = Release|Win32
++		{8F1DEA42-6A5B-4B62-839D-C141A7BFACF2}.Debug|Win32.ActiveCfg = Debug|Win32
++		{8F1DEA42-6A5B-4B62-839D-C141A7BFACF2}.Debug|Win32.Build.0 = Debug|Win32
++		{8F1DEA42-6A5B-4B62-839D-C141A7BFACF2}.Release|Win32.ActiveCfg = Release|Win32
++		{8F1DEA42-6A5B-4B62-839D-C141A7BFACF2}.Release|Win32.Build.0 = Release|Win32
++		{BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E}.Debug|Win32.ActiveCfg = Debug|Win32
++		{BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E}.Debug|Win32.Build.0 = Debug|Win32
++		{BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E}.Release|Win32.ActiveCfg = Release|Win32
++		{BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E}.Release|Win32.Build.0 = Release|Win32
++		{803F488E-4C5A-4866-8D5C-1E6C03C007C2}.Debug|Win32.ActiveCfg = Debug|Win32
++		{803F488E-4C5A-4866-8D5C-1E6C03C007C2}.Debug|Win32.Build.0 = Debug|Win32
++		{803F488E-4C5A-4866-8D5C-1E6C03C007C2}.Release|Win32.ActiveCfg = Release|Win32
++		{803F488E-4C5A-4866-8D5C-1E6C03C007C2}.Release|Win32.Build.0 = Release|Win32
++		{AD537C9A-FECA-1BAD-6757-8A6300006755}.Debug|Win32.ActiveCfg = Debug|Win32
++		{AD537C9A-FECA-1BAD-6757-8A6300006755}.Debug|Win32.Build.0 = Debug|Win32
++		{AD537C9A-FECA-1BAD-6757-8A6300006755}.Release|Win32.ActiveCfg = Release|Win32
++		{AD537C9A-FECA-1BAD-6757-8A6300006755}.Release|Win32.Build.0 = Release|Win32
++		{F62787DD-1327-448B-9818-030062BCFAA5}.Debug|Win32.ActiveCfg = Debug|Win32
++		{F62787DD-1327-448B-9818-030062BCFAA5}.Debug|Win32.Build.0 = Debug|Win32
++		{F62787DD-1327-448B-9818-030062BCFAA5}.Release|Win32.ActiveCfg = Release|Win32
++		{F62787DD-1327-448B-9818-030062BCFAA5}.Release|Win32.Build.0 = Release|Win32
++		{B15F131E-328A-4D42-ADC2-9FF4CA6306D8}.Debug|Win32.ActiveCfg = Debug|Win32
++		{B15F131E-328A-4D42-ADC2-9FF4CA6306D8}.Debug|Win32.Build.0 = Debug|Win32
++		{B15F131E-328A-4D42-ADC2-9FF4CA6306D8}.Release|Win32.ActiveCfg = Release|Win32
++		{B15F131E-328A-4D42-ADC2-9FF4CA6306D8}.Release|Win32.Build.0 = Release|Win32
++		{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}.Debug|Win32.ActiveCfg = Debug|Win32
++		{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}.Debug|Win32.Build.0 = Debug|Win32
++		{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}.Release|Win32.ActiveCfg = Release|Win32
++		{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}.Release|Win32.Build.0 = Release|Win32
++	EndGlobalSection
++	GlobalSection(SolutionProperties) = preSolution
++		HideSolutionNode = FALSE
++	EndGlobalSection
++	GlobalSection(DPCodeReviewSolutionGUID) = preSolution
++		DPCodeReviewSolutionGUID = {00000000-0000-0000-0000-000000000000}
++	EndGlobalSection
++EndGlobal
+diff --git a/win/wardendVC90.sln b/win/wardendVC90.sln
+new file mode 100644
+index 0000000..6ced1d9
+--- /dev/null
++++ b/win/wardendVC90.sln
+@@ -0,0 +1,79 @@
++Microsoft Visual Studio Solution File, Format Version 10.00
++# Visual Studio 2008
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shared", "VC90\shared.vcproj", "{90297C34-F231-4DF4-848E-A74BCC0E40ED}"
++	ProjectSection(ProjectDependencies) = postProject
++		{BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E} = {BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E}
++		{8F1DEA42-6A5B-4B62-839D-C141A7BFACF2} = {8F1DEA42-6A5B-4B62-839D-C141A7BFACF2}
++		{803F488E-4C5A-4866-8D5C-1E6C03C007C2} = {803F488E-4C5A-4866-8D5C-1E6C03C007C2}
++		{BD537C9A-FECA-1BAD-6757-8A6300006755} = {BD537C9A-FECA-1BAD-6757-8A6300006755}
++	EndProjectSection
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlib", "VC90\zlib.vcproj", "{8F1DEA42-6A5B-4B62-839D-C141A7BFACF2}"
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "framework", "VC90\framework.vcproj", "{BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E}"
++	ProjectSection(ProjectDependencies) = postProject
++		{B15F131E-328A-4D42-ADC2-9FF4CA6306D8} = {B15F131E-328A-4D42-ADC2-9FF4CA6306D8}
++	EndProjectSection
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "genrevision", "VC90\genrevision.vcproj", "{803F488E-4C5A-4866-8D5C-1E6C03C007C2}"
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ACE_Wrappers", "VC90\ACE_vc9.vcproj", "{BD537C9A-FECA-1BAD-6757-8A6300006755}"
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tbb", "VC90\tbb.vcproj", "{F62787DD-1327-448B-9818-030062BCFAA5}"
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tbbmalloc", "VC90\tbbmalloc.vcproj", "{B15F131E-328A-4D42-ADC2-9FF4CA6306D8}"
++	ProjectSection(ProjectDependencies) = postProject
++		{F62787DD-1327-448B-9818-030062BCFAA5} = {F62787DD-1327-448B-9818-030062BCFAA5}
++	EndProjectSection
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wardend", "VC90\wardend.vcproj", "{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}"
++	ProjectSection(ProjectDependencies) = postProject
++		{90297C34-F231-4DF4-848E-A74BCC0E40ED} = {90297C34-F231-4DF4-848E-A74BCC0E40ED}
++	EndProjectSection
++EndProject
++Global
++	GlobalSection(SolutionConfigurationPlatforms) = preSolution
++		Debug|Win32 = Debug|Win32
++		Release|Win32 = Release|Win32
++	EndGlobalSection
++	GlobalSection(ProjectConfigurationPlatforms) = postSolution
++		{90297C34-F231-4DF4-848E-A74BCC0E40ED}.Debug|Win32.ActiveCfg = Debug|Win32
++		{90297C34-F231-4DF4-848E-A74BCC0E40ED}.Debug|Win32.Build.0 = Debug|Win32
++		{90297C34-F231-4DF4-848E-A74BCC0E40ED}.Release|Win32.ActiveCfg = Release|Win32
++		{90297C34-F231-4DF4-848E-A74BCC0E40ED}.Release|Win32.Build.0 = Release|Win32
++		{8F1DEA42-6A5B-4B62-839D-C141A7BFACF2}.Debug|Win32.ActiveCfg = Debug|Win32
++		{8F1DEA42-6A5B-4B62-839D-C141A7BFACF2}.Debug|Win32.Build.0 = Debug|Win32
++		{8F1DEA42-6A5B-4B62-839D-C141A7BFACF2}.Release|Win32.ActiveCfg = Release|Win32
++		{8F1DEA42-6A5B-4B62-839D-C141A7BFACF2}.Release|Win32.Build.0 = Release|Win32
++		{BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E}.Debug|Win32.ActiveCfg = Debug|Win32
++		{BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E}.Debug|Win32.Build.0 = Debug|Win32
++		{BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E}.Release|Win32.ActiveCfg = Release|Win32
++		{BF6F5D0E-33A5-4E23-9E7D-DD481B7B5B9E}.Release|Win32.Build.0 = Release|Win32
++		{803F488E-4C5A-4866-8D5C-1E6C03C007C2}.Debug|Win32.ActiveCfg = Debug|Win32
++		{803F488E-4C5A-4866-8D5C-1E6C03C007C2}.Debug|Win32.Build.0 = Debug|Win32
++		{803F488E-4C5A-4866-8D5C-1E6C03C007C2}.Release|Win32.ActiveCfg = Release|Win32
++		{803F488E-4C5A-4866-8D5C-1E6C03C007C2}.Release|Win32.Build.0 = Release|Win32
++		{BD537C9A-FECA-1BAD-6757-8A6300006755}.Debug|Win32.ActiveCfg = Debug|Win32
++		{BD537C9A-FECA-1BAD-6757-8A6300006755}.Debug|Win32.Build.0 = Debug|Win32
++		{BD537C9A-FECA-1BAD-6757-8A6300006755}.Release|Win32.ActiveCfg = Release|Win32
++		{BD537C9A-FECA-1BAD-6757-8A6300006755}.Release|Win32.Build.0 = Release|Win32
++		{F62787DD-1327-448B-9818-030062BCFAA5}.Debug|Win32.ActiveCfg = Debug|Win32
++		{F62787DD-1327-448B-9818-030062BCFAA5}.Debug|Win32.Build.0 = Debug|Win32
++		{F62787DD-1327-448B-9818-030062BCFAA5}.Release|Win32.ActiveCfg = Release|Win32
++		{F62787DD-1327-448B-9818-030062BCFAA5}.Release|Win32.Build.0 = Release|Win32
++		{B15F131E-328A-4D42-ADC2-9FF4CA6306D8}.Debug|Win32.ActiveCfg = Debug|Win32
++		{B15F131E-328A-4D42-ADC2-9FF4CA6306D8}.Debug|Win32.Build.0 = Debug|Win32
++		{B15F131E-328A-4D42-ADC2-9FF4CA6306D8}.Release|Win32.ActiveCfg = Release|Win32
++		{B15F131E-328A-4D42-ADC2-9FF4CA6306D8}.Release|Win32.Build.0 = Release|Win32
++		{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}.Debug|Win32.ActiveCfg = Debug|Win32
++		{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}.Debug|Win32.Build.0 = Debug|Win32
++		{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}.Release|Win32.ActiveCfg = Release|Win32
++		{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}.Release|Win32.Build.0 = Release|Win32
++	EndGlobalSection
++	GlobalSection(SolutionProperties) = preSolution
++		HideSolutionNode = FALSE
++	EndGlobalSection
++	GlobalSection(DPCodeReviewSolutionGUID) = preSolution
++		DPCodeReviewSolutionGUID = {00000000-0000-0000-0000-000000000000}
++	EndGlobalSection
++EndGlobal

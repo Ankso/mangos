@@ -65,6 +65,7 @@
 #include "Util.h"
 #include "CharacterDatabaseCleaner.h"
 #include "AuctionHouseBot.h"
+#include "WardenMgr.h"
 
 INSTANTIATE_SINGLETON_1( World );
 
@@ -1419,6 +1420,25 @@ void World::SetInitialWorldSettings()
     uint32 nextGameEvent = sGameEventMgr.Initialize();
     m_timers[WUPDATE_EVENTS].SetInterval(nextGameEvent);    //depend on next event
 
+    if (sConfig.GetBoolDefault("wardend.enable"))
+    {
+        sLog.outString("Starting Warden system...");
+	    if (!sWardenMgr.Initialize(sConfig.GetStringDefault("wardend.address","127.0.0.1").c_str(),sConfig.GetIntDefault("wardend.port",4321)))
+        {
+            sLog.outError("Warden Daemon is not reachable, disabling this function");
+            sWardenMgr.SetDisabled();
+        }
+        else
+        {
+            m_timers[WUPDATE_WARDEN].SetInterval(300); // 300ms
+        }
+    }
+    else
+    {
+	    sLog.outString("Warden system disabled, skipping");
+        sWardenMgr.SetDisabled();
+    }
+
     // Delete all characters which have been deleted X days before
     Player::DeleteOldCharacters();
 
@@ -1585,6 +1605,13 @@ void World::Update(uint32 diff)
         sMapMgr.Update(diff);                // As interval = 0
 
         sBattleGroundMgr.Update(diff);
+    }
+
+    ///- <li> Handle warden manager update
+    if (m_timers[WUPDATE_WARDEN].Passed())
+    {
+        m_timers[WUPDATE_WARDEN].Reset();
+        sWardenMgr.Update();
     }
 
     ///- Delete all characters which have been deleted X days before
