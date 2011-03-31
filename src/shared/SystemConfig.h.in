@@ -36,13 +36,10 @@
 // Format is YYYYMMDDRR where RR is the change in the conf file
 // for that day.
 #ifndef _MANGOSDCONFVERSION
-# define _MANGOSDCONFVERSION 2011031601
+# define _MANGOSDCONFVERSION 2010100901
 #endif
 #ifndef _REALMDCONFVERSION
 # define _REALMDCONFVERSION 2010062001
-#endif
-#ifndef _WARDENDCONFVERSION
-# define _WARDENDCONFVERSION 2010111901
 #endif
 
 #if MANGOS_ENDIAN == MANGOS_BIGENDIAN
@@ -74,7 +71,6 @@
 # endif
 # define _MANGOSD_CONFIG  SYSCONFDIR"mangosd.conf"
 # define _REALMD_CONFIG   SYSCONFDIR"realmd.conf"
-# define _WARDEND_CONFIG  SYSCONFDIR"wardend.conf"
 #else
 # if defined  (__FreeBSD__)
 #  define _ENDIAN_PLATFORM "FreeBSD_"ARCHITECTURE" (" _ENDIAN_STRING ")"
@@ -100,5 +96,4 @@
 #define DEFAULT_PLAYER_LIMIT 100
 #define DEFAULT_WORLDSERVER_PORT 8085                       //8129
 #define DEFAULT_REALMSERVER_PORT 3724
-#define DEFAULT_WARDENSERVER_PORT 4321
 #endif

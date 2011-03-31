@@ -1050,14 +1050,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\WardenMgr.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\game\WardenMgr.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\game\Weather.cpp"
 				>
 			</File>
