@@ -1707,12 +1707,6 @@ void AchievementMgr::UpdateAchievementCriteria(AchievementCriteriaTypes type, ui
         }        
         
         SetCriteriaProgress(achievementCriteria, achievement, change, progressType);
-
-        if (const uint32 dungeonId = sLFGMgr.GetDungeonIdForAchievement(achievement->ID))
-        {
-            //sLog.outString("REWARD DUNGEON DONE FOR ID=%u, PLAYER=%s",achievement->ID, GetPlayer()->GetName());
-            sLFGMgr.RewardDungeonDoneFor(dungeonId, GetPlayer());
-        }
     }
 }
 

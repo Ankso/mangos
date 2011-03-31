@@ -38,6 +38,7 @@
 #include "BattleGround.h"
 #include "DBCStores.h"
 #include "SharedDefines.h"
+#include "LFG.h"
 #include "AntiCheat.h"
 #include "LFG.h"
 
@@ -2313,8 +2314,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SetAtLoginFlag(AtLoginFlags f) { m_atLoginFlags |= f; }
         void RemoveAtLoginFlag(AtLoginFlags f, bool in_db_also = false);
 
-        LookingForGroup m_lookingForGroup;
-
         // Temporarily removed pet cache
         uint32 GetTemporaryUnsummonedPetNumber() const { return m_temporaryUnsummonedPetNumber; }
         void SetTemporaryUnsummonedPetNumber(uint32 petnumber) { m_temporaryUnsummonedPetNumber = petnumber; }
@@ -2425,18 +2424,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SetTitle(CharTitlesEntry const* title, bool lost = false);
 
         bool canSeeSpellClickOn(Creature const* creature) const;
-
-        // Dungeon Finder
-        LfgDungeonSet* GetLfgDungeons() { return &m_LookingForGroup.applyDungeons; }
-        std::string GetLfgComment() { return m_LookingForGroup.comment; }
-        void SetLfgComment(std::string _comment) { m_LookingForGroup.comment = _comment; }
-        uint8 GetLfgRoles() { return m_LookingForGroup.roles; }
-        void SetLfgRoles(uint8 _roles) { m_LookingForGroup.roles = _roles; }
-        bool GetLfgUpdate() { return m_LookingForGroup.update; }
-        void SetLfgUpdate(bool update) { m_LookingForGroup.update = update; }
-        LfgState GetLfgState() { return m_LookingForGroup.state; }
-        void SetLfgState(LfgState state) { m_LookingForGroup.state = state; }
-        bool isUsingLfg() { return GetLfgState() != LFG_STATE_NONE; }
 
         // Custom xp rating system
         uint8 GetXpRate() { return m_xpRate; }
@@ -2759,8 +2746,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint32 m_timeSyncTimer;
         uint32 m_timeSyncClient;
         uint32 m_timeSyncServer;
-
-        LookingForGroup m_LookingForGroup;
 
         DungeonPersistentState* _pendingBind;
         uint32 _pendingBindTimer;
