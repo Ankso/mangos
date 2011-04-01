@@ -1,0 +1,36 @@
+﻿Build started 20/12/2010 13:41:35.
+     1>Project "C:\Users\Anxo\mangos\mangos_335\dep\recastnavigation\Recast\win\VC100\Recast.vcxproj" on node 3 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating ".\Recast__Win32_Release\Recast.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I..\..\include /Zi /nologo /W3 /WX- /O2 /Oi /Ot /Oy- /GL /D WIN32 /D NDEBUG /D _MBCS /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Recast__Win32_Release\\" /Fd".\Recast__Win32_Release\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt ..\..\Source\Recast.cpp ..\..\Source\RecastAlloc.cpp ..\..\Source\RecastArea.cpp ..\..\Source\RecastContour.cpp ..\..\Source\RecastFilter.cpp ..\..\Source\RecastMesh.cpp ..\..\Source\RecastMeshDetail.cpp ..\..\Source\RecastRasterization.cpp ..\..\Source\RecastRegion.cpp
+         Recast.cpp
+     1>..\..\Source\Recast.cpp(44): warning C4996: 'vsnprintf': This function or variable may be unsafe. Consider using vsnprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(354) : see declaration of 'vsnprintf'
+         RecastAlloc.cpp
+         RecastArea.cpp
+         RecastContour.cpp
+         RecastFilter.cpp
+         RecastMesh.cpp
+         RecastMeshDetail.cpp
+         RecastRasterization.cpp
+         RecastRegion.cpp
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\Lib.exe /OUT:"C:\Users\Anxo\mangos\mangos_335\dep\recastnavigation\Recast\win\VC100\\..\..\..\..\lib\Win32_Release\Recast.lib" /NOLOGO /LTCG .\Recast__Win32_Release\Recast.obj
+         .\Recast__Win32_Release\RecastAlloc.obj
+         .\Recast__Win32_Release\RecastArea.obj
+         .\Recast__Win32_Release\RecastContour.obj
+         .\Recast__Win32_Release\RecastFilter.obj
+         .\Recast__Win32_Release\RecastMesh.obj
+         .\Recast__Win32_Release\RecastMeshDetail.obj
+         .\Recast__Win32_Release\RecastRasterization.obj
+         .\Recast__Win32_Release\RecastRegion.obj
+         Recast.vcxproj -> C:\Users\Anxo\mangos\mangos_335\dep\recastnavigation\Recast\win\VC100\\..\..\..\..\lib\Win32_Release\Recast.lib
+       FinalizeBuildStatus:
+         Deleting file ".\Recast__Win32_Release\Recast.unsuccessfulbuild".
+         Touching ".\Recast__Win32_Release\Recast.lastbuildstate".
+     1>Done Building Project "C:\Users\Anxo\mangos\mangos_335\dep\recastnavigation\Recast\win\VC100\Recast.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.94
