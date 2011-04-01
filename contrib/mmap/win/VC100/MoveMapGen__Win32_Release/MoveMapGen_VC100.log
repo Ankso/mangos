@@ -1,0 +1,48 @@
+﻿Build started 20/12/2010 13:42:01.
+     1>Project "C:\Users\Anxo\mangos\mangos_335\contrib\mmap\win\VC100\MoveMapGen_VC100.vcxproj" on node 3 (build target(s)).
+     1>PrepareForBuild:
+         Creating directory "..\..\bin\Win32_Release\".
+       InitializeBuildStatus:
+         Creating ".\MoveMapGen__Win32_Release\MoveMapGen.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I..\..\src\ /I..\..\..\..\dep\recastnavigation\Detour\Include\ /I..\..\..\..\dep\recastnavigation\Recast\Include\ /I..\..\..\..\src\game\vmap /I..\..\..\..\dep\include\g3dlite /I..\..\..\..\src\framework\ /I..\..\..\..\dep\ACE_wrappers /Zi /nologo /W3 /WX- /O2 /Ob2 /Oi /Ot /Oy- /GL /D WIN32 /D NDEBUG /D MMAP_GENERATOR /D _CRT_SECURE_NO_WARNINGS /D NO_CORE_FUNCS /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\MoveMapGen__Win32_Release\\" /Fd".\MoveMapGen__Win32_Release\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt ..\..\..\..\src\game\vmap\BIH.cpp ..\..\..\..\src\game\vmap\MapTree.cpp ..\..\..\..\src\game\vmap\ModelInstance.cpp ..\..\..\..\src\game\vmap\TileAssembler.cpp ..\..\..\..\src\game\vmap\VMapFactory.cpp ..\..\..\..\src\game\vmap\VMapManager2.cpp ..\..\..\..\src\game\vmap\WorldModel.cpp ..\..\src\generator.cpp ..\..\src\MapBuilder.cpp ..\..\src\TerrainBuilder.cpp ..\..\src\VMapExtensions.cpp
+         BIH.cpp
+         MapTree.cpp
+         ModelInstance.cpp
+         TileAssembler.cpp
+         VMapFactory.cpp
+         VMapManager2.cpp
+         WorldModel.cpp
+         generator.cpp
+         MapBuilder.cpp
+         TerrainBuilder.cpp
+         VMapExtensions.cpp
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"..\..\bin\Win32_Release\MoveMapGen.exe" /NOLOGO msvcrt.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:".\MoveMapGen__Win32_Release\MoveMapGen.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\Anxo\mangos\mangos_335\contrib\mmap\bin\Win32_Release\MoveMapGen.pdb" /MAP /LARGEADDRESSAWARE /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"..\..\bin\Win32_Release\MoveMapGen.lib" /MACHINE:X86 .\MoveMapGen__Win32_Release\BIH.obj
+         .\MoveMapGen__Win32_Release\MapTree.obj
+         .\MoveMapGen__Win32_Release\ModelInstance.obj
+         .\MoveMapGen__Win32_Release\TileAssembler.obj
+         .\MoveMapGen__Win32_Release\VMapFactory.obj
+         .\MoveMapGen__Win32_Release\VMapManager2.obj
+         .\MoveMapGen__Win32_Release\WorldModel.obj
+         .\MoveMapGen__Win32_Release\generator.obj
+         .\MoveMapGen__Win32_Release\MapBuilder.obj
+         .\MoveMapGen__Win32_Release\TerrainBuilder.obj
+         .\MoveMapGen__Win32_Release\VMapExtensions.obj
+         C:\Users\Anxo\mangos\mangos_335\dep\lib\Win32_Release\Detour.lib
+         C:\Users\Anxo\mangos\mangos_335\dep\lib\Win32_Release\Recast.lib
+         C:\Users\Anxo\mangos\mangos_335\win\VC100\g3dlite__Win32_Release\g3dlite.lib
+         C:\Users\Anxo\mangos\mangos_335\win\VC100\zlib__Win32_Release\zlib.lib
+         Generating code
+         Finished generating code
+         MoveMapGen_VC100.vcxproj -> C:\Users\Anxo\mangos\mangos_335\contrib\mmap\win\VC100\..\..\bin\Win32_Release\MoveMapGen.exe
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"..\..\bin\Win32_Release\MoveMapGen.exe;#1" /manifest .\MoveMapGen__Win32_Release\MoveMapGen.exe.intermediate.manifest
+       FinalizeBuildStatus:
+         Deleting file ".\MoveMapGen__Win32_Release\MoveMapGen.unsuccessfulbuild".
+         Touching ".\MoveMapGen__Win32_Release\MoveMapGen.lastbuildstate".
+     1>Done Building Project "C:\Users\Anxo\mangos\mangos_335\contrib\mmap\win\VC100\MoveMapGen_VC100.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:20.31
