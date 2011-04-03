@@ -24,8 +24,8 @@ enum eWardendOpcode
     MMSG_PING                       = 0x01,
     WMSG_PONG                       = 0x02,
     MMSG_LOAD_MODULE                = 0x03,
+    //  uint32  moduleLen;
     //  uint32  accountId;
-    //  uint16  moduleLen;
     //  uint8   module[moduleLen];
     //  uint8   sessionKey[40];
     //  uint8   clientPacket[17];

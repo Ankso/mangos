@@ -1856,7 +1856,6 @@ CharDelete.Method = 1
 CharDelete.MinLevel = 10
 CharDelete.KeepDays = 30
 
-
 ###################################################################################################################
 # WARDEN DAEMON - This daemon requires a Windows box to run. If you don't have any, let it disabled
 #

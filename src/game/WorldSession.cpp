@@ -87,7 +87,7 @@ LookingForGroup_auto_join(false), LookingForGroup_auto_add(false), m_muteTime(mu
 _player(NULL), m_Socket(sock),_security(sec), _accountId(id), m_expansion(expansion), _logoutTime(0),
 m_inQueue(false), m_playerLoading(false), m_playerLogout(false), m_playerRecentlyLogout(false), m_playerSave(false),
 m_sessionDbcLocale(sWorld.GetAvailableDbcLocale(locale)), m_sessionDbLocaleIndex(sObjectMgr.GetIndexForLocale(locale)),
-m_latency(0), m_tutorialState(TUTORIALDATA_UNCHANGED), m_wardenStatus(WARD_STATUS_UNREGISTERED)
+m_latency(0), m_tutorialState(TUTORIALDATA_UNCHANGED), m_wardenStatus(WARD_STATUS_UNREGISTERED), m_WardenClientChecks(NULL)
 {
     if (sock)
     {

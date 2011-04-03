@@ -62,6 +62,7 @@ void WardenMgr::Initialize(const char *addr, u_short port, bool IsBanning)
 bool WardenMgr::InitializeCommunication()
 {
     // Establish connection.
+    m_Enabled = true;
     WardenSvcHandler* handler = new WardenSvcHandler;
 
     ACE_INET_Addr remoteAddr(m_WardendPort, m_WardendAddress.c_str());
@@ -75,7 +76,6 @@ bool WardenMgr::InitializeCommunication()
     const char *sign = WARDEND_SIGN;
     pkt << sign;
     m_WardenProcessStream->send((char const*)pkt.contents(), pkt.size());
-    m_Enabled = true;
 
     m_PingOut = false;
     return true;
@@ -165,8 +165,9 @@ void WardenMgr::Update(WorldSession* const session, uint32 diff)
     if (session->GetWardenTimer().Passed() && session->GetWardenStatus() == WARD_STATUS_NEED_WARDEND)
     {
         LoadModuleAndGetKeys(session);
-        session->GetWardenTimer().SetInterval(5*IN_MILLISECONDS);
+        session->GetWardenTimer().SetInterval(10*IN_MILLISECONDS);
         session->GetWardenTimer().Reset();
+        session->SetWardenStatus(WARD_STATUS_PENDING_WARDEND);
     }
 }
 
@@ -571,6 +572,9 @@ void WardenMgr::SendSeedAndComputeKeys(WorldSession* const session)
 
 void WardenMgr::LoadModuleAndGetKeys(WorldSession* const session)
 {
+    if (!m_WardenProcessStream)
+        return;
+
     std::string modulekeyfile = sWorld.GetDataPath()+ "warden/" + session->GetWardenModule() + ".key";
     std::string modulefile = sWorld.GetDataPath()+ "warden/" + session->GetWardenModule() + ".bin";
 
@@ -599,7 +603,7 @@ void WardenMgr::LoadModuleAndGetKeys(WorldSession* const session)
     rc4_init(m_tmpKey, rc4, 16);
     rc4_crypt(m_tmpKey, m_tmpModule, modLength);
 
-    uint32 m_signature = *(uint32*)(m_tmpModule + modLength - 0x104);
+    uint32 m_signature = *(uint32*)(m_tmpModule + modLength - 0x100 - 4); // - 256 bytes - sizeof(uint32)
     if (m_signature != 0x5349474E) // NGIS->SIGN string
     {
         BASIC_LOG("Module damaged on disk");
@@ -608,9 +612,9 @@ void WardenMgr::LoadModuleAndGetKeys(WorldSession* const session)
 
     ByteBuffer pkt;
     pkt << uint8(MMSG_LOAD_MODULE);
+    pkt << uint32(modLength - 0x100); // - 256 bytes certificate
     pkt << uint32(session->GetAccountId());
-    pkt << uint32(modLength);
-    pkt.append(m_tmpModule, modLength);
+    pkt.append(m_tmpModule, modLength - 0x100);
 
     pkt.append(session->GetSessionKey().AsByteArray(40), 40);
     // Same as when we send this transformed seed request to client

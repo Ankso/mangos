@@ -86,7 +86,9 @@
       </DataExecutionPrevention>
     </Link>
     <PostBuildEvent>
-      <Command>copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\ACE*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)&#x0D;&#x0A;copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\tbb*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)&#x0D;&#x0A;copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\dbghelp*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)</Command>
+      <Command>copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\ACE*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)
+copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\tbb*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)
+copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\dbghelp*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -135,18 +137,20 @@
       </DataExecutionPrevention>
     </Link>
     <PostBuildEvent>
-      <Command>copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\ACE*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)&#x0D;&#x0A;copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\tbb*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)&#x0D;&#x0A;copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\dbghelp*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)</Command>
+      <Command>copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\ACE*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)
+copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\tbb*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)
+copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\dbghelp*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\realmd\BufferedSocket.cpp" />
+    <ClCompile Include="..\..\src\wardend\BufferedSocket.cpp" />
     <ClCompile Include="..\..\src\wardend\Main.cpp" />
     <ClCompile Include="..\..\src\wardend\WardenDaemon.cpp" />
     <ClCompile Include="..\..\src\wardend\WardenSocket.cpp" />
     <ClCompile Include="..\..\src\shared\WheatyExceptionReport.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\realmd\BufferedSocket.h" />
+    <ClInclude Include="..\..\src\wardend\BufferedSocket.h" />
     <ClInclude Include="..\..\src\wardend\WardenDaemon.h" />
     <ClInclude Include="..\..\src\wardend\WardendProtocol.h" />
     <ClInclude Include="..\..\src\wardend\WardenSocket.h" />
