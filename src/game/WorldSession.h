@@ -27,7 +27,7 @@
 #include "SharedDefines.h"
 #include "ObjectGuid.h"
 #include "LFGMgr.h"
-#include "WardenMgr.h"
+#include "Timer.h"
 
 struct ItemPrototype;
 struct AuctionEntry;

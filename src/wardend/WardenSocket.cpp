@@ -128,15 +128,26 @@ void WardenSocket::OnRead()
 bool WardenSocket::_HandleLoadModule()
 {
     DEBUG_LOG("WardenSocket::_HandleLoadModule, received %u", (uint32)recv_len());
-    recv_skip(1);
+    uint8 testArray[5];
     uint32 accountId;
     uint32 moduleLen;
     uint8 *module;
     uint8 sessionKey[40];
     uint8 packet[17];
 
+    if (!recv_soft((char *)&testArray, 5)) // opcode + moduleLen
+        return false;
+    moduleLen = *(uint32*)(testArray + 1);
+    uint32 pktSize = 1 + 4 + 4 + moduleLen + 40 +17;
+    if (recv_len() < pktSize)
+    {
+        DEBUG_LOG("Got %u bytes of data, %u bytes needed, waiting for next tick", recv_len() ,pktSize);
+        return false;
+    }
+
+    recv_skip(5); // opcode + moduleLen already read
+
     recv((char *)&accountId, 4);
-    recv((char *)&moduleLen, 4);
     module = (uint8*)malloc(moduleLen * sizeof(uint8));
     recv((char *)module, moduleLen);
     recv((char *)sessionKey, 40);

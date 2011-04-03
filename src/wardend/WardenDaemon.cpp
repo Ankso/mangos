@@ -338,18 +338,16 @@ bool Wardend::LoadModuleAndExecute(uint32 accountId, uint32 modLen, uint8 *modul
 {
     DEBUG_LOG("Wardend::LoadModule()");
 
-    uint32 m_signature = *(uint32*)(module + modLen - 0x104);
+    uint32 m_signature = *(uint32*)(module + modLen - 4); // - sizeof(uint32)
     if (m_signature != 0x5349474E) // NGIS->SIGN string
     {
         sLog.outError("Warden module seams damaged, cannot find signature data.");
         return false;
     }
-    // More signature check code to add
-
-    // Now inflate the module after removing uint32 size at the beginning and last 4+256 bytes of the RSA signing
+    // Now inflate the module after removing uint32 size at the beginning and last 4 "SIGN"
     uint32 m_InflateSize = *(uint32*)module;
     uint8 *moduleCode = (uint8*)malloc(sizeof(uint8)*m_InflateSize);
-    uint32 currentSize = modLen - 0x104 - 4;
+    uint32 currentSize = modLen - 4 - 4; // - sizeof(uint32) for inflateSize and - sizeof(uint32) for signature
     uLongf finalSize = m_InflateSize;
     if (uncompress(moduleCode, &finalSize, module+4, currentSize) != Z_OK)
     {
