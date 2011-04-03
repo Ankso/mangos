@@ -823,6 +823,7 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
 
     v.SetHexStr(fields[5].GetString());
     s.SetHexStr (fields[6].GetString());
+    m_s = s;
 
     const char* sStr = s.AsHexStr ();                       //Must be freed by OPENSSL_free()
     const char* vStr = v.AsHexStr ();                       //Must be freed by OPENSSL_free()
@@ -855,7 +856,6 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
         security = SEC_ADMINISTRATOR;
 
     K.SetHexStr (fields[2].GetString ());
-    m_s = K;
 
     time_t mutetime = time_t (fields[8].GetUInt64 ());
 
