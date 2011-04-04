@@ -164,7 +164,6 @@ struct InstanceS
     fPointers pointers;
     WardenFuncList **list;
     CWardenLoader *loader;
-    uint8 moduleKey[16];
 };
 
 struct Wardend
