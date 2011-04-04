@@ -37,7 +37,7 @@ void CWardenLoader::UnloadWarden()
             DEBUG_LOG("Unloading lib %s...", GetAddress<const char*>(pLibraryList[dwLibraryCount].dwFileName));
             FreeLibrary(GetModuleHandleA(GetAddress<const char*>(pLibraryList[dwLibraryCount].dwFileName)));
         }
-        VirtualFree(pdwModule, dwModuleSize, MEM_RELEASE);
+        VirtualFree(pdwModule, /*dwModuleSize*/ 0, MEM_RELEASE); // No size when VirtualFree with MEM_RELEASE!!
 
         pdwModule = 0;
         dwModuleSize = 0;
@@ -172,9 +172,9 @@ bool CWardenLoader::LoadWarden(PDWORD pdwNewModule, DWORD dwSize)
 
 // === Module callback functions ===
 
-void __stdcall cSendPacket(BYTE* pPacket, DWORD dwSize)
+void __stdcall cSendPacket(LPVOID pPacket, DWORD dwSize)
 {
-    DEBUG_LOG("Callback cSendPacket called. Packet size %u.", dwSize);
+    DEBUG_LOG("Callback cSendPacket called. Packet at 0x%08X size %u.", (PDWORD)pPacket, dwSize);
 }
 
 BOOL __stdcall cCheckModule(BYTE* pModName, DWORD _2)
@@ -191,7 +191,7 @@ WardenFuncList** __stdcall cLoadModule(BYTE* pRC4Key, BYTE* pModule, DWORD dwMod
 
 LPVOID __stdcall cAllocateMemory(DWORD dwSize)
 {
-    LPVOID *res = (LPVOID*)malloc(dwSize);
+    LPVOID res = (LPVOID)malloc(dwSize);
     DEBUG_LOG("Callback cAllocateMemory called. Allocated %u bytes at 0x%08X", dwSize, res);
     return res;
 }
@@ -336,7 +336,7 @@ Wardend::Wardend()
 
 bool Wardend::LoadModuleAndExecute(uint32 accountId, uint32 modLen, uint8 *module, uint8 *sessionKey, uint8 *packet, ByteBuffer *returnPacket)
 {
-    DEBUG_LOG("Wardend::LoadModule()");
+    DEBUG_LOG("Wardend::LoadModuleAndExecute()");
 
     uint32 m_signature = *(uint32*)(module + modLen - 4); // - sizeof(uint32)
     if (m_signature != 0x5349474E) // NGIS->SIGN string
@@ -346,12 +346,13 @@ bool Wardend::LoadModuleAndExecute(uint32 accountId, uint32 modLen, uint8 *modul
     }
     // Now inflate the module after removing uint32 size at the beginning and last 4 "SIGN"
     uint32 m_InflateSize = *(uint32*)module;
-    uint8 *moduleCode = (uint8*)malloc(sizeof(uint8)*m_InflateSize);
+    uint8* moduleCode = (uint8*)malloc(m_InflateSize);
     uint32 currentSize = modLen - 4 - 4; // - sizeof(uint32) for inflateSize and - sizeof(uint32) for signature
     uLongf finalSize = m_InflateSize;
     if (uncompress(moduleCode, &finalSize, module+4, currentSize) != Z_OK)
     {
         sLog.outError("Warden module could not be inflated.");
+        free(moduleCode);
         return false;
     }
 
@@ -385,7 +386,7 @@ bool Wardend::LoadModuleAndExecute(uint32 accountId, uint32 modLen, uint8 *modul
 
 uint8 *Wardend::GenerateNewKeys(InstanceS *instance, uint8 *sessionKey/*[40]*/, uint8 *packet/*[17]*/)
 {
-    DEBUG_LOG("Wardend::GenerateAndGetNewServerKey()");
+    DEBUG_LOG("Wardend::GenerateNewKeys()");
     // Call the module function to generate the key
     GenerateRC4Keys(sessionKey, 40, instance);
     // Then ask it to handle the packet we also sent to the client

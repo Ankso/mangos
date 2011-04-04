@@ -5,7 +5,6 @@
 	Name="wardend"
 	ProjectGUID="{F9CB40C2-08E4-4B7B-8726-D4E15A02819F}"
 	RootNamespace="wardend"
-	TargetFrameworkVersion="0"
 	>
 	<Platforms>
 		<Platform
@@ -87,8 +86,6 @@
 				MapFileName="..\..\bin\$(PlatformName)_$(ConfigurationName)\wardend.map"
 				SubSystem="1"
 				LargeAddressAware="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -109,8 +106,11 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\ACE*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)&#x0D;&#x0A;copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\tbb*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)&#x0D;&#x0A;copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\dbghelp*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)"
+				CommandLine="copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\ACE*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)&#x0D;&#x0A;copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\tbb*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)&#x0D;&#x0A;copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\dbghelp*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -185,9 +185,7 @@
 				MapFileName="..\..\bin\$(PlatformName)_$(ConfigurationName)\wardend.map"
 				SubSystem="1"
 				LargeAddressAware="2"
-				RandomizedBaseAddress="1"
 				FixedBaseAddress="1"
-				DataExecutionPrevention="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -208,8 +206,11 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\ACE*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)&#x0D;&#x0A;copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\tbb*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)&#x0D;&#x0A;copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\dbghelp*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)"
+				CommandLine="copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\ACE*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)&#x0D;&#x0A;copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\tbb*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)&#x0D;&#x0A;copy ..\..\dep\lib\$(PlatformName)_$(ConfigurationName)\dbghelp*.dll ..\..\bin\$(PlatformName)_$(ConfigurationName)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -217,11 +218,11 @@
 	</References>
 	<Files>
 		<File
-			RelativePath="..\..\src\realmd\BufferedSocket.cpp"
+			RelativePath="..\..\src\wardend\BufferedSocket.cpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\realmd\BufferedSocket.h"
+			RelativePath="..\..\src\wardend\BufferedSocket.h"
 			>
 		</File>
 		<File

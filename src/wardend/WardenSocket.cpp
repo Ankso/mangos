@@ -106,12 +106,7 @@ void WardenSocket::OnRead()
             if ((uint8)table[i].cmd == _cmd && table[i].status == STATUS_CONNECTED && _connected)
             {
                 if (!(*this.*table[i].handler)())
-                {
-                    DEBUG_LOG("Command handler failed for cmd %u recv length %u",
-                        (uint32)_cmd, (uint32)recv_len());
-
                     return;
-                }
                 break;
             }
         }
@@ -127,7 +122,7 @@ void WardenSocket::OnRead()
 
 bool WardenSocket::_HandleLoadModule()
 {
-    DEBUG_LOG("WardenSocket::_HandleLoadModule, received %u", (uint32)recv_len());
+    DEBUG_LOG("\n\n\nWardenSocket::_HandleLoadModule, received %u", (uint32)recv_len());
     uint8 testArray[5];
     uint32 accountId;
     uint32 moduleLen;
@@ -138,7 +133,7 @@ bool WardenSocket::_HandleLoadModule()
     if (!recv_soft((char *)&testArray, 5)) // opcode + moduleLen
         return false;
     moduleLen = *(uint32*)(testArray + 1);
-    uint32 pktSize = 1 + 4 + 4 + moduleLen + 40 +17;
+    uint32 pktSize = 1 + 4 + 4 + moduleLen + 40 + 17;
     if (recv_len() < pktSize)
     {
         DEBUG_LOG("Got %u bytes of data, %u bytes needed, waiting for next tick", recv_len() ,pktSize);
