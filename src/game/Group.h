@@ -270,23 +270,6 @@ class MANGOS_DLL_SPEC Group
         void   Disband(bool hideDestroy=false);
 
         // Dungeon Finder
-        void   SetLfgQueued(bool queued) { m_LfgQueued = queued; }
-        bool   isLfgQueued() { return m_LfgQueued; }
-        void   SetLfgStatus(uint8 status) { m_LfgStatus = status; }
-        uint8  GetLfgStatus() { return m_LfgStatus; }
-        bool   isLfgDungeonComplete() const { return m_LfgStatus == LFG_STATUS_COMPLETE; }
-        void   SetLfgDungeonEntry(uint32 dungeonEntry) { m_LfgDungeonEntry = dungeonEntry; }
-        uint32 GetLfgDungeonEntry(bool id = true)
-        {
-            if (id)
-                return (m_LfgDungeonEntry & 0x00FFFFFF);
-            else
-                return m_LfgDungeonEntry;
-        }
-        bool   isLfgKickActive() const { return m_LfgkicksActive; }
-        void   SetLfgKickActive(bool active) { m_LfgkicksActive = active; }
-        uint8  GetLfgKicks() const { return m_Lfgkicks; }
-        void   SetLfgKicks(uint8 kicks) { m_Lfgkicks = kicks; }
         void   SetLfgRoles(ObjectGuid guid, const uint8 roles)
         {
             member_witerator slot = _getMemberWSlot(guid);
@@ -411,6 +394,9 @@ class MANGOS_DLL_SPEC Group
         InstanceGroupBind* GetBoundInstance(Map* aMap, Difficulty difficulty);
         BoundInstancesMap& GetBoundInstances(Difficulty difficulty) { return m_boundInstances[difficulty]; }
 
+        // LFG
+        LFGGroupState* GetLFGState() { return m_LFGState; };
+
         // Frozen Mod
         void BroadcastGroupUpdate(void);
         // Frozen Mod
@@ -492,10 +478,6 @@ class MANGOS_DLL_SPEC Group
         BoundInstancesMap   m_boundInstances[MAX_DIFFICULTY];
         uint8*              m_subGroupsCounts;
 
-        bool                m_LfgQueued;
-        uint8               m_LfgStatus;
-        uint32              m_LfgDungeonEntry;
-        uint8               m_Lfgkicks;
-        bool                m_LfgkicksActive;
+        LFGGroupState*      m_LFGState;
 };
 #endif
