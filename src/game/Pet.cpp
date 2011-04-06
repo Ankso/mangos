@@ -936,6 +936,23 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
         createResistance[SPELL_SCHOOL_NORMAL] = petlevel*50;
     }
 
+	float stamina_multiplier = 0.0f;
+	if (GetEntry() == 26125)
+	{
+		stamina_multiplier = 0.3f;      // Allways +30% stamina from caster
+		if (owner->HasAura(58686))      // Glyph of the Ghoul
+			stamina_multiplier *= 1.4f;
+		if (owner->HasAura(48965))      // Ravenous Dead rank 1
+			stamina_multiplier *= 1.2f;
+	    else if (owner->HasAura(49571)) // Ravenous Dead rank 2
+	        stamina_multiplier *= 1.4f;
+	    else if (owner->HasAura(49572)) // Ravenous Dead rank 3
+	        stamina_multiplier *= 1.6f;
+	}
+
+	// Set real stamina for DK ghoul (this is ignored in other cases because stamina_multiplier = 0.0f)
+	createStats[STAT_STAMINA] += int32(owner->GetStat(STAT_STAMINA) * stamina_multiplier);
+
     switch(getPetType())
     {
         case SUMMON_PET:
@@ -989,9 +1006,9 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
     if(pInfo)                                       // exist in DB
     {
         if (pInfo->health)
-            SetCreateHealth(pInfo->health);
+            SetCreateHealth(pInfo->health + int32((owner->GetStat(STAT_STAMINA) * stamina_multiplier) * 10));
         else
-            SetCreateHealth(createStats[MAX_STATS]);
+            SetCreateHealth(createStats[MAX_STATS] + int32((owner->GetStat(STAT_STAMINA) * stamina_multiplier) * 10));
 
         if (pInfo->mana)
             SetCreateMana(pInfo->mana);
@@ -1004,10 +1021,22 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
             SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE,  float(createResistance[SPELL_SCHOOL_NORMAL]));
 
         for( int i = STAT_STRENGTH; i < MAX_STATS; ++i)
-            if (pInfo->stats[i])
-               SetCreateStat(Stats(i), float(pInfo->stats[i]));
-            else
-               SetCreateStat(Stats(i), float(createStats[i]));
+		{
+			if (i == STAT_STAMINA)
+			{
+				if (pInfo->stats[i])
+					SetCreateStat(Stats(i), float(pInfo->stats[i] + (owner->GetStat(STAT_STAMINA) * stamina_multiplier)));
+				else
+					SetCreateStat(Stats(i), float(createStats[i] + (owner->GetStat(STAT_STAMINA) * stamina_multiplier)));
+			}
+			else
+			{
+				if (pInfo->stats[i])
+					SetCreateStat(Stats(i), float(pInfo->stats[i]));
+				else
+					SetCreateStat(Stats(i), float(createStats[i]));
+			}
+		}
 
         if (pInfo->attackpower)
             SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, float(pInfo->attackpower));
@@ -1049,8 +1078,8 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
 
         DEBUG_LOG("Pet %u stats for level initialized (from creature_template values)", cinfo->Entry);
     }
-
-    for (int i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; ++i)
+    
+	for (int i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; ++i)
             SetModifierValue(UnitMods(UNIT_MOD_RESISTANCE_START + i), BASE_VALUE, float(createResistance[i]));
 
     SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_PCT, 1.0f);
