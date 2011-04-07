@@ -20,6 +20,7 @@
 #include "World.h"
 #include "Policies/SingletonImp.h"
 #include "ProgressBar.h"
+#include "Language.h"
 
 /*
 Useful information:
@@ -1121,7 +1122,10 @@ void WardenMgr::ReactToCheatCheckResult(WorldSession* const session, bool result
     else
     {
         if (m_Banning)
-            sWorld.BanAccount(session, 24 * HOUR, "Cheating software usage", "Warden System");
+        {
+            sWorld.SendWorldText(LANG_WARDEN_BAN, session->GetPlayer()->GetName(), uint32(session->m_WardenTimer.GetCurrent()/1000));
+            sWorld.BanAccount(session, 24 * HOUR, "Uso de software ilegal/cheats", "Sistema Warden");
+        }
         else
             session->KickPlayer();
     }

@@ -252,3 +252,7 @@ INSERT IGNORE INTO `warden_check_page` VALUES
 -- (0x8DED14D0,'5C75A3056A6E715B3A2D818E7370137B13E975FB'),
 -- (0xC8A2BBCE,'F089DF1E3DAFAE859133A15C81C754ECCE1AF1D3'),
 -- (0x49C36915,'CFC81F16C4BE5EEFA828EA312FDEC757DC6A5756');
+
+DELETE FROM mangos_string WHERE entry = 20200;
+INSERT INTO mangos_string (entry, content_default, content_loc6, content_loc7) VALUES
+(20200, '[WARDEN]Player %s has been detected and banned automatically by Warden system %u second(s) after using a hack. Reason: Use cheating software.', '[WARDEN]El jugador %s ha sido detectado y baneado automáticamente por el sistema Warden %u segundo(s) después de haber utilizado un hack. Razón: Uso de software ilegal para la utilización de hacks.', '[WARDEN]El jugador %s ha sido detectado y baneado automáticamente por el sistema Warden %u segundo(s) después de haber utilizado un hack. Razón: Uso de software ilegal para la utilización de hacks.');
