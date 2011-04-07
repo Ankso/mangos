@@ -26,6 +26,7 @@
 #include "Common.h"
 #include "SharedDefines.h"
 #include "ObjectGuid.h"
+#include "Timer.h"
 #include "LFGMgr.h"
 #include "LFG.h"
 
@@ -188,6 +189,7 @@ class WorldSessionFilter : public PacketFilter
 class MANGOS_DLL_SPEC WorldSession
 {
     friend class CharacterHandler;
+    friend class WardenMgr;
     public:
         WorldSession(uint32 id, WorldSocket *sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale);
         ~WorldSession();
@@ -358,6 +360,11 @@ class MANGOS_DLL_SPEC WorldSession
         // TRUE values set by client sending CMSG_LFG_SET_AUTOJOIN and CMSG_LFM_CLEAR_AUTOFILL before player login
         bool LookingForGroup_auto_join;
         bool LookingForGroup_auto_add;
+
+        uint8 *GetWardenServerKey() { return &m_rc4ServerKey[0]; }
+        uint8 *GetWardenSeed() { return &m_wardenSeed[0]; }
+        uint8 *GetWardenTempClientKey() { return &m_WardenTmpClientKey[0]; }
+        void UpdateWardenTimer(uint32 diff) { m_WardenTimer.Update(diff); }
 
     public:                                                 // opcodes handlers
 
@@ -731,7 +738,11 @@ class MANGOS_DLL_SPEC WorldSession
         void HandleBattlemasterJoinArena( WorldPacket &recv_data );
         void HandleReportPvPAFK( WorldPacket &recv_data );
 
+        //Warden
         void HandleWardenDataOpcode(WorldPacket& recv_data);
+        void HandleWardenRegister();                        // for internal call
+        void HandleWardenUnregister();                      // for internal call
+
         void HandleWorldTeleportOpcode(WorldPacket& recv_data);
         void HandleMinimapPingOpcode(WorldPacket& recv_data);
         void HandleRandomRollOpcode(WorldPacket& recv_data);
@@ -887,6 +898,15 @@ class MANGOS_DLL_SPEC WorldSession
         TutorialDataState m_tutorialState;
         AddonsList m_addonsList;
         ACE_Based::LockedQueue<WorldPacket*, ACE_Thread_Mutex> _recvQueue;
+
+        uint8 m_wardenStatus;
+        uint8 m_rc4ServerKey[0x102];
+        uint8 m_rc4ClientKey[0x102];
+        uint8 m_wardenSeed[16];
+        ShortIntervalTimer m_WardenTimer;
+        std::string m_WardenModule;
+        void *m_WardenClientChecks;
+        uint8 m_WardenTmpClientKey[0x102];
 };
 #endif
 /// @}

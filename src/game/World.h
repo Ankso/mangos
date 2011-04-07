@@ -80,7 +80,8 @@ enum WorldTimers
     WUPDATE_EVENTS      = 6,
     WUPDATE_DELETECHARS = 7,
     WUPDATE_AUTOBROADCAST = 8,
-    WUPDATE_COUNT       = 9
+	WUPDATE_WARDEN      = 9,
+    WUPDATE_COUNT       = 10
 };
 
 /// Configuration elements
@@ -573,6 +574,7 @@ class World
         void KickAll();
         void KickAllLess(AccountTypes sec);
         BanReturn BanAccount(BanMode mode, std::string nameOrIP, uint32 duration_secs, std::string reason, std::string author);
+        BanReturn BanAccount(WorldSession *session, uint32 duration_secs, std::string reason, std::string author);
         bool RemoveBanAccount(BanMode mode, std::string nameOrIP);
 
         // for max speed access
