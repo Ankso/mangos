@@ -32,6 +32,8 @@
 #include "Weather.h"
 #include "Player.h"
 #include "Vehicle.h"
+#include "AuctionHouseBot.h"
+#include "LFGMgr.h"
 #include "SkillExtraItems.h"
 #include "SkillDiscovery.h"
 #include "AccountMgr.h"
@@ -64,9 +66,6 @@
 #include "GMTicketMgr.h"
 #include "Util.h"
 #include "CharacterDatabaseCleaner.h"
-#include "AuctionHouseBot.h"
-#include "LFGMgr.h"
-#include "WardenMgr.h"
 
 INSTANTIATE_SINGLETON_1( World );
 
@@ -1430,18 +1429,6 @@ void World::SetInitialWorldSettings()
     uint32 nextGameEvent = sGameEventMgr.Initialize();
     m_timers[WUPDATE_EVENTS].SetInterval(nextGameEvent);    //depend on next event
 
-    if (sConfig.GetBoolDefault("wardend.enable"))
-    {
-        sLog.outString("Starting Warden system...");
-        sWardenMgr.Initialize(sConfig.GetStringDefault("wardend.address","127.0.0.1").c_str(),sConfig.GetIntDefault("wardend.port",4321),sConfig.GetBoolDefault("wardend.ban"));
-        m_timers[WUPDATE_WARDEN].SetInterval(500); // 500ms
-    }
-    else
-    {
-        sLog.outString("Warden system disabled, skipping");
-        sWardenMgr.SetDisabled();
-    }
-
     // Delete all characters which have been deleted X days before
     Player::DeleteOldCharacters();
 
@@ -1608,13 +1595,6 @@ void World::Update(uint32 diff)
         sMapMgr.Update(diff);                // As interval = 0
 
         sBattleGroundMgr.Update(diff);
-    }
-
-    ///- <li> Handle warden manager update
-    if (m_timers[WUPDATE_WARDEN].Passed())
-    {
-        m_timers[WUPDATE_WARDEN].Reset();
-        sWardenMgr.Update(diff);
     }
 
     ///- Delete all characters which have been deleted X days before
@@ -1845,14 +1825,6 @@ void World::KickAllLess(AccountTypes sec)
     for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
         if(itr->second->GetSecurity() < sec)
             itr->second->KickPlayer();
-}
-
-BanReturn World::BanAccount(WorldSession *session, uint32 duration_secs, std::string reason, std::string author)
-{
-    LoginDatabase.PExecute("INSERT INTO account_banned VALUES ('%u', UNIX_TIMESTAMP(), UNIX_TIMESTAMP()+%u, '%s', '%s', '1')",
-        session->GetAccountId(), duration_secs, author.c_str(), reason.c_str());
-    session->KickPlayer();
-    return BAN_SUCCESS;
 }
 
 /// Ban an account or ban an IP address, duration_secs if it is positive used, otherwise permban

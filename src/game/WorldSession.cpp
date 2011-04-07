@@ -29,7 +29,6 @@
 #include "WorldSession.h"
 #include "Player.h"
 #include "ObjectMgr.h"
-#include "WardenMgr.h"
 #include "Group.h"
 #include "Guild.h"
 #include "World.h"
@@ -39,7 +38,6 @@
 #include "Auth/AuthCrypt.h"
 #include "Auth/HMACSHA1.h"
 #include "zlib/zlib.h"
-#include "Auth/BigNumber.h"
 
 // select opcodes appropriate for processing in Map::Update context for current session state
 static bool MapSessionFilterHelper(WorldSession* session, OpcodeHandler const& opHandle)
@@ -87,7 +85,7 @@ LookingForGroup_auto_join(false), LookingForGroup_auto_add(false), m_muteTime(mu
 _player(NULL), m_Socket(sock),_security(sec), _accountId(id), m_expansion(expansion), _logoutTime(0),
 m_inQueue(false), m_playerLoading(false), m_playerLogout(false), m_playerRecentlyLogout(false), m_playerSave(false),
 m_sessionDbcLocale(sWorld.GetAvailableDbcLocale(locale)), m_sessionDbLocaleIndex(sObjectMgr.GetIndexForLocale(locale)),
-m_latency(0), m_tutorialState(TUTORIALDATA_UNCHANGED), m_wardenStatus(WARD_STATUS_UNREGISTERED), m_WardenClientChecks(NULL)
+m_latency(0), m_tutorialState(TUTORIALDATA_UNCHANGED)
 {
     if (sock)
     {
@@ -115,9 +113,6 @@ WorldSession::~WorldSession()
     WorldPacket* packet;
     while(_recvQueue.next(packet))
         delete packet;
-
-    ///- inform Warden Manager
-    sWardenMgr.Unregister(this);
 }
 
 void WorldSession::SizeError(WorldPacket const& packet, uint32 size) const
@@ -323,10 +318,6 @@ bool WorldSession::Update(uint32 diff, PacketFilter& updater)
         if (!m_Socket)
             return false;                                       //Will remove this session from the world session map
     }
-
-    //Process Warden related update for this session
-    if (sWardenMgr.IsEnabled())
-        sWardenMgr.Update(this, uint32(diff/2));                //Called 2 times from Map::Update and World::UpdateSessions, so need to /2
 
     return true;
 }
@@ -993,9 +984,4 @@ void WorldSession::ExecuteOpcode( OpcodeHandler const& opHandle, WorldPacket* pa
 
     if (packet->rpos() < packet->wpos() && sLog.HasLogLevelOrHigher(LOG_LVL_DEBUG))
         LogUnprocessedTail(packet);
-}
-
-BigNumber &WorldSession::GetSessionKey() const
-{
-    return m_Socket->GetSessionKey();
 }

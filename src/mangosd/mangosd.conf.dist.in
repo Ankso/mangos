@@ -3,7 +3,7 @@
 #####################################
 
 [MangosdConf]
-ConfVersion=2011031601
+ConfVersion=2010100901
 
 ###################################################################################################################
 # CONNECTIONS AND DIRECTORIES
@@ -1866,35 +1866,6 @@ Anticheat.GmLevel = 0
 CharDelete.Method = 1
 CharDelete.MinLevel = 10
 CharDelete.KeepDays = 30
-
-
-###################################################################################################################
-# WARDEN DAEMON - This daemon requires a Windows box to run. If you don't have any, let it disabled
-#
-#    Wardend.enable
-#        Enable or disable warden functionnalities
-#        Default: 0  - Disabled, mangosd will neither use wardend, not generate any warden related traffic
-#                 1  - Enable, mangosd will connect to wardend and generate cheat ckecks for all sessions
-#
-#    Wardend.ban
-#        Enable or disable banning accounts
-#                 0  - Disabled, mangosd will kick accounts failing a cheat-check
-#        Default: 1  - Enable, mangosd will ban for 24H any account failing a cheat-check
-#
-#   Wardend.address
-#        IP Address of the computer running the Win32 Warden Daemon
-#        Default: 127.0.0.1  - Assume you run the Warden Daemon on the same machine as Mangos Daemon and on Windows
-#
-#   Wardend.port
-#        Port on which the Warden Daemon listens
-#        Default: 4321
-#
-###################################################################################################################
-
-Wardend.enable = 0
-Wardend.ban = 1
-Wardend.address = "127.0.0.1"
-Wardend.port = 4321
 
 ###################################################################################################################
 #    Refer-A-Friend system by Mas0n
