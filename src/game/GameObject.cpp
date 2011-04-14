@@ -1750,6 +1750,7 @@ void GameObject::DamageTaken(Unit* pDoneBy, uint32 damage)
                 if (BattleGround *bg = pWho->GetBattleGround())
                     bg->DestroyGate(pWho, this, m_goInfo->destructibleBuilding.destroyedEvent);
             hitType = BG_OBJECT_DMG_HIT_TYPE_JUST_DESTROYED;
+            GetMap()->ScriptsStart(sEventScripts, m_goInfo->destructibleBuilding.destroyedEvent, pDoneBy, this);
         }
         if (pWho)
             if (BattleGround *bg = pWho->GetBattleGround())
@@ -1765,6 +1766,7 @@ void GameObject::DamageTaken(Unit* pDoneBy, uint32 damage)
         {
             SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED);
             SetUInt32Value(GAMEOBJECT_DISPLAYID, m_goInfo->destructibleBuilding.damagedDisplayId);
+            GetMap()->ScriptsStart(sEventScripts, m_goInfo->destructibleBuilding.damageEvent, pDoneBy, this);
             // if we have a "dead" display we can "kill" the building after its damaged
             if (m_goInfo->destructibleBuilding.destroyedDisplayId)
             {
@@ -1793,6 +1795,7 @@ void GameObject::Rebuild(Unit* pWho)
     RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED | GO_FLAG_DESTROYED);
     SetUInt32Value(GAMEOBJECT_DISPLAYID, m_goInfo->displayId);
     m_health = GetMaxHealth();
+    GetMap()->ScriptsStart(sEventScripts, m_goInfo->destructibleBuilding.rebuildingEvent, pWho, this);
 
     SetGoAnimProgress(255);
 }

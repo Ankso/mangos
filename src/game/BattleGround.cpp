@@ -1683,19 +1683,21 @@ Creature* BattleGround::AddCreature(uint32 entry, uint32 type, uint32 teamval, f
 
     Creature* pCreature = new Creature;
 	CreatureCreatePos pos(map, x, y, z, o, PHASEMASK_NORMAL);
-    if (!pCreature->Create(GetBgMap()->GenerateLocalLowGuid(HIGHGUID_UNIT), pos, entry, TEAM_NONE))
+    CreatureInfo const *cinfo = ObjectMgr::GetCreatureTemplate(entry);
+    
+    if (!cinfo)
+    {
+        sLog.outErrorDb("Battleground::AddCreature: entry %u does not exist.", entry);
+        return NULL;
+    }
+
+    if (!pCreature->Create(GetBgMap()->GenerateLocalLowGuid(HIGHGUID_UNIT), pos, cinfo, TEAM_NONE))
     {
         sLog.outError("Can't create creature entry: %u",entry);
         delete pCreature;
         return NULL;
     }
 
-    CreatureInfo const *cinfo = ObjectMgr::GetCreatureTemplate(entry);
-    if (!cinfo)
-    {
-        sLog.outErrorDb("Battleground::AddCreature: entry %u does not exist.", entry);
-        return NULL;
-    }
     //force using DB speeds
     pCreature->SetSpeedRate(MOVE_WALK,  cinfo->speed_walk);
     pCreature->SetSpeedRate(MOVE_RUN,   cinfo->speed_run);

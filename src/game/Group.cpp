@@ -349,6 +349,8 @@ bool Group::AddMember(ObjectGuid guid, const char* name)
         // quest related GO state dependent from raid membership
         if(isRaidGroup())
             player->UpdateForQuestWorldObjects();
+
+        sLFGMgr.Leave(player);
     }
 
     return true;
@@ -396,6 +398,8 @@ uint32 Group::RemoveMember(ObjectGuid guid, RemoveMethod method)
             }
 
             _homebindIfInstance(player);
+
+            sLFGMgr.Leave(player);
         }
 
         if (leaderChanged)
