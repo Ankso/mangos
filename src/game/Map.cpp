@@ -1432,8 +1432,6 @@ bool DungeonMap::Add(Player *player)
                 player->RepopAtGraveyard();
             }
         }
-        // OK, and now the hack: this will prevent the "walking without moving" visual bug in instances:
-        player->Unmount();
     }
 
     // for normal instances cancel the reset schedule when the

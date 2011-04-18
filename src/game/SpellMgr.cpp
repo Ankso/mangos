@@ -4381,12 +4381,18 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         case SPELLFAMILY_HUNTER:
         {
             // Freezing Trap & Freezing Arrow & Wyvern Sting
-            if  (spellproto->SpellIconID == 180 || spellproto->SpellIconID == 1721)
+            if  (spellproto->SpellIconID == 180 || (spellproto->SpellIconID == 1721 && spellproto->SpellFamilyFlags & UI64LIT(0x0000100000000000)))
                 return DIMINISHING_DISORIENT;
+			// Hunter's Mark
+            if (spellproto->SpellFamilyFlags & UI64LIT(0x400))
+                return DIMINISHING_LIMITONLY;
             break;
         }
         case SPELLFAMILY_WARLOCK:
         {
+			// Warlock Curses
+            if (spellproto->Dispel == DISPEL_CURSE)
+                return DIMINISHING_LIMITONLY;
             // Curses/etc
             if (spellproto->SpellFamilyFlags & UI64LIT(0x00080000000))
                 return DIMINISHING_LIMITONLY;
@@ -4468,11 +4474,21 @@ int32 GetDiminishingReturnsLimitDuration(DiminishingGroup group, SpellEntry cons
     // Explicit diminishing duration
     switch(spellproto->SpellFamilyName)
     {
+		case SPELLFAMILY_WARLOCK:
+        {
+            // Warlock Curses
+            if (spellproto->Dispel == DISPEL_CURSE)
+                return 120000;
+            break;
+        }
         case SPELLFAMILY_HUNTER:
         {
             // Wyvern Sting
             if (spellproto->SpellFamilyFlags & UI64LIT(0x0000100000000000))
                 return 6000;
+			// Hunter's Mark
+            if (spellproto->SpellFamilyFlags & UI64LIT(0x400))
+                return 120000;
             break;
         }
         case SPELLFAMILY_PALADIN:
