@@ -1802,8 +1802,6 @@ uint32 AchievementMgr::GetCriteriaProgressMaxCounter(AchievementCriteriaEntry co
             return achievementCriteria->honorable_kill.killCount;
         case ACHIEVEMENT_CRITERIA_TYPE_HIGHEST_PERSONAL_RATING:
             return achievementCriteria->highest_personal_rating.teamrating;
-        case ACHIEVEMENT_CRITERIA_TYPE_USE_LFD_TO_GROUP_WITH_PLAYERS:
-            return achievementCriteria->use_lfg.dungeonsComplete;
 
         // handle all statistic-only criteria here
         case ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_BATTLEGROUND:
