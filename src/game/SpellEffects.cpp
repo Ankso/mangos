@@ -3337,7 +3337,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 if (!unitTarget)
                     return;
 
-                if (unitTarget->GetVehicle() || unitTarget->GetVehicleKit()) // Don't allow do this to players on vehicles or to vehicles.
+                if (unitTarget->GetObjectGuid().IsVehicle()) // Don't allow do this to players on vehicles or to vehicles.
                     return;
 
                 m_caster->CastSpell(unitTarget, 49560, true);
@@ -9568,6 +9568,32 @@ void Spell::EffectKnockBack(SpellEffectIndex eff_idx)
 {
     if(!unitTarget)
         return;
+
+	if (unitTarget->GetTypeId() != TYPEID_PLAYER)
+        if (((Creature*)unitTarget)->IsWorldBoss())
+            return;
+
+    // Can't knockback rooted target
+    if (unitTarget->hasUnitState(UNIT_STAT_ROOT))
+        return;
+
+    if (unitTarget->GetObjectGuid().IsVehicle())
+        return;
+
+    // Typhoon
+    if (m_spellInfo->SpellFamilyName == SPELLFAMILY_DRUID && m_spellInfo->SpellFamilyFlags & UI64LIT(0x100000000000000) )
+        if (m_caster->HasAura(62135)) // Glyph of Typhoon
+            return;
+
+    // Thunderstorm
+    if (m_spellInfo->SpellFamilyName == SPELLFAMILY_SHAMAN && m_spellInfo->SpellFamilyFlags & UI64LIT(0x00200000000000))
+        if (m_caster->HasAura(62132)) // Glyph of Thunderstorm
+            return;
+
+    // Blast Wave
+    if (m_spellInfo->SpellFamilyName == SPELLFAMILY_MAGE && m_spellInfo->SpellFamilyFlags & UI64LIT(0x0004000000000))
+        if (m_caster->HasAura(62126)) // Glyph of Blast Wave
+            return;
 
     unitTarget->KnockBackFrom(m_caster,float(m_spellInfo->EffectMiscValue[eff_idx])/10,float(damage)/10);
 }
