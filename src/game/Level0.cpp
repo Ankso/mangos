@@ -102,7 +102,7 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
     else
         full = " "; //_FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,REVISION_ID);
 
-    SendSysMessage("Revision ReinoDeLaOscuridad: [R162] || Conoce los ultimos cambios entrando en www.reinodelaoscuridad.com");
+    SendSysMessage("Revision ReinoDeLaOscuridad: [R165] || Conoce los ultimos cambios entrando en www.reinodelaoscuridad.com");
     //Don't send revision info to normal players, for some hacks, you need the server rev. =/
     if(chr->isGameMaster())
     {
