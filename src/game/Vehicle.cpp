@@ -24,7 +24,6 @@
 #include "CreatureAI.h"
 #include "Util.h"
 #include "WorldPacket.h"
-#include "InstanceData.h"
 
 VehicleInfo::VehicleInfo(VehicleEntry const* entry) :
     m_vehicleEntry(entry)

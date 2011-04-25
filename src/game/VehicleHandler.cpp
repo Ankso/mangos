@@ -39,7 +39,13 @@ void WorldSession::HandleDismissControlledVehicle(WorldPacket &recv_data)
     if(!GetPlayer()->GetVehicle())
         return;
 
-    bool dismiss = true;
+	if (!GetPlayer()->GetVehicleInfo())
+		return;
+
+	if (!GetPlayer()->GetVehicleInfo()->GetEntry())
+		return;
+
+	bool dismiss = true;
 
     if (GetPlayer()->GetVehicleInfo()->GetEntry()->m_flags & (VEHICLE_FLAG_NOT_DISMISS | VEHICLE_FLAG_ACCESSORY))
         dismiss = false;
