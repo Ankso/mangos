@@ -1124,7 +1124,7 @@ void WardenMgr::ReactToCheatCheckResult(WorldSession* const session, bool result
         if (m_Banning)
         {
             sWorld.SendWorldText(LANG_WARDEN_BAN, session->GetPlayer()->GetName(), uint32(session->m_WardenTimer.GetCurrent()/1000));
-            sWorld.BanAccount(session, 24 * HOUR, "Uso de software ilegal/cheats", "Sistema Warden");
+            sWorld.BanAccount(session, 15 * DAY, "Uso de software ilegal/cheats", "Sistema Warden");
         }
         else
             session->KickPlayer();
