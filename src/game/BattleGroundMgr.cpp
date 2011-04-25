@@ -1526,16 +1526,20 @@ BattleGround * BattleGroundMgr::CreateNewBattleGround(BattleGroundTypeId bgTypeI
         // Custom - only select random BGs 40vs40 if a minimun amount of online players is reached:
         if (sWorld.GetActiveSessionCount() > MIN_PLAYERS_FOR_ALL_BGS)
         {
-            DEBUG_LOG("More than %u players online, selecting random BG including 40vs40 maps", MIN_PLAYERS_FOR_ALL_BGS);
+            DETAIL_LOG("More than %u players online, selecting random BG including 40vs40 maps", MIN_PLAYERS_FOR_ALL_BGS);
             BattleGroundTypeId random_bgs[] = {BATTLEGROUND_AV, BATTLEGROUND_WS, BATTLEGROUND_AB, BATTLEGROUND_EY, BATTLEGROUND_SA, BATTLEGROUND_IC};
             uint32 bg_num = urand(0, sizeof(random_bgs)/sizeof(BattleGroundTypeId)-1);
+            if (bg_num == 4) // SA has some troubles sometimes, so decrease drastically the number of SotA BGs
+                uint32 bg_num = urand(0, sizeof(random_bgs)/sizeof(BattleGroundTypeId)-1);
             bgTypeId = random_bgs[bg_num];
         }
         else
         {
-            DEBUG_LOG("Less than %u players online, selecting random BG excluding 40vs40 maps", MIN_PLAYERS_FOR_ALL_BGS);
+            DETAIL_LOG("Less than %u players online, selecting random BG excluding 40vs40 maps", MIN_PLAYERS_FOR_ALL_BGS);
             BattleGroundTypeId random_bgs[] = {/*BATTLEGROUND_AV,*/ BATTLEGROUND_WS, BATTLEGROUND_AB, BATTLEGROUND_EY, BATTLEGROUND_SA/*, BATTLEGROUND_IC*/};
             uint32 bg_num = urand(0, sizeof(random_bgs)/sizeof(BattleGroundTypeId)-1);
+            if (bg_num == 3) // SA has some troubles sometimes, so decrease drastically the number of SotA BGs
+                uint32 bg_num = urand(0, sizeof(random_bgs)/sizeof(BattleGroundTypeId)-1);
             bgTypeId = random_bgs[bg_num];
         }
 
