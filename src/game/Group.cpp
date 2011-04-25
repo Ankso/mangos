@@ -35,6 +35,9 @@
 #include "LootMgr.h"
 #include "LFGMgr.h"
 
+// Playerbot
+#include "playerbot/PlayerbotMgr.h"
+
 #define LOOT_ROLL_TIMEOUT  (1*MINUTE*IN_MILLISECONDS)
 
 //===================================================
@@ -361,6 +364,14 @@ uint32 Group::RemoveMember(ObjectGuid guid, RemoveMethod method)
     // Frozen Mod
     BroadcastGroupUpdate();
     // Frozen Mod
+
+    //Playerbot mod - if master leaves group, all bots leave group
+    {
+        Player* const player = sObjectMgr.GetPlayer(guid);
+        if (player && player->GetPlayerbotMgr())
+            player->GetPlayerbotMgr()->RemoveAllBotsFromGroup();
+    }
+    //END Playerbot mod
 
     // remove member and change leader (if need) only if strong more 2 members _before_ member remove
     if (GetMembersCount() > ((isBGGroup() || isLFGGroup()) ? 1u : 2u))    // in BG or LFG group case allow 1 members group
@@ -868,7 +879,7 @@ void Group::CountTheRoll(Rolls::iterator& rollI)
 
                 ItemPosCountVec dest;
                 LootItem *item = &(roll->getLoot()->items[roll->itemSlot]);
-                uint8 msg = player->CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, roll->itemid, item->count );
+                InventoryResult msg = player->CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, roll->itemid, item->count );
                 if ( msg == EQUIP_ERR_OK )
                 {
                     item->is_looted = true;
@@ -924,7 +935,7 @@ void Group::CountTheRoll(Rolls::iterator& rollI)
                 if(rollvote == ROLL_GREED)
                 {
                     ItemPosCountVec dest;
-                    uint8 msg = player->CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, roll->itemid, item->count );
+                    InventoryResult msg = player->CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, roll->itemid, item->count );
                     if ( msg == EQUIP_ERR_OK )
                     {
                         item->is_looted = true;
