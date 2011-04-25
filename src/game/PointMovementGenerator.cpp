@@ -49,7 +49,7 @@ void PointMovementGenerator<T>::Initialize(T &unit)
 
     if (unit.GetTypeId() == TYPEID_UNIT && ((Creature*)&unit)->CanFly() &&
         !(((Creature*)&unit)->CanWalk() && ((Creature*)&unit)->IsAtGroundLevel(i_x, i_y, i_z)))
-        ((Creature&)unit).AddSplineFlag(SPLINEFLAG_UNKNOWN7);
+        ((Creature&)unit).AddSplineFlag(SPLINEFLAG_FLYING);
 }
 
 template<class T>

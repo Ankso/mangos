@@ -53,7 +53,6 @@ class PlayerMenu;
 class UpdateMask;
 class SpellCastTargets;
 class PlayerSocial;
-class Vehicle;
 class DungeonPersistentState;
 class Spell;
 class Item;
