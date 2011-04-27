@@ -90,6 +90,8 @@ bool ChatHandler::HandleStartCommand(char* /*args*/)
 bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
 {
     Player *chr = m_session->GetPlayer();
+    if (!chr)
+        return;
     uint32 activeClientsNum = sWorld.GetActiveSessionCount();
     uint32 queuedClientsNum = sWorld.GetQueuedSessionCount();
     uint32 maxActiveClientsNum = sWorld.GetMaxActiveSessionCount();
@@ -137,7 +139,6 @@ bool ChatHandler::HandleQuestAutoCompleteCommand(char* args)
         12779,  // A End to All Things... (DKs)
         12848,  // The Endless Hunger (DKs - Sometimes works, sometimes not)
         12687,  // Into the realm of Shadows (DKs)
-
         13625,  // Learning The Reins (H)
         13677,  //     "     "    "   (A)
         12727,  // Bloody breakout (DKs - Sometimes the script fails)
@@ -455,6 +456,12 @@ bool ChatHandler::HandleRatesCommand(char* args)
     Player *plr = m_session->GetPlayer();
     if (!plr)
         return false;
+
+    if (plr->getLevel() >= sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL) || plr->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_XP_USER_DISABLED))
+    {
+        PSendSysMessage("Este comando ya no se encuentra disponible ya que el personaje %s no puede ganar experiencia.");
+        return true;
+    }
 
     if (!*args)
     {

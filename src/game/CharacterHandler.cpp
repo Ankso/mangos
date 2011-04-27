@@ -496,6 +496,9 @@ void WorldSession::HandleCharCreateOpcode( WorldPacket & recv_data )
 
     pNewChar->SetAtLoginFlag(AT_LOGIN_FIRST);               // First login
 
+    // Custom rates: set to default
+    pNewChar->SetXpRate(sWorld.getConfig(CONFIG_UINT32_DEFAULT_XP_RATES));
+
     // Player created, save it now
     pNewChar->SaveToDB();
     charcount += 1;

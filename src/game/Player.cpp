@@ -2686,7 +2686,7 @@ void Player::GiveXP(uint32 xp, Unit* victim)
     if(level >= sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
         return;
 
-    // Apply now custom xp rate, loaded from db.
+    // Apply now custom xp rate, loaded from DB.
     xp = xp * GetXpRate();
 
     if(victim)
@@ -14650,7 +14650,7 @@ void Player::RewardQuest(Quest const *pQuest, uint32 reward, Object* questGiver,
     // Not give XP in case already completed once repeatable quest
     uint32 XP = q_status.m_rewarded ? 0 : uint32(pQuest->XPValue(this)*sWorld.getConfig(CONFIG_FLOAT_RATE_XP_QUEST));
 
-    if (getLevel() < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
+    if (getLevel() < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL) && !HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_XP_USER_DISABLED))
         GiveXP(XP , NULL);
     else
     {
@@ -16669,10 +16669,12 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder *holder )
 
     // Custom experience rate for each player
     SetXpRate(fields[66].GetUInt8());
-    if (GetXpRate() > MAX_PLAYER_XP_RATES)
+    if (getLevel() == sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
+        SetXpRate(sWorld.getConfig(CONFIG_UINT32_DEFAULT_XP_RATES));
+    else if (GetXpRate() > sWorld.getConfig(CONFIG_UINT32_MAX_XP_RATES))
     {
-        sLog.outError("Player %s has xp_rate > 10, setting his/her rates to default max: %u", GetName(), MAX_PLAYER_XP_RATES);
-        SetXpRate(MAX_PLAYER_XP_RATES); // Preventive
+        sLog.outError("Player %s has bad experience rates, setting his/her rates to default max: %u", GetName(), sWorld.getConfig(CONFIG_UINT32_MAX_XP_RATES));
+        SetXpRate(sWorld.getConfig(CONFIG_UINT32_MAX_XP_RATES)); // Preventive
     }
     DETAIL_LOG("Custom experience rate for player %s is: %u", m_name.c_str(), GetXpRate());
 
@@ -18003,17 +18005,6 @@ void Player::SaveToDB()
 
     DEBUG_FILTER_LOG(	LOG_FILTER_PLAYER_STATS, "The value of player %s at save: ", m_name.c_str());
     outDebugStatsValues();
-    
-    /* WoWArmory */
-    std::ostringstream ps;
-    ps << "REPLACE INTO armory_character_stats (guid,data) VALUES ('" << GetGUIDLow() << "', '";
-    for(uint16 i = 0; i < m_valuesCount; ++i )
-    {
-        ps << GetUInt32Value(i) << " ";
-    }
-    ps << "')";
-    CharacterDatabase.Execute( ps.str().c_str() );
-    /* WoWArmory */
 
     /** World of Warcraft Armory **/
     if (sWorld.getConfig(CONFIG_BOOL_ARMORY_SUPPORT))
@@ -24254,4 +24245,18 @@ uint8 Player::GetTalentsCount(uint8 tab)
         talentCount += talent.currentRank + 1;
     }
     return talentCount;
+}
+
+bool Player::HasCharacterAtMaxLevel()
+{
+    bool hasCharAtMaxLevel = false;
+    QueryResult *result = CharacterDatabase.PQuery("SELECT COUNT(guid) FROM characters WHERE account = %u AND level = %u", GetSession()->GetAccountId(), sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL));
+    if (result)
+    {
+        Field *fields = result->Fetch();
+        if (fields[0].GetUInt8() > 0)
+            hasCharAtMaxLevel = true;
+        delete result;
+    }
+    return hasCharAtMaxLevel;
 }

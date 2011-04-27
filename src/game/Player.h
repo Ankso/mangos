@@ -772,8 +772,6 @@ enum TransferAbortReason
     TRANSFER_ABORT_MAP_NOT_ALLOWED              = 0x10,     // Map can't be entered at this time.
 };
 
-#define MAX_PLAYER_XP_RATES 10
-
 enum ReferAFriendError
 {
     ERR_REFER_A_FRIEND_NONE                          = 0x00,
@@ -2436,6 +2434,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         // Custom xp rating system
         uint8 GetXpRate() { return m_xpRate; }
         void SetXpRate(uint8 xp) { m_xpRate = xp; }
+        bool HasCharacterAtMaxLevel();
 
         // Playerbot mod:
         // A Player can either have a playerbotMgr (to manage its bots), or have playerbotAI (if it is a bot), or
@@ -2685,8 +2684,10 @@ class MANGOS_DLL_SPEC Player : public Unit
         ObjectGuid m_curGrantLevelGiverGuid;
 
         int32 m_GrantableLevelsCount;
+
         // Custom xp rating system
         uint8 m_xpRate;
+        bool m_characterAtMaxLevel;
 
     private:
         void _HandleDeadlyPoison(Unit* Target, WeaponAttackType attType, SpellEntry const *spellInfo);
