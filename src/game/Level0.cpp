@@ -91,7 +91,7 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
 {
     Player *chr = m_session->GetPlayer();
     if (!chr)
-        return;
+        return false;
     uint32 activeClientsNum = sWorld.GetActiveSessionCount();
     uint32 queuedClientsNum = sWorld.GetQueuedSessionCount();
     uint32 maxActiveClientsNum = sWorld.GetMaxActiveSessionCount();
@@ -457,15 +457,24 @@ bool ChatHandler::HandleRatesCommand(char* args)
     if (!plr)
         return false;
 
+    if (sWorld.getConfig(CONFIG_UINT32_DEFAULT_XP_RATES) == sWorld.getConfig(CONFIG_UINT32_MAX_XP_RATES))
+    {
+        PSendSysMessage(LANG_CUSTOM_RATES_DISABLED);
+        // PSendSysMessage("El sistema de rates personalizadas no se encuentra activo en este momento.");
+        return true;
+    }
+
     if (plr->getLevel() >= sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL) || plr->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_XP_USER_DISABLED))
     {
-        PSendSysMessage("Este comando ya no se encuentra disponible ya que el personaje %s no puede ganar experiencia.");
+        PSendSysMessage(LANG_CUSTOM_RATES_CHARACTER_MAX_LEVEL);
+        // PSendSysMessage("Este comando ya no se encuentra disponible ya que el personaje %s no puede ganar experiencia.");
         return true;
     }
 
     if (!*args)
     {
-        PSendSysMessage("Las rates de experiencia del personaje %s son actualmente: %u", plr->GetName(), plr->GetXpRate());
+        PSendSysMessage(LANG_CUSTOM_RATES_CHANGED);
+        // PSendSysMessage("Las rates de experiencia del personaje %s son actualmente: %u", plr->GetName(), plr->GetXpRate());
         return false;
     }
 
@@ -478,7 +487,8 @@ bool ChatHandler::HandleRatesCommand(char* args)
     }
 
     plr->SetXpRate(new_rates);
-    PSendSysMessage("Las rates de experiencia de %s se han establecido a %u", plr->GetName(), new_rates);
+    PSendSysMessage(LANG_CUSTOM_RATES_XP_ESTABLISHED);
+    // PSendSysMessage("Las rates de experiencia de %s se han establecido a %u", plr->GetName(), new_rates);
     
     return true;
 }

@@ -1005,6 +1005,12 @@ enum MangosStrings
     // Warden ban broadcast
     LANG_WARDEN_BAN                     = 20200,
 
+    // Custom rates system
+    LANG_CUSTOM_RATES_DISABLED            = 30000,
+    LANG_CUSTOM_RATES_CHARACTER_MAX_LEVEL = 30001,
+    LANG_CUSTOM_RATES_CHANGED             = 30002,
+    LANG_CUSTOM_RATES_XP_ESTABLISHED      = 30003
+
     // NOT RESERVED IDS                   12000-1999999999
     // `db_script_string` table index     2000000000-2000009999 (MIN_DB_SCRIPT_STRING_ID-MAX_DB_SCRIPT_STRING_ID)
     // For other tables maybe             2000010000-2147483647 (max index)

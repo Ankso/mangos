@@ -1984,3 +1984,20 @@ PlayerbotAI.MaxNumBots = 9
 PlayerbotAI.RestrictBotLevel = 80
 PlayerbotAI.BotguyQuests = ""
 PlayerbotAI.BotguyCost = 0
+
+###################################################################################################################
+# PER CHARACTER CUSTOM EXPERIENCE RATES SYSTEM
+#
+#    CustomRates.Default
+#        Default rates for character at first login
+#        Default: 1
+#
+#    CustomRates.Max
+#        Maximun rates selectable by players
+#        Default: 1
+#
+# NOTE: This values are going to be multiplied by normal rates in previous config options. Be carefull.
+#
+###################################################################################################################
+CustomRates.Default = 1
+CustomRates.Max     = 1

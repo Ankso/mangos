@@ -1,0 +1,5 @@
+INSERT INTO mangos_string VALUES
+(30000, "The custom rates system is not enabled in this moment.", NULL, NULL, NULL, NULL, NULL, "El sistema de rates personalizadas no se encuentra activo en este momento.", "El sistema de rates personalizadas no se encuentra activo en este momento.", NULL),
+(30001, "This commands is not enabled in this moment because the character %s can\'t gain experience.", NULL, NULL, NULL, NULL, NULL, "Este comando ya no se encuentra disponible ya que el personaje %s no puede ganar experiencia.", "Este comando ya no se encuentra disponible ya que el personaje %s no puede ganar experiencia.", NULL),
+(30002, "The experience rates for character %s are: x%u", NULL, NULL, NULL, NULL, NULL, "Las rates de experiencia del personaje %s son actualmente: %u", "Las rates de experiencia del personaje %s son actualmente: %u", NULL),
+(30003, "The experience rates for character %s have been set to x%u", NULL, NULL, NULL, NULL, NULL, "Las rates de experiencia de %s se han establecido a %u", "Las rates de experiencia de %s se han establecido a %u", NULL);
