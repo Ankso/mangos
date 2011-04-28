@@ -107,11 +107,7 @@ void WardenMgr::Update(uint32 diff)
         }
         else if (m_PingOut && !m_Disconnected)
         {
-            sLog.outError("Connection to Warden Daemon lost, trying to reconnect in the background");
-            m_Connector.close();
-            m_PingTimer.Reset();
-            m_PingTimer.SetCurrent(m_PingTimer.GetInterval()); // expire it
-            m_Disconnected = true;
+            SetDisconnected();
         }
         else
         {
@@ -156,7 +152,7 @@ void WardenMgr::Update(WorldSession* const session)
                 SendCheatCheck(session);
                 session->m_wardenStatus = WARD_STATE_CHEAT_CHECK_OUT;
                 session->m_WardenTimer.SetInterval( 2 * MINUTE * IN_MILLISECONDS);
-                session->m_WardenTimer.Reset();
+                session->m_WardenTimer.SetCurrent(0);   // 2 full minutes
                 return;
             default:
                 break;
@@ -179,6 +175,17 @@ void WardenMgr::Update(WorldSession* const session)
         session->m_WardenTimer.SetInterval(10 * IN_MILLISECONDS);
         session->m_WardenTimer.Reset();
         session->m_wardenStatus = WARD_STATE_PENDING_WARDEND;
+    }
+}
+
+void WardenMgr::SetDisconnected()
+{
+    if (!m_Disconnected)
+    {
+        sLog.outError("Connection to Warden Daemon lost, trying to reconnect in the background");
+        m_Connector.close();
+        m_PingTimer.SetCurrent(m_PingTimer.GetInterval()); // expire it
+        m_Disconnected = true;
     }
 }
 
@@ -1117,14 +1124,14 @@ void WardenMgr::ReactToCheatCheckResult(WorldSession* const session, bool result
         const uint32 shortTime = urand(15, 25);                 // from 15 to 25 seconds
         session->m_WardenTimer.SetInterval(shortTime * IN_MILLISECONDS);
         DEBUG_LOG("Timer set to %u seconds", shortTime);
-        session->m_WardenTimer.SetCurrent(0);                   // so that we don't overload the timer
+        session->m_WardenTimer.SetCurrent(0);                   // Full time choosen
     }
     else
     {
         if (m_Banning)
         {
             sWorld.SendWorldText(LANG_WARDEN_BAN, session->GetPlayer()->GetName(), uint32(session->m_WardenTimer.GetCurrent()/1000));
-            sWorld.BanAccount(session, 15 * DAY, "Uso de software ilegal/cheats", "Sistema Warden");
+            sWorld.BanAccount(session, sWorld.getConfig(CONFIG_UINT32_WARDEN_BAN_TIME) * 24 * HOUR, "Uso de software ilegal/Cheats", "Sistema Warden");
         }
         else
             session->KickPlayer();
@@ -1167,7 +1174,7 @@ void WorldSession::HandleWardenDataOpcode(WorldPacket& recv_data)
                 {
                     sWardenMgr.SendModule(this);
                     m_wardenStatus = WARD_STATE_LOAD_FAILED;
-                    m_WardenTimer.SetInterval(20 * IN_MILLISECONDS);
+                    m_WardenTimer.SetInterval(30 * IN_MILLISECONDS);
                     m_WardenTimer.Reset();
                 }
                 break;
@@ -1215,7 +1222,8 @@ void WorldSession::HandleWardenDataOpcode(WorldPacket& recv_data)
 const WardenSvcHandler::WardenMgrCmd table[] =
 {
     { WMSG_WARDEN_KEYS,                 &WardenSvcHandler::_HandleNewKeys                   },
-    { WMSG_PONG,                        &WardenSvcHandler::_HandlePong                      }
+    { WMSG_PONG,                        &WardenSvcHandler::_HandlePong                      },
+    { WMSG_CONNECTION_END,              &WardenSvcHandler::_HandleDisconnect                }
 };
 
 #define WARDEN_REPLY_TOTAL_COMMANDS sizeof(table)/sizeof(WardenMgrCmd)
@@ -1232,15 +1240,23 @@ int WardenSvcHandler::handle_input(ACE_HANDLE /*handle*/)
 {
     uint8 _cmd;
     Peer->recv_n(&_cmd, 1);
+    bool _valid = false;
 
     for (int i = 0; i < WARDEN_REPLY_TOTAL_COMMANDS; ++i)
     {
         if ((uint8)table[i].cmd == _cmd)
         {
+            _valid = true;
             if (!(*this.*table[i].handler)())
                 return 0;
             break;
         }
+    }
+    if (!_valid) // Empty the queue
+    {
+        uint8 _trash[1024];
+        sLog.outError("Unexpected packet [%u] from Wardend, trashing it", _cmd);
+        Peer->recv_n(_trash, 1024);
     }
     return 0;
 }
@@ -1278,6 +1294,12 @@ bool WardenSvcHandler::_HandleNewKeys()
 bool WardenSvcHandler::_HandlePong()
 {
     sWardenMgr.Pong();
+    return true;
+}
+
+bool WardenSvcHandler::_HandleDisconnect()
+{
+    sWardenMgr.SetDisconnected();
     return true;
 }
 

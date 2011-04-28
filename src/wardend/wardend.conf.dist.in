@@ -16,16 +16,14 @@ ConfVersion=2010111901
 #
 #    WardenServerPort
 #         Default WardenServerPort
-#         Default: 4321
+#         Default: 6555
 #
 #    BindIP
-#         Bind Realm Server to IP/hostname
-#         This option is useful for running multiple worldd/realmd instances
-#         on different IP addresses using default ports.
-#         DO NOT CHANGE THIS UNLESS YOU _REALLY_ KNOW WHAT YOU'RE DOING
+#         Bind Warden Deamon to IP/hostname
+#         This option is useful to protect wardend from outside
 #
 #    PidFile
-#        Realmd daemon PID file
+#        Wardend daemon PID file
 #        Default: ""             - do not create PID file
 #                 "./wardend.pid" - create PID file (recommended name)
 #
@@ -41,7 +39,7 @@ ConfVersion=2010111901
 #
 #    LogFile
 #        Logfile name
-#        Default: "Realmd.log"
+#        Default: "Wardend.log"
 #                 "" - empty name disable creating log file
 #
 #    LogTimestamp
@@ -80,7 +78,7 @@ ConfVersion=2010111901
 ###################################################################################################################
 
 LogsDir = ""
-WardenServerPort = 4321
+WardenServerPort = 6555
 BindIP = "0.0.0.0"
 PidFile = ""
 LogLevel = 0

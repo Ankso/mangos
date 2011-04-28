@@ -929,6 +929,9 @@ void World::LoadConfigSettings(bool reload)
         enableLOS, enableHeight, getConfig(CONFIG_BOOL_VMAP_INDOOR_CHECK) ? 1 : 0);
     sLog.outString( "WORLD: VMap data directory is: %svmaps",m_dataPath.c_str());
 
+    // Warden ban time
+    setConfig(CONFIG_UINT32_WARDEN_BAN_TIME, "Wardend.BanLength", 1);
+
     setConfig(CONFIG_BOOL_MMAP_ENABLED, "mmap.enabled", true);
     std::string ignoreMapIds = sConfig.GetStringDefault("mmap.ignoreMapIds", "");
     MMAP::MMapFactory::preventPathfindingOnMaps(ignoreMapIds.c_str());
@@ -1440,10 +1443,12 @@ void World::SetInitialWorldSettings()
     uint32 nextGameEvent = sGameEventMgr.Initialize();
     m_timers[WUPDATE_EVENTS].SetInterval(nextGameEvent);    //depend on next event
 
-    if (sConfig.GetBoolDefault("wardend.enable"))
+    if (sConfig.GetBoolDefault("wardend.Enable"))
     {
         sLog.outString("Starting Warden system...");
-        sWardenMgr.Initialize(sConfig.GetStringDefault("wardend.address","127.0.0.1").c_str(),sConfig.GetIntDefault("wardend.port",4321),sConfig.GetBoolDefault("wardend.ban"));
+        sWardenMgr.Initialize(sConfig.GetStringDefault("wardend.Address", "127.0.0.1").c_str(),
+            sConfig.GetIntDefault("wardend.Port", DEFAULT_WARDENSERVER_PORT),
+            sConfig.GetBoolDefault("wardend.Ban"));
         m_timers[WUPDATE_WARDEN].SetInterval(1 * IN_MILLISECONDS);
     }
     else
@@ -1854,8 +1859,13 @@ void World::KickAllLess(AccountTypes sec)
 
 BanReturn World::BanAccount(WorldSession *session, uint32 duration_secs, std::string reason, std::string author)
 {
-    LoginDatabase.PExecute("INSERT INTO account_banned VALUES ('%u', UNIX_TIMESTAMP(), UNIX_TIMESTAMP()+%u, '%s', '%s', '1')",
-        session->GetAccountId(), duration_secs, author.c_str(), reason.c_str());
+    if (duration_secs)
+        LoginDatabase.PExecute("INSERT INTO account_banned VALUES ('%u', UNIX_TIMESTAMP(), UNIX_TIMESTAMP()+%u, '%s', '%s', '1')",
+            session->GetAccountId(), duration_secs, author.c_str(), reason.c_str());
+    else
+        LoginDatabase.PExecute("INSERT INTO account_banned VALUES ('%u', UNIX_TIMESTAMP(), 0, '%s', '%s', '1')",
+            session->GetAccountId(), author.c_str(), reason.c_str());
+
     session->KickPlayer();
     return BAN_SUCCESS;
 }
