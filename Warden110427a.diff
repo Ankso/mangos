@@ -1,8 +1,8 @@
 diff --git a/sql/mangos.sql b/sql/mangos.sql
-index 98c8a9e..2ea76b4 100644
+index 2bb095f..75a7ddd 100644
 --- a/sql/mangos.sql
 +++ b/sql/mangos.sql
-@@ -17875,6 +17875,139 @@ LOCK TABLES `transports` WRITE;
+@@ -17878,6 +17878,139 @@ LOCK TABLES `transports` WRITE;
  UNLOCK TABLES;
  
  --
@@ -143,7 +143,7 @@ index 98c8a9e..2ea76b4 100644
  --
  
 diff --git a/sql/realmd.sql b/sql/realmd.sql
-index c25bfa4..759de9c 100644
+index 0fe246f..377e396 100644
 --- a/sql/realmd.sql
 +++ b/sql/realmd.sql
 @@ -54,10 +54,13 @@ CREATE TABLE `account` (
@@ -247,7 +247,7 @@ index 0000000..ba062d8
 +  ADD COLUMN `module_day` mediumint(8) unsigned NOT NULL default 0 AFTER `last_module`,
 +  ADD COLUMN `os` int(10) unsigned NOT NULL DEFAULT '0' AFTER `locale`;
 diff --git a/src/game/CharacterHandler.cpp b/src/game/CharacterHandler.cpp
-index 6df711e..e41c433 100644
+index 8816391..893c60b 100644
 --- a/src/game/CharacterHandler.cpp
 +++ b/src/game/CharacterHandler.cpp
 @@ -160,6 +160,8 @@ void WorldSession::HandleCharEnum(QueryResult * result)
@@ -260,7 +260,7 @@ index 6df711e..e41c433 100644
  
  void WorldSession::HandleCharEnumOpcode( WorldPacket & /*recv_data*/ )
 diff --git a/src/game/MiscHandler.cpp b/src/game/MiscHandler.cpp
-index af4a388..c1418f1 100644
+index d03cb8f..ac9b8bf 100644
 --- a/src/game/MiscHandler.cpp
 +++ b/src/game/MiscHandler.cpp
 @@ -1052,16 +1052,6 @@ void WorldSession::HandleSetActionBarTogglesOpcode(WorldPacket& recv_data)
@@ -281,7 +281,7 @@ index af4a388..c1418f1 100644
  {
      uint8 unk1;
 diff --git a/src/game/Opcodes.cpp b/src/game/Opcodes.cpp
-index e81f6a9..0ea8151 100644
+index c19f218..734600d 100644
 --- a/src/game/Opcodes.cpp
 +++ b/src/game/Opcodes.cpp
 @@ -769,7 +769,7 @@ OpcodeHandler opcodeTable[NUM_MSG_TYPES] =
@@ -295,10 +295,10 @@ index e81f6a9..0ea8151 100644
      /*0x2EA*/ { "CMSG_PET_STOP_ATTACK",                         STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandlePetStopAttack             },
 diff --git a/src/game/WardenMgr.cpp b/src/game/WardenMgr.cpp
 new file mode 100644
-index 0000000..97e5ec4
+index 0000000..36cae0b
 --- /dev/null
 +++ b/src/game/WardenMgr.cpp
-@@ -0,0 +1,1280 @@
+@@ -0,0 +1,1301 @@
 +/*
 + * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
 + *
@@ -407,11 +407,7 @@ index 0000000..97e5ec4
 +        }
 +        else if (m_PingOut && !m_Disconnected)
 +        {
-+            sLog.outError("Connection to Warden Daemon lost, trying to reconnect in the background");
-+            m_Connector.close();
-+            m_PingTimer.Reset();
-+            m_PingTimer.SetCurrent(m_PingTimer.GetInterval()); // expire it
-+            m_Disconnected = true;
++            SetDisconnected();
 +        }
 +        else
 +        {
@@ -427,36 +423,35 @@ index 0000000..97e5ec4
 +// Triggered by a session
 +void WardenMgr::Update(WorldSession* const session)
 +{
-+    m_HalfCall = !m_HalfCall;                   // To return half of the time since called 2 times
++    m_HalfCall = !m_HalfCall;                           // To return half of the time since called 2 times
 +    if (!m_HalfCall)
 +        return;
 +
-+    if (session->m_WardenTimer.Passed())        // We don't care the connection to wardend state to do cheat-checks or register
++    if (session->m_WardenTimer.Passed())                // We don't care the connection to wardend state to do cheat-checks or register
 +    {
 +        switch (session->m_wardenStatus)
 +        {
-+            case WARD_STATE_UNREGISTERED:
-+                // register a client that could not register earlier
++            case WARD_STATE_UNREGISTERED:               // register a client that could not register earlier
 +                StartForSession(session);
 +                return;
-+            case WARD_STATE_LOAD_MODULE:       // no reply to load module request (20 secs)
-+            case WARD_STATE_LOAD_FAILED:       // no reply after we sent the module to client (20 secs)
++            case WARD_STATE_LOAD_MODULE:                // no reply to load module request (20 secs)
++            case WARD_STATE_LOAD_FAILED:                // no reply after we sent the module to client (20 secs)
 +                BASIC_LOG("Warden Manager: no reply received for module load or 2 times load failed, kicking account %u", session->GetAccountId());
 +                session->KickPlayer();
 +                return;
-+            case WARD_STATE_TRANSFORM_SEED:    // no reply to transformed seed (20 secs)
++            case WARD_STATE_TRANSFORM_SEED:             // no reply to transformed seed (20 secs)
 +                BASIC_LOG("Warden Manager: no transformed seed received, kicking account %u", session->GetAccountId());
 +                session->KickPlayer();
 +                return;
-+            case WARD_STATE_CHEAT_CHECK_OUT:   // timeout waiting for a cheat check reply
++            case WARD_STATE_CHEAT_CHECK_OUT:            // timeout waiting for a cheat check reply
 +                BASIC_LOG("Warden Manager: no Cheat-check reply received, kicking account %u", session->GetAccountId());
 +                session->KickPlayer();
 +                return;
-+            case WARD_STATE_CHEAT_CHECK_IN:    // send cheat check
++            case WARD_STATE_CHEAT_CHECK_IN:             // send cheat check
 +                SendCheatCheck(session);
 +                session->m_wardenStatus = WARD_STATE_CHEAT_CHECK_OUT;
-+                session->m_WardenTimer.SetInterval( 2 * MINUTE * IN_MILLISECONDS);
-+                session->m_WardenTimer.Reset();
++                session->m_WardenTimer.SetInterval(2 * MINUTE * IN_MILLISECONDS);
++                session->m_WardenTimer.SetCurrent(0);   // 2 full minutes
 +                return;
 +            default:
 +                break;
@@ -465,7 +460,7 @@ index 0000000..97e5ec4
 +
 +    if (m_Disconnected)
 +    {
-+        session->m_WardenTimer.SetInterval( 15 * IN_MILLISECONDS); // push back warden activity in session by 15 seconds
++        session->m_WardenTimer.SetInterval(15 * IN_MILLISECONDS); // push back warden activity in session by 15 seconds
 +        session->m_WardenTimer.Reset();
 +        if (session->m_wardenStatus == WARD_STATE_PENDING_WARDEND)
 +            session->m_wardenStatus = WARD_STATE_NEED_WARDEND;     // We needed data, so have to redo the request
@@ -479,6 +474,17 @@ index 0000000..97e5ec4
 +        session->m_WardenTimer.SetInterval(10 * IN_MILLISECONDS);
 +        session->m_WardenTimer.Reset();
 +        session->m_wardenStatus = WARD_STATE_PENDING_WARDEND;
++    }
++}
++
++void WardenMgr::SetDisconnected()
++{
++    if (!m_Disconnected)
++    {
++        sLog.outError("Connection to Warden Daemon lost, trying to reconnect in the background");
++        m_Connector.close();
++        m_PingTimer.SetCurrent(m_PingTimer.GetInterval()); // expire it
++        m_Disconnected = true;
 +    }
 +}
 +
@@ -1176,7 +1182,7 @@ index 0000000..97e5ec4
 +void WardenMgr::SendWardenData(WorldSession* const session)
 +{
 +    DEBUG_LOG("WardenMgr::SendWardenData");
-+    WorldPacket data( SMSG_WARDEN_DATA, 1 + 2+4+20 + 1 + 2+4+8 + 1 +2+4+8); // 42 // 57 // 3.3.5a init packet
++    WorldPacket data(SMSG_WARDEN_DATA, 1 + 2+4+20 + 1 + 2+4+8 + 1 +2+4+8); // 42 // 57 // 3.3.5a init packet
 +    data << uint8(WARDS_DATA);
 +    {
 +        data << uint16(20);
@@ -1417,12 +1423,12 @@ index 0000000..97e5ec4
 +        const uint32 shortTime = urand(15, 25);                 // from 15 to 25 seconds
 +        session->m_WardenTimer.SetInterval(shortTime * IN_MILLISECONDS);
 +        DEBUG_LOG("Timer set to %u seconds", shortTime);
-+        session->m_WardenTimer.SetCurrent(0);                   // so that we don't overload the timer
++        session->m_WardenTimer.SetCurrent(0);                   // Full time choosen
 +    }
 +    else
 +    {
 +        if (m_Banning)
-+            sWorld.BanAccount(session, 24 * HOUR, "Cheating software usage", "Warden System");
++            sWorld.BanAccount(session, sWorld.getConfig(CONFIG_UINT32_WARDEN_BAN_TIME) * 24 * HOUR, "Cheating software usage", "Warden System");
 +        else
 +            session->KickPlayer();
 +    }
@@ -1433,7 +1439,7 @@ index 0000000..97e5ec4
 +/////////////////////////////
 +void WorldSession::HandleWardenRegister()
 +{
-+    if (sWardenMgr.IsEnabled())
++    if (sWardenMgr.IsEnabled() && m_wardenStatus == WARD_STATE_UNREGISTERED)
 +        sWardenMgr.Register(this);
 +}
 +
@@ -1464,7 +1470,7 @@ index 0000000..97e5ec4
 +                {
 +                    sWardenMgr.SendModule(this);
 +                    m_wardenStatus = WARD_STATE_LOAD_FAILED;
-+                    m_WardenTimer.SetInterval(20 * IN_MILLISECONDS);
++                    m_WardenTimer.SetInterval(30 * IN_MILLISECONDS);
 +                    m_WardenTimer.Reset();
 +                }
 +                break;
@@ -1512,7 +1518,8 @@ index 0000000..97e5ec4
 +const WardenSvcHandler::WardenMgrCmd table[] =
 +{
 +    { WMSG_WARDEN_KEYS,                 &WardenSvcHandler::_HandleNewKeys                   },
-+    { WMSG_PONG,                        &WardenSvcHandler::_HandlePong                      }
++    { WMSG_PONG,                        &WardenSvcHandler::_HandlePong                      },
++    { WMSG_CONNECTION_END,              &WardenSvcHandler::_HandleDisconnect                }
 +};
 +
 +#define WARDEN_REPLY_TOTAL_COMMANDS sizeof(table)/sizeof(WardenMgrCmd)
@@ -1529,15 +1536,23 @@ index 0000000..97e5ec4
 +{
 +    uint8 _cmd;
 +    Peer->recv_n(&_cmd, 1);
++    bool _valid = false;
 +
 +    for (int i = 0; i < WARDEN_REPLY_TOTAL_COMMANDS; ++i)
 +    {
 +        if ((uint8)table[i].cmd == _cmd)
 +        {
++            _valid = true;
 +            if (!(*this.*table[i].handler)())
 +                return 0;
 +            break;
 +        }
++    }
++    if (!_valid) // Empty the queue
++    {
++        uint8 _trash[1024];
++        sLog.outError("Unexpected packet [%u] from Wardend, trashing it", _cmd);
++        Peer->recv_n(_trash, 1024);
 +    }
 +    return 0;
 +}
@@ -1578,13 +1593,19 @@ index 0000000..97e5ec4
 +    return true;
 +}
 +
++bool WardenSvcHandler::_HandleDisconnect()
++{
++    sWardenMgr.SetDisconnected();
++    return true;
++}
++
 +INSTANTIATE_SINGLETON_1(WardenMgr);
 diff --git a/src/game/WardenMgr.h b/src/game/WardenMgr.h
 new file mode 100644
-index 0000000..7ed74b0
+index 0000000..11640e4
 --- /dev/null
 +++ b/src/game/WardenMgr.h
-@@ -0,0 +1,228 @@
+@@ -0,0 +1,230 @@
 +/*
 + * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
 + *
@@ -1658,6 +1679,7 @@ index 0000000..7ed74b0
 +        }WardenHandler;
 +
 +        // Deamon replies related
++        bool _HandleDisconnect();
 +        bool _HandlePong();
 +        bool _HandleNewKeys();
 +
@@ -1689,6 +1711,7 @@ index 0000000..7ed74b0
 +        void SendPing();
 +    public:
 +        void Pong();
++        void SetDisconnected();
 +    private:
 +        // Structure to store checks
 +        struct MemoryCheckEntry
@@ -1814,10 +1837,10 @@ index 0000000..7ed74b0
 +#define sWardenMgr MaNGOS::Singleton<WardenMgr>::Instance()
 +#endif
 diff --git a/src/game/World.cpp b/src/game/World.cpp
-index 8dbf53a..d389914 100644
+index 45eab78..804335b 100644
 --- a/src/game/World.cpp
 +++ b/src/game/World.cpp
-@@ -62,6 +62,7 @@
+@@ -61,6 +61,7 @@
  #include "GMTicketMgr.h"
  #include "Util.h"
  #include "CharacterDatabaseCleaner.h"
@@ -1825,14 +1848,25 @@ index 8dbf53a..d389914 100644
  
  INSTANTIATE_SINGLETON_1( World );
  
-@@ -1354,6 +1355,18 @@ void World::SetInitialWorldSettings()
+@@ -883,6 +884,8 @@ void World::LoadConfigSettings(bool reload)
+     sLog.outString( "WORLD: VMap support included. LineOfSight:%i, getHeight:%i, indoorCheck:%i",
+         enableLOS, enableHeight, getConfig(CONFIG_BOOL_VMAP_INDOOR_CHECK) ? 1 : 0);
+     sLog.outString( "WORLD: VMap data directory is: %svmaps",m_dataPath.c_str());
++    // Warden ban time
++    setConfig(CONFIG_UINT32_WARDEN_BAN_TIME, "Wardend.BanLength", 1);
+ }
+ 
+ /// Initialize the World
+@@ -1353,6 +1356,20 @@ void World::SetInitialWorldSettings()
      uint32 nextGameEvent = sGameEventMgr.Initialize();
      m_timers[WUPDATE_EVENTS].SetInterval(nextGameEvent);    //depend on next event
  
-+    if (sConfig.GetBoolDefault("wardend.enable"))
++    if (sConfig.GetBoolDefault("wardend.Enable"))
 +    {
 +        sLog.outString("Starting Warden system...");
-+        sWardenMgr.Initialize(sConfig.GetStringDefault("wardend.address","127.0.0.1").c_str(),sConfig.GetIntDefault("wardend.port",4321),sConfig.GetBoolDefault("wardend.ban"));
++        sWardenMgr.Initialize(sConfig.GetStringDefault("wardend.Address", "127.0.0.1").c_str(),
++            sConfig.GetIntDefault("wardend.Port", DEFAULT_WARDENSERVER_PORT),
++            sConfig.GetBoolDefault("wardend.Ban"));
 +        m_timers[WUPDATE_WARDEN].SetInterval(1 * IN_MILLISECONDS);
 +    }
 +    else
@@ -1844,9 +1878,9 @@ index 8dbf53a..d389914 100644
      // Delete all characters which have been deleted X days before
      Player::DeleteOldCharacters();
  
-@@ -1502,6 +1515,18 @@ void World::Update(uint32 diff)
-         sBattleGroundMgr.Update(diff);
-     }
+@@ -1491,6 +1508,18 @@ void World::Update(uint32 diff)
+     sMapMgr.Update(diff);
+     sBattleGroundMgr.Update(diff);
  
 +    ///- <li> Handle warden manager update
 +    if (m_timers[WUPDATE_WARDEN].Passed())
@@ -1863,14 +1897,19 @@ index 8dbf53a..d389914 100644
      ///- Delete all characters which have been deleted X days before
      if (m_timers[WUPDATE_DELETECHARS].Passed())
      {
-@@ -1699,6 +1724,14 @@ void World::KickAllLess(AccountTypes sec)
+@@ -1688,6 +1717,19 @@ void World::KickAllLess(AccountTypes sec)
              itr->second->KickPlayer();
  }
  
 +BanReturn World::BanAccount(WorldSession *session, uint32 duration_secs, std::string reason, std::string author)
 +{
-+    LoginDatabase.PExecute("INSERT INTO account_banned VALUES ('%u', UNIX_TIMESTAMP(), UNIX_TIMESTAMP()+%u, '%s', '%s', '1')",
-+        session->GetAccountId(), duration_secs, author.c_str(), reason.c_str());
++    if (duration_secs)
++        LoginDatabase.PExecute("INSERT INTO account_banned VALUES ('%u', UNIX_TIMESTAMP(), UNIX_TIMESTAMP()+%u, '%s', '%s', '1')",
++            session->GetAccountId(), duration_secs, author.c_str(), reason.c_str());
++    else
++        LoginDatabase.PExecute("INSERT INTO account_banned VALUES ('%u', UNIX_TIMESTAMP(), 0, '%s', '%s', '1')",
++            session->GetAccountId(), author.c_str(), reason.c_str());
++
 +    session->KickPlayer();
 +    return BAN_SUCCESS;
 +}
@@ -1879,20 +1918,28 @@ index 8dbf53a..d389914 100644
  BanReturn World::BanAccount(BanMode mode, std::string nameOrIP, uint32 duration_secs, std::string reason, std::string author)
  {
 diff --git a/src/game/World.h b/src/game/World.h
-index 32ef77b..26d62c4 100644
+index df60721..b6c2d23 100644
 --- a/src/game/World.h
 +++ b/src/game/World.h
-@@ -79,7 +79,8 @@ enum WorldTimers
-     WUPDATE_CORPSES     = 5,
-     WUPDATE_EVENTS      = 6,
-     WUPDATE_DELETECHARS = 7,
--    WUPDATE_COUNT       = 8
-+    WUPDATE_WARDEN      = 8,
-+    WUPDATE_COUNT       = 9
+@@ -77,7 +77,8 @@ enum WorldTimers
+     WUPDATE_CORPSES     = 3,
+     WUPDATE_EVENTS      = 4,
+     WUPDATE_DELETECHARS = 5,
+-    WUPDATE_COUNT       = 6
++    WUPDATE_WARDEN      = 6,
++    WUPDATE_COUNT       = 7
  };
  
  /// Configuration elements
-@@ -548,6 +549,7 @@ class World
+@@ -186,6 +187,7 @@ enum eConfigUInt32Values
+     CONFIG_UINT32_GUID_RESERVE_SIZE_CREATURE,
+     CONFIG_UINT32_GUID_RESERVE_SIZE_GAMEOBJECT,
+     CONFIG_UINT32_MIN_LEVEL_FOR_RAID,
++    CONFIG_UINT32_WARDEN_BAN_TIME,
+     CONFIG_UINT32_VALUE_COUNT
+ };
+ 
+@@ -547,6 +549,7 @@ class World
          void KickAll();
          void KickAllLess(AccountTypes sec);
          BanReturn BanAccount(BanMode mode, std::string nameOrIP, uint32 duration_secs, std::string reason, std::string author);
@@ -1901,7 +1948,7 @@ index 32ef77b..26d62c4 100644
  
          // for max speed access
 diff --git a/src/game/WorldSession.cpp b/src/game/WorldSession.cpp
-index fe64dc6..e229f9b 100644
+index 37014e9..a743dde 100644
 --- a/src/game/WorldSession.cpp
 +++ b/src/game/WorldSession.cpp
 @@ -29,6 +29,7 @@
@@ -1912,8 +1959,8 @@ index fe64dc6..e229f9b 100644
  #include "Group.h"
  #include "Guild.h"
  #include "World.h"
-@@ -85,7 +86,7 @@ LookingForGroup_auto_join(false), LookingForGroup_auto_add(false), m_muteTime(mu
- _player(NULL), m_Socket(sock),_security(sec), _accountId(id), m_expansion(expansion), _logoutTime(0),
+@@ -84,7 +85,7 @@ WorldSession::WorldSession(uint32 id, WorldSocket *sock, AccountTypes sec, uint8
+ m_muteTime(mute_time), _player(NULL), m_Socket(sock),_security(sec), _accountId(id), m_expansion(expansion), _logoutTime(0),
  m_inQueue(false), m_playerLoading(false), m_playerLogout(false), m_playerRecentlyLogout(false), m_playerSave(false),
  m_sessionDbcLocale(sWorld.GetAvailableDbcLocale(locale)), m_sessionDbLocaleIndex(sObjectMgr.GetIndexForLocale(locale)),
 -m_latency(0), m_tutorialState(TUTORIALDATA_UNCHANGED)
@@ -1921,7 +1968,7 @@ index fe64dc6..e229f9b 100644
  {
      if (sock)
      {
-@@ -113,6 +114,9 @@ WorldSession::~WorldSession()
+@@ -112,6 +113,9 @@ WorldSession::~WorldSession()
      WorldPacket* packet;
      while(_recvQueue.next(packet))
          delete packet;
@@ -1931,7 +1978,7 @@ index fe64dc6..e229f9b 100644
  }
  
  void WorldSession::SizeError(WorldPacket const& packet, uint32 size) const
-@@ -319,6 +323,10 @@ bool WorldSession::Update(uint32 diff, PacketFilter& updater)
+@@ -318,6 +322,10 @@ bool WorldSession::Update(PacketFilter& updater)
              return false;                                       //Will remove this session from the world session map
      }
  
@@ -1943,18 +1990,18 @@ index fe64dc6..e229f9b 100644
  }
  
 diff --git a/src/game/WorldSession.h b/src/game/WorldSession.h
-index 8ac7d17..78856c2 100644
+index 2234beb..201c28d 100644
 --- a/src/game/WorldSession.h
 +++ b/src/game/WorldSession.h
-@@ -26,6 +26,7 @@
- #include "Common.h"
- #include "SharedDefines.h"
+@@ -28,6 +28,7 @@
  #include "ObjectGuid.h"
+ #include "AuctionHouseMgr.h"
+ #include "Item.h"
 +#include "Timer.h"
  
  struct ItemPrototype;
  struct AuctionEntry;
-@@ -185,6 +186,7 @@ class WorldSessionFilter : public PacketFilter
+@@ -227,6 +228,7 @@ class WorldSessionFilter : public PacketFilter
  class MANGOS_DLL_SPEC WorldSession
  {
      friend class CharacterHandler;
@@ -1962,7 +2009,7 @@ index 8ac7d17..78856c2 100644
      public:
          WorldSession(uint32 id, WorldSocket *sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale);
          ~WorldSession();
-@@ -352,6 +354,11 @@ class MANGOS_DLL_SPEC WorldSession
+@@ -394,6 +396,11 @@ class MANGOS_DLL_SPEC WorldSession
          void SetLatency(uint32 latency) { m_latency = latency; }
          uint32 getDialogStatus(Player *pPlayer, Object* questgiver, uint32 defstatus);
  
@@ -1974,7 +2021,7 @@ index 8ac7d17..78856c2 100644
      public:                                                 // opcodes handlers
  
          void Handle_NULL(WorldPacket& recvPacket);          // not used
-@@ -716,7 +723,11 @@ class MANGOS_DLL_SPEC WorldSession
+@@ -757,7 +764,11 @@ class MANGOS_DLL_SPEC WorldSession
          void HandleBattlemasterJoinArena( WorldPacket &recv_data );
          void HandleReportPvPAFK( WorldPacket &recv_data );
  
@@ -1986,7 +2033,7 @@ index 8ac7d17..78856c2 100644
          void HandleWorldTeleportOpcode(WorldPacket& recv_data);
          void HandleMinimapPingOpcode(WorldPacket& recv_data);
          void HandleRandomRollOpcode(WorldPacket& recv_data);
-@@ -850,6 +861,15 @@ class MANGOS_DLL_SPEC WorldSession
+@@ -886,6 +897,15 @@ class MANGOS_DLL_SPEC WorldSession
          TutorialDataState m_tutorialState;
          AddonsList m_addonsList;
          ACE_Based::LockedQueue<WorldPacket*, ACE_Thread_Mutex> _recvQueue;
@@ -2023,7 +2070,7 @@ index a39cb26..169f631 100644
      time_t mutetime = time_t (fields[8].GetUInt64 ());
  
 diff --git a/src/mangosd/mangosd.conf.dist.in b/src/mangosd/mangosd.conf.dist.in
-index 9c9af30..5ddc28e 100644
+index cf73e54..7f0c786 100644
 --- a/src/mangosd/mangosd.conf.dist.in
 +++ b/src/mangosd/mangosd.conf.dist.in
 @@ -3,7 +3,7 @@
@@ -2035,7 +2082,7 @@ index 9c9af30..5ddc28e 100644
  
  ###################################################################################################################
  # CONNECTIONS AND DIRECTORIES
-@@ -1618,3 +1618,31 @@ SOAP.Port = 7878
+@@ -1624,3 +1624,38 @@ SOAP.Port = 7878
  CharDelete.Method = 0
  CharDelete.MinLevel = 0
  CharDelete.KeepDays = 30
@@ -2043,32 +2090,39 @@ index 9c9af30..5ddc28e 100644
 +###################################################################################################################
 +# WARDEN DAEMON - This daemon requires a Windows box to run. If you don't have any, let it disabled
 +#
-+#    Wardend.enable
++#    Wardend.Enable
 +#        Enable or disable warden functionnalities
 +#        Default: 0  - Disabled, mangosd will neither use wardend, not generate any warden related traffic
 +#                 1  - Enable, mangosd will connect to wardend and generate cheat ckecks for all sessions
 +#
-+#    Wardend.ban
++#    Wardend.Ban
 +#        Enable or disable banning accounts
 +#                 0  - Disabled, mangosd will kick accounts failing a cheat-check
-+#        Default: 1  - Enable, mangosd will ban for 24H any account failing a cheat-check
++#        Default: 1  - Enable, mangosd will ban any account failing a cheat-check for Wardend.BanLength configured
++#                      next line
 +#
-+#   Wardend.address
++#   Wardend.BanLength
++#        Length in days an account failing a cheat-check is banned
++#                 0 - Infinite ban
++#        Default: 1 - 1 day
++#
++#   Wardend.Address
 +#        IP Address of the computer running the Win32 Warden Daemon
 +#        Default: 127.0.0.1  - Assume you run the Warden Daemon on the same machine as Mangos Daemon and on Windows
 +#
-+#   Wardend.port
++#   Wardend.Port
 +#        Port on which the Warden Daemon listens
-+#        Default: 4321
++#        Default: 6555
 +#
 +###################################################################################################################
 +
-+Wardend.enable = 0
-+Wardend.ban = 1
-+Wardend.address = "127.0.0.1"
-+Wardend.port = 4321
++Wardend.Enable = 0
++Wardend.Ban = 1
++Wardend.BanLength = 1
++Wardend.Address = "127.0.0.1"
++Wardend.Port = 6555
 diff --git a/src/realmd/AuthSocket.cpp b/src/realmd/AuthSocket.cpp
-index 36b797d..00e0ce8 100644
+index 97b3d91..f359499 100644
 --- a/src/realmd/AuthSocket.cpp
 +++ b/src/realmd/AuthSocket.cpp
 @@ -62,7 +62,7 @@ typedef struct AUTH_LOGON_CHALLENGE_C
@@ -2277,7 +2331,7 @@ index 389184e..410ffa0 100644
  #endif
 diff --git a/src/wardend/BufferedSocket.cpp b/src/wardend/BufferedSocket.cpp
 new file mode 100644
-index 0000000..5866c09
+index 0000000..6b92784
 --- /dev/null
 +++ b/src/wardend/BufferedSocket.cpp
 @@ -0,0 +1,285 @@
@@ -2300,7 +2354,7 @@ index 0000000..5866c09
 + */
 +
 +/** \file
-+  \ingroup realmd
++  \ingroup wardend
 +  */
 +
 +#include "BufferedSocket.h"
@@ -2568,7 +2622,7 @@ index 0000000..5866c09
 +}
 diff --git a/src/wardend/BufferedSocket.h b/src/wardend/BufferedSocket.h
 new file mode 100644
-index 0000000..88bc262
+index 0000000..4edab7d
 --- /dev/null
 +++ b/src/wardend/BufferedSocket.h
 @@ -0,0 +1,82 @@
@@ -2591,7 +2645,7 @@ index 0000000..88bc262
 + */
 +
 +/** \file
-+  \ingroup realmd
++  \ingroup wardend
 +  */
 +
 +#ifndef _BUFFEREDSOCKET_H_
@@ -3550,7 +3604,7 @@ index 0000000..a27148c
 +#endif
 diff --git a/src/wardend/WardenSocket.cpp b/src/wardend/WardenSocket.cpp
 new file mode 100644
-index 0000000..4b64d02
+index 0000000..94d0f91
 --- /dev/null
 +++ b/src/wardend/WardenSocket.cpp
 @@ -0,0 +1,168 @@
@@ -3775,10 +3829,10 @@ index 0000000..c26eb14
 +#endif
 diff --git a/src/wardend/WardendProtocol.h b/src/wardend/WardendProtocol.h
 new file mode 100644
-index 0000000..8c7172f
+index 0000000..fb4e3a2
 --- /dev/null
 +++ b/src/wardend/WardendProtocol.h
-@@ -0,0 +1,73 @@
+@@ -0,0 +1,74 @@
 +/*
 + * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
 + *
@@ -3815,6 +3869,7 @@ index 0000000..8c7172f
 +    //  uint8   serverKey[258];
 +    //  uint8   clientKey[258];
 +    //  uint8   seed[16];
++    WMSG_CONNECTION_END             = 0x71,
 +};
 +
 +enum eWardenServerCmd
@@ -3854,10 +3909,10 @@ index 0000000..8c7172f
 +#endif
 diff --git a/src/wardend/wardend.conf.dist.in b/src/wardend/wardend.conf.dist.in
 new file mode 100644
-index 0000000..128a731
+index 0000000..30f64a9
 --- /dev/null
 +++ b/src/wardend/wardend.conf.dist.in
-@@ -0,0 +1,94 @@
+@@ -0,0 +1,92 @@
 +############################################
 +# MaNGOS wardend configuration file        #
 +############################################
@@ -3876,16 +3931,14 @@ index 0000000..128a731
 +#
 +#    WardenServerPort
 +#         Default WardenServerPort
-+#         Default: 4321
++#         Default: 6555
 +#
 +#    BindIP
-+#         Bind Realm Server to IP/hostname
-+#         This option is useful for running multiple worldd/realmd instances
-+#         on different IP addresses using default ports.
-+#         DO NOT CHANGE THIS UNLESS YOU _REALLY_ KNOW WHAT YOU'RE DOING
++#         Bind Warden Deamon to IP/hostname
++#         This option is useful to protect wardend from outside
 +#
 +#    PidFile
-+#        Realmd daemon PID file
++#        Wardend daemon PID file
 +#        Default: ""             - do not create PID file
 +#                 "./wardend.pid" - create PID file (recommended name)
 +#
@@ -3901,7 +3954,7 @@ index 0000000..128a731
 +#
 +#    LogFile
 +#        Logfile name
-+#        Default: "Realmd.log"
++#        Default: "Wardend.log"
 +#                 "" - empty name disable creating log file
 +#
 +#    LogTimestamp
@@ -3940,7 +3993,7 @@ index 0000000..128a731
 +###################################################################################################################
 +
 +LogsDir = ""
-+WardenServerPort = 4321
++WardenServerPort = 6555
 +BindIP = "0.0.0.0"
 +PidFile = ""
 +LogLevel = 0
@@ -4256,7 +4309,7 @@ index 93c46f4..4ac9df3 100644
      </ClInclude>
 diff --git a/win/VC100/wardend.vcxproj b/win/VC100/wardend.vcxproj
 new file mode 100644
-index 0000000..52071e1
+index 0000000..f0767f3
 --- /dev/null
 +++ b/win/VC100/wardend.vcxproj
 @@ -0,0 +1,165 @@
@@ -4310,7 +4363,7 @@ index 0000000..52071e1
 +    <ClCompile>
 +      <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
 +      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-+      <AdditionalIncludeDirectories>..\..\src\realmd;..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\dep\ACE_wrappers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <AdditionalIncludeDirectories>..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\dep\ACE_wrappers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
 +      <PreprocessorDefinitions>VERSION=0.17.0-DEV;WIN32;NDEBUG;_CONSOLE;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 +      <StringPooling>true</StringPooling>
 +      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -4360,7 +4413,7 @@ index 0000000..52071e1
 +    <ClCompile>
 +      <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
 +      <Optimization>Disabled</Optimization>
-+      <AdditionalIncludeDirectories>..\..\src\realmd;..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\dep\ACE_wrappers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <AdditionalIncludeDirectories>..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\dep\ACE_wrappers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
 +      <PreprocessorDefinitions>VERSION=0.17.0-DEV;WIN32;_DEBUG;MANGOS_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 +      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
 +      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -4447,7 +4500,7 @@ index 355ab6e..3a9351e 100644
  			</File>
 diff --git a/win/VC80/wardend.vcproj b/win/VC80/wardend.vcproj
 new file mode 100644
-index 0000000..ed12fea
+index 0000000..0c3b98c
 --- /dev/null
 +++ b/win/VC80/wardend.vcproj
 @@ -0,0 +1,270 @@
@@ -4498,7 +4551,7 @@ index 0000000..ed12fea
 +				Optimization="2"
 +				InlineFunctionExpansion="2"
 +				EnableIntrinsicFunctions="true"
-+				AdditionalIncludeDirectories="..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\realmd;..\..\src\wardend;..\..\dep\ACE_wrappers"
++				AdditionalIncludeDirectories="..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\wardend;..\..\dep\ACE_wrappers"
 +				PreprocessorDefinitions="VERSION=&quot;0.17.0-DEV&quot;,WIN32,NDEBUG,_CONSOLE;_SECURE_SCL=0"
 +				StringPooling="true"
 +				RuntimeLibrary="2"
@@ -4597,7 +4650,7 @@ index 0000000..ed12fea
 +				Name="VCCLCompilerTool"
 +				AdditionalOptions="/MP"
 +				Optimization="0"
-+				AdditionalIncludeDirectories="..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\realmd;..\..\src\wardend;..\..\dep\ACE_wrappers"
++				AdditionalIncludeDirectories="..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\wardend;..\..\dep\ACE_wrappers"
 +				PreprocessorDefinitions="VERSION=&quot;0.17.0-DEV&quot;;WIN32;_DEBUG;MANGOS_DEBUG;_CONSOLE"
 +				IgnoreStandardIncludePath="false"
 +				BasicRuntimeChecks="3"
@@ -4722,10 +4775,19 @@ index 0000000..ed12fea
 +	</Globals>
 +</VisualStudioProject>
 diff --git a/win/VC90/game.vcproj b/win/VC90/game.vcproj
-index 56ab568..2d7004b 100644
+index 56ab568..4c17680 100644
 --- a/win/VC90/game.vcproj
 +++ b/win/VC90/game.vcproj
-@@ -1007,6 +1007,14 @@
+@@ -1,7 +1,7 @@
+ <?xml version="1.0" encoding="Windows-1252"?>
+ <VisualStudioProject
+ 	ProjectType="Visual C++"
+-	Version="9,00"
++	Version="9.00"
+ 	Name="game"
+ 	ProjectGUID="{1DC6C4DA-A028-41F3-877D-D5400C594F88}"
+ 	RootNamespace="game"
+@@ -999,6 +999,14 @@
  				>
  			</File>
  			<File
@@ -4737,12 +4799,12 @@ index 56ab568..2d7004b 100644
 +				>
 +			</File>
 +			<File
- 				RelativePath="..\..\src\game\Weather.cpp"
+ 				RelativePath="..\..\src\game\WaypointManager.cpp"
  				>
  			</File>
 diff --git a/win/VC90/wardend.vcproj b/win/VC90/wardend.vcproj
 new file mode 100644
-index 0000000..276a07f
+index 0000000..3a7eaa4
 --- /dev/null
 +++ b/win/VC90/wardend.vcproj
 @@ -0,0 +1,269 @@
@@ -4794,7 +4856,7 @@ index 0000000..276a07f
 +				Optimization="2"
 +				InlineFunctionExpansion="2"
 +				EnableIntrinsicFunctions="true"
-+				AdditionalIncludeDirectories="..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\realmd;..\..\src\wardend;..\..\dep\ACE_wrappers"
++				AdditionalIncludeDirectories="..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\wardend;..\..\dep\ACE_wrappers"
 +				PreprocessorDefinitions="VERSION=&quot;0.17.0-DEV&quot;,WIN32,NDEBUG,_CONSOLE;_SECURE_SCL=0"
 +				StringPooling="true"
 +				RuntimeLibrary="2"
@@ -4892,7 +4954,7 @@ index 0000000..276a07f
 +				Name="VCCLCompilerTool"
 +				AdditionalOptions="/MP"
 +				Optimization="0"
-+				AdditionalIncludeDirectories="..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\realmd;..\..\src\wardend;..\..\dep\ACE_wrappers"
++				AdditionalIncludeDirectories="..\..\dep\include;..\..\src\framework;..\..\src\shared;..\..\src\wardend;..\..\dep\ACE_wrappers"
 +				PreprocessorDefinitions="VERSION=&quot;0.17.0-DEV&quot;;WIN32;_DEBUG;MANGOS_DEBUG;_CONSOLE"
 +				IgnoreStandardIncludePath="false"
 +				BasicRuntimeChecks="3"
