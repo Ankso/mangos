@@ -459,8 +459,6 @@ void BattleGroundSA::AddPlayer(Player *plr)
     {
         if (plr->GetTeamId() == Attackers)
         {
-            plr->CastSpell(plr,12438,true); //Without this player falls before boat loads...
-
             if (urand(0,1))
                 plr->TeleportTo(607, 2682.936f, -830.368f, 50.0f, 2.895f, 0);
             else
