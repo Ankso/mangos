@@ -251,7 +251,6 @@ bool ReputationMgr::SetReputation(FactionEntry const* factionEntry, int32 standi
         }
         if (factionEntry->ID == 1037 || factionEntry->ID == 1052)
             res = SetOneFactionReputation(factionEntry, standing, incremental);
-        return res;
     }
     else
     {
