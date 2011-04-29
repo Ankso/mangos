@@ -1527,19 +1527,15 @@ BattleGround * BattleGroundMgr::CreateNewBattleGround(BattleGroundTypeId bgTypeI
         if (sWorld.GetActiveSessionCount() > MIN_PLAYERS_FOR_ALL_BGS)
         {
             DETAIL_LOG("More than %u players online, selecting random BG including 40vs40 maps", MIN_PLAYERS_FOR_ALL_BGS);
-            BattleGroundTypeId random_bgs[] = {BATTLEGROUND_AV, BATTLEGROUND_WS, BATTLEGROUND_AB, BATTLEGROUND_EY, BATTLEGROUND_SA, BATTLEGROUND_IC};
+            BattleGroundTypeId random_bgs[] = {BATTLEGROUND_AV, BATTLEGROUND_WS, BATTLEGROUND_AB, BATTLEGROUND_EY, /*BATTLEGROUND_SA,*/ BATTLEGROUND_IC};
             uint32 bg_num = urand(0, sizeof(random_bgs)/sizeof(BattleGroundTypeId)-1);
-			if (random_bgs[bg_num] == BATTLEGROUND_SA && urand(0,3) > 0)
-				bg_num = bg_num - urand(1,3);
 			bgTypeId = random_bgs[bg_num];
         }
         else
         {
             DETAIL_LOG("Less than %u players online, selecting random BG excluding 40vs40 maps", MIN_PLAYERS_FOR_ALL_BGS);
-            BattleGroundTypeId random_bgs[] = {/*BATTLEGROUND_AV,*/ BATTLEGROUND_WS, BATTLEGROUND_AB, BATTLEGROUND_EY, BATTLEGROUND_SA/*, BATTLEGROUND_IC*/};
+            BattleGroundTypeId random_bgs[] = {/*BATTLEGROUND_AV,*/ BATTLEGROUND_WS, BATTLEGROUND_AB, BATTLEGROUND_EY/*, BATTLEGROUND_SA, BATTLEGROUND_IC*/};
             uint32 bg_num = urand(0, sizeof(random_bgs)/sizeof(BattleGroundTypeId)-1);
-			if (random_bgs[bg_num] == BATTLEGROUND_SA && urand(0,3) > 0)
-				bg_num = bg_num - urand(1,2);
             bgTypeId = random_bgs[bg_num];
         }
 
