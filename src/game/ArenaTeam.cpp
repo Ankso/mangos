@@ -156,7 +156,7 @@ bool ArenaTeam::AddMember(ObjectGuid playerGuid)
     if (!result)
     {
         plPRating = 0;
-        plMMRating = 1500;
+        plMMRating = 0;
     }
     else
     {
@@ -278,7 +278,7 @@ bool ArenaTeam::LoadMembersFromDB(QueryResult *arenaTeamMembersResult)
             "SELECT personal_rating, matchmaker_rating FROM character_arena_stats WHERE guid = '%u' AND slot = '%u'", player_guid, GetSlot());
 
         uint32 personalrating = 0;
-        uint32 matchmakerrating = 1500;
+        uint32 matchmakerrating = 0;
 
         if (result)
         {
@@ -633,7 +633,7 @@ uint32 ArenaTeam::GetAverageMMR(Group *group) const
     matchmakerrating /= GetType();
 
     return matchmakerrating;
-	}
+}
 
 float ArenaTeam::GetChanceAgainst(uint32 own_rating, uint32 enemy_rating)
 {

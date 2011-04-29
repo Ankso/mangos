@@ -16009,7 +16009,7 @@ void Player::_LoadArenaStatsInfo(QueryResult *result)
     {
         Field *fields = result->Fetch();
         uint32 personalrating = 0;
-        uint32 matchmakerrating = 1500;
+        uint32 matchmakerrating = 0;
         if (fields[0].GetUInt8() > slot)
         {
             CharacterDatabase.PExecute("INSERT INTO character_arena_stats (guid, slot, personal_rating, matchmaker_rating) VALUES (%u, %u, %u, %u)", GetGUIDLow(), slot, personalrating, matchmakerrating);
