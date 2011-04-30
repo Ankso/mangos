@@ -821,9 +821,9 @@ bool TerrainInfo::IsNextZcoordOK(float x, float y, float oldZ, float maxDiff) co
 
     float newZ = GetHeight(x, y, oldZ+maxDiff-2.0f, useVmaps);
 
-    if (fabs(newZ-oldZ) > maxDiff)                              // bad...
+    if (fabs(newZ-oldZ) > maxDiff)                                   // bad...
     {
-        useVmaps = !useVmaps;                                     // try change vmap use
+        useVmaps = !useVmaps;                                        // try change vmap use
         newZ = GetHeight(x, y, oldZ+maxDiff-2.0f, useVmaps);
 
         if (fabs(newZ-oldZ) > maxDiff)
