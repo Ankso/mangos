@@ -40,7 +40,7 @@ typedef std::map<uint32/*ID*/, LFGDungeonEntry const*> LFGDungeonMap;
 typedef std::set<Player*> LFGQueuePlayerSet;
 typedef std::set<Group*>  LFGQueueGroupSet;
 typedef std::map<ObjectGuid, LFGRoleMask> LFGRolesMap;
-typedef std::map<ObjectGuid, LFGAnswer> LFGAnswerMap;
+typedef std::map<Player*, LFGAnswer> LFGAnswerMap;
 typedef std::map<uint32/*ID*/, LFGProposal> LFGProposalMap;
 
 // Reward info
@@ -128,6 +128,7 @@ struct LFGPlayerBoot
     std::string reason;                                    ///< kick reason
 };
 
+typedef std::map<Group*, LFGPlayerBoot>  LFGBootMap;
 
 class LFGMgr
 {
@@ -157,6 +158,10 @@ class LFGMgr
         LFGProposal* GetProposal(uint32 ID);
         void RemoveProposal(uint32 ID);
 
+        void OfferContinue(Group* group);
+        void InitBoot(Player* kicker, ObjectGuid victimGuid, std::string reason);
+        LFGPlayerBoot* GetBoot(Group* group);
+
         // Dungeon operations
         LFGDungeonEntry const* GetDungeon(uint32 dungeonID);
         bool IsRandomDungeon(LFGDungeonEntry const* dungeon);
@@ -183,6 +188,7 @@ class LFGMgr
         LFGDungeonMap   m_dungeonMap;                       // sorted dungeon map
         LFGQueueStatus  m_queueStatus[LFG_TYPE_MAX];        // Queue statisic
         LFGProposalMap  m_proposalMap;                      // Proposal store
+        LFGBootMap      m_bootMap;                          // boot store
 
 };
 

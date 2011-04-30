@@ -248,6 +248,7 @@ void WorldSession::HandleGroupUninviteGuidOpcode(WorldPacket & recv_data)
 {
     ObjectGuid guid;
     std::string reason;
+
     recv_data >> guid;
     recv_data >> reason;                     // reason
 
@@ -271,7 +272,10 @@ void WorldSession::HandleGroupUninviteGuidOpcode(WorldPacket & recv_data)
 
     if (grp->IsMember(guid))
     {
-        Player::RemoveFromGroup(grp, guid);
+        if (grp->isLFDGroup())
+            sLFGMgr.InitBoot(GetPlayer(), guid, reason);
+        else
+            Player::RemoveFromGroup(grp, guid);
         return;
     }
 
@@ -314,7 +318,10 @@ void WorldSession::HandleGroupUninviteOpcode(WorldPacket & recv_data)
     ObjectGuid guid = grp->GetMemberGuid(membername);
     if (!guid.IsEmpty())
     {
-        Player::RemoveFromGroup(grp, guid);
+        if (grp->isLFDGroup())
+            sLFGMgr.InitBoot(GetPlayer(), guid, "");
+        else
+            Player::RemoveFromGroup(grp, guid);
         return;
     }
 
