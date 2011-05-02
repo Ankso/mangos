@@ -99,11 +99,12 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
     uint32 maxQueuedClientsNum = sWorld.GetMaxQueuedSessionCount();
     std::string str = secsToTimeString(sWorld.GetUptime());
 
-    PSendSysMessage("Revision ReinoDeLaOscuridad:|cffffffff|Hurl: [%s] |h|| Conoce los ultimos cambios entrando en www.reinodelaoscuridad.com", REVISION_RDLO);
+    PSendSysMessage("Revision ReinoDeLaOscuridad:|cffffffff|Hurl: [%s] |h|| Conoce los ultimos cambios entrando en www.reinodelaoscuridad.com", REVISION_RDLO_PUBLIC);
     if(chr->isGameMaster())
     {
         SendSysMessage("--------------------- INFORMACION ADICIONAL PARA EL STAFF ---------------------");
-        SendSysMessage(REVISION_NR);
+        PSendSysMessage("Revision real de ReinoDeLaOscuridad: %s", REVISION_RDLO_REAL);
+        PSendSysMessage("MaNGOS rev.: %s", REVISION_NR);
         if (sScriptMgr.IsScriptLibraryLoaded())
         {
             char const* ver = sScriptMgr.GetScriptLibraryVersion();
