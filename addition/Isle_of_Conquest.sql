@@ -24,31 +24,31 @@ INSERT INTO mangos_string (entry, content_default, content_loc1, content_loc2, c
 (20101, 'Horde', NULL, NULL, NULL, NULL, NULL, 'La Horda', 'La Horda', NULL);
 
 -- Alliance Gunship Cannon
-UPDATE `creature_template` SET `spell1`=69495,`VehicleId`=452, `iconName` = 'vehicleCursor', ScriptName = 'npc_battleground_vehicle' WHERE `entry`=34929;
+UPDATE `creature_template` SET `spell1`=69495,`vehicle_id`=452, `iconName` = 'vehicleCursor', ScriptName = 'npc_battleground_vehicle' WHERE `entry`=34929;
 DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (34929);
 INSERT INTO `npc_spellclick_spells` VALUES ('34929', '60968', '0', '0', '0', '1');
 -- Horde Gunship Cannon
-UPDATE `creature_template` SET `spell1`=68825,`VehicleId`=453, `iconName` = 'vehicleCursor', ScriptName = 'npc_battleground_vehicle' WHERE `entry`=34935;
+UPDATE `creature_template` SET `spell1`=68825,`vehicle_id`=453, `iconName` = 'vehicleCursor', ScriptName = 'npc_battleground_vehicle' WHERE `entry`=34935;
 DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (34935);
 INSERT INTO `npc_spellclick_spells` VALUES ('34935', '60968', '0', '0', '0', '1');
 -- Keep Cannon
-UPDATE `creature_template` SET `VehicleId`=160,`spell1`=67452,`spell2`=68169, `iconName` = 'vehicleCursor', ScriptName = 'npc_battleground_vehicle' WHERE `entry`=34944;
+UPDATE `creature_template` SET `vehicle_id`=160,`spell1`=67452,`spell2`=68169, `iconName` = 'vehicleCursor', ScriptName = 'npc_battleground_vehicle' WHERE `entry`=34944;
 DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (34944);
 INSERT INTO `npc_spellclick_spells` VALUES ('34944', '60968', '0', '0', '0', '1');
 -- Catapult
-UPDATE `creature_template` SET `VehicleId`=438,`spell1`=66218,`spell2`=66296, `iconName` = 'vehicleCursor', ScriptName = 'npc_battleground_vehicle' WHERE `entry`=34793;
+UPDATE `creature_template` SET `vehicle_id`=438,`spell1`=66218,`spell2`=66296, `iconName` = 'vehicleCursor', ScriptName = 'npc_battleground_vehicle' WHERE `entry`=34793;
 DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (34793);
 INSERT INTO `npc_spellclick_spells` VALUES ('34793', '60968', '0', '0', '0', '1');
 -- Demolisher
-UPDATE `creature_template` SET `VehicleId`=509,`spell1`=67442,`spell2`=60206, `iconName` = 'vehicleCursor', ScriptName = 'npc_battleground_vehicle' WHERE `entry`=34775;
+UPDATE `creature_template` SET `vehicle_id`=509,`spell1`=67442,`spell2`=60206, `iconName` = 'vehicleCursor', ScriptName = 'npc_battleground_vehicle' WHERE `entry`=34775;
 DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (34775);
 INSERT INTO `npc_spellclick_spells` VALUES ('34775', '60968', '0', '0', '0', '1');
 -- Siege Engine
-UPDATE `creature_template` SET `VehicleId`=447,`spell1`=67816,`spell2`=69502, `iconName` = 'vehicleCursor', ScriptName = 'npc_battleground_vehicle' WHERE `entry`=34776;
+UPDATE `creature_template` SET `vehicle_id`=447,`spell1`=67816,`spell2`=69502, `iconName` = 'vehicleCursor', ScriptName = 'npc_battleground_vehicle' WHERE `entry`=34776;
 DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (34776);
 INSERT INTO `npc_spellclick_spells` VALUES ('34776', '60968', '0', '0', '0', '1');
 -- Siege Engine
-UPDATE `creature_template` SET `VehicleId`=436,`spell1`=67816,`spell2`=69502, `iconName` = 'vehicleCursor', ScriptName = 'npc_battleground_vehicle' WHERE `entry`=35069;
+UPDATE `creature_template` SET `vehicle_id`=436,`spell1`=67816,`spell2`=69502, `iconName` = 'vehicleCursor', ScriptName = 'npc_battleground_vehicle' WHERE `entry`=35069;
 DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (35069);
 INSERT INTO `npc_spellclick_spells` VALUES ('35069', '60968', '0', '0', '0', '1');
 DELETE FROM `vehicle_accessory` WHERE `entry` IN (35069, 34776);
@@ -56,11 +56,11 @@ INSERT INTO `vehicle_accessory` VALUES
 (35069, 36355, 7, 1, 'Isle of Conquest Siege Engine'),
 (34776, 34777, 7, 1, 'Isle of Conquest Siege Engine');
 -- Glaive Thrower
-UPDATE `creature_template` SET `VehicleId`=447,`spell1`=68827,`spell2`=69515, `iconName` = 'vehicleCursor', ScriptName = 'npc_battleground_vehicle' WHERE `entry`=34802;
+UPDATE `creature_template` SET `vehicle_id`=447,`spell1`=68827,`spell2`=69515, `iconName` = 'vehicleCursor', ScriptName = 'npc_battleground_vehicle' WHERE `entry`=34802;
 DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (34802);
 INSERT INTO `npc_spellclick_spells` VALUES ('34802', '60968', '0', '0', '0', '1');
 -- Glaive Thrower
-UPDATE `creature_template` SET `VehicleId`=447,`spell1`=68827,`spell2`=69515, `iconName` = 'vehicleCursor', ScriptName = 'npc_battleground_vehicle' WHERE `entry`=35273;
+UPDATE `creature_template` SET `vehicle_id`=447,`spell1`=68827,`spell2`=69515, `iconName` = 'vehicleCursor', ScriptName = 'npc_battleground_vehicle' WHERE `entry`=35273;
 DELETE FROM `npc_spellclick_spells` WHERE npc_entry IN (35273);
 INSERT INTO `npc_spellclick_spells` VALUES ('35273', '60968', '0', '0', '0', '1');
 -- Flame Turret
