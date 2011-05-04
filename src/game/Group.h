@@ -107,6 +107,7 @@ enum GroupType                                              // group type flags?
     GROUPTYPE_BGRAID = GROUPTYPE_BG | GROUPTYPE_RAID,       // mask
     GROUPTYPE_UNK1   = 0x04,                                // 0x04?
     GROUPTYPE_LFD    = 0x08,
+    GROUPTYPE_UNK2   = 0x10,
     // 0x10, leave/change group?, I saw this flag when leaving group and after leaving BG while in group
 };
 
@@ -269,26 +270,12 @@ class MANGOS_DLL_SPEC Group
         void   SetLootThreshold(ItemQualities threshold) { m_lootThreshold = threshold; }
         void   Disband(bool hideDestroy=false);
 
-        // Dungeon Finder
-        void   SetLfgRoles(ObjectGuid guid, const uint8 roles)
-        {
-            member_witerator slot = _getMemberWSlot(guid);
-            if (slot == m_memberSlots.end())
-                return;
-
-            slot->roles = roles;
-            SendUpdate();
-        }
-        bool isLFGGroup()  const { return m_groupType & GROUPTYPE_LFD; }
-        void ConvertToLFG();
-
         // properties accessories
         ObjectGuid GetObjectGuid() const { return m_Guid; }
         uint32 GetId() const { return m_Guid.GetCounter(); }
         bool IsFull() const { return (m_groupType == GROUPTYPE_NORMAL) ? (m_memberSlots.size() >= MAX_GROUP_SIZE) : (m_memberSlots.size() >= MAX_RAID_SIZE); }
         bool isRaidGroup() const { return m_groupType & GROUPTYPE_RAID; }
         bool isBGGroup()   const { return m_bgGroup != NULL; }
-        bool isLFDGroup() const { return m_groupType &  GROUPTYPE_LFD; }
         bool IsCreated()   const { return GetMembersCount() > 0; }
 
         ObjectGuid GetLeaderGuid() const { return m_leaderGuid; }
@@ -397,6 +384,10 @@ class MANGOS_DLL_SPEC Group
 
         // LFG
         LFGGroupState* GetLFGState() { return m_LFGState; };
+        bool ConvertToLFG(LFGType type);
+        bool isLFGGroup()  const { return m_groupType & GROUPTYPE_LFD; }
+        bool isLFDGroup()  const { return (m_groupType & GROUPTYPE_LFD && !(m_groupType & GROUPTYPE_RAID)) ; }
+        bool isLFRGroup()  const { return (m_groupType & GROUPTYPE_LFD && m_groupType & GROUPTYPE_RAID) ; }
 
         // Frozen Mod
         void BroadcastGroupUpdate(void);

@@ -169,9 +169,18 @@ void WorldSession::HandleLfgSetRolesOpcode(WorldPacket &recv_data)
     uint8 roles;
     recv_data >> roles;
 
-    DEBUG_LOG("CMSG_LFG_SET_ROLES %u roles %u", GetPlayer()->GetObjectGuid().GetCounter(), roles);
-
-    GetPlayer()->GetLFGState()->SetRoles(roles);
+    Group* group = GetPlayer()->GetGroup();
+    if (group && group->isLFDGroup())
+    {
+        DEBUG_LOG("CMSG_LFG_SET_ROLES: Group %u, Player %u, Roles: %u", group->GetObjectGuid().GetCounter(), GetPlayer()->GetObjectGuid().GetCounter(), roles);
+        if (sLFGMgr.RoleChanged(GetPlayer(), roles))
+            sLFGMgr.UpdateRoleCheck(group);
+    }
+    else
+    {
+        GetPlayer()->GetLFGState()->SetRoles(roles);
+        DEBUG_LOG("CMSG_LFG_SET_ROLES (not in LFD group) Player %u roles %u", GetPlayer()->GetObjectGuid().GetCounter(), roles);
+    }
 }
 
 void WorldSession::HandleLfgSetBootVoteOpcode(WorldPacket &recv_data)
@@ -351,13 +360,13 @@ void WorldSession::HandleLfgPartyLockInfoRequestOpcode(WorldPacket & /*recv_data
 
 void WorldSession::HandleLfgProposalResultOpcode(WorldPacket &recv_data)
 {
-    uint32 lfgGroupID;                                      // Internal lfgGroupID
+    uint32 ID;                                              // Internal proposal ID
     bool   accept;                                          // Accept to join?
-    recv_data >> lfgGroupID;
+    recv_data >> ID;
     recv_data >> accept;
 
-    DEBUG_LOG("CMSG_LFG_PROPOSAL_RESULT %u proposal: %u accept: %u", GetPlayer()->GetObjectGuid().GetCounter(), lfgGroupID, accept ? 1 : 0);
-    //sLFGMgr.UpdateProposal(lfgGroupID, GetPlayer()->GetObjectGuid().GetCounter(), accept);
+    DEBUG_LOG("CMSG_LFG_PROPOSAL_RESULT %u proposal: %u accept: %u", GetPlayer()->GetObjectGuid().GetCounter(), ID, accept ? 1 : 0);
+    sLFGMgr.UpdateProposal(ID, GetPlayer()->GetObjectGuid(), accept);
 }
 
 void WorldSession::SendLfgJoinResult(LFGJoinResult checkResult, uint8 checkValue, bool withLockMap)
@@ -883,6 +892,12 @@ void WorldSession::SendLfgTeleportError(LFGTeleportError msg)
 
 void WorldSession::SendLfgPlayerReward(LFGDungeonEntry const* dungeon, const LFGReward* reward, const Quest* qRew, bool isSecond)
 {
+    if (!sWorld.getConfig(CONFIG_BOOL_LFG_ENABLE))
+    {
+        DEBUG_LOG("SendLfgPlayerReward %u failed - Dungeon finder disabled", GetPlayer()->GetObjectGuid().GetCounter());
+        return;
+    }
+
     if (!dungeon || !reward || !qRew)
         return;
 
@@ -939,17 +954,33 @@ void WorldSession::SendLfgQueueStatus(LFGDungeonEntry const* dungeon, LFGQueueSt
 
 void WorldSession::SendLfgRoleChosen(ObjectGuid guid, uint8 roles)
 {
+    if (!sWorld.getConfig(CONFIG_BOOL_LFG_ENABLE))
+    {
+        DEBUG_LOG("SendLfgRoleChosen %u failed - Dungeon finder disabled", GetPlayer()->GetObjectGuid().GetCounter());
+        return;
+    }
+
     DEBUG_LOG("SMSG_ROLE_CHOSEN %u guid: %u roles: %u", GetPlayer()->GetObjectGuid().GetCounter(), guid.GetCounter(), roles);
 
     WorldPacket data(SMSG_ROLE_CHOSEN, 8 + 1 + 4);
     data << guid;                                  // Guid
     data << uint8(roles != LFG_ROLE_MASK_NONE);    // Ready
     data << uint32(roles);                         // Roles
-    SendPacket(&data);
+
+    if (GetPlayer()->GetGroup())
+        GetPlayer()->GetGroup()->BroadcastPacket(&data, false);
+    else
+        SendPacket(&data);
 }
 
 void WorldSession::SendLfgBootPlayer(LFGPlayerBoot* pBoot)
 {
+    if (!sWorld.getConfig(CONFIG_BOOL_LFG_ENABLE))
+    {
+        DEBUG_LOG("SendLfgBootPlayer %u failed - Dungeon finder disabled", GetPlayer()->GetObjectGuid().GetCounter());
+        return;
+    }
+
     ObjectGuid guid = GetPlayer()->GetObjectGuid();
     LFGAnswer playerVote = pBoot->votes.find(guid)->second;
     uint8 votesNum = 0;
@@ -982,15 +1013,17 @@ void WorldSession::SendLfgBootPlayer(LFGPlayerBoot* pBoot)
 
 void WorldSession::SendLfgUpdateProposal(LFGProposal* pProposal)
 {
+    if (!sWorld.getConfig(CONFIG_BOOL_LFG_ENABLE))
+    {
+        DEBUG_LOG("SendLfgUpdateProposal %u failed - Dungeon finder disabled", GetPlayer()->GetObjectGuid().GetCounter());
+        return;
+    }
+
     if (!pProposal)
         return;
 
     ObjectGuid guid = GetPlayer()->GetObjectGuid();
 
-//    LfgProposalPlayer* ppPlayer = itPlayer->second;
-//    uint32 pLowGroupGuid = ppPlayer->groupLowGuid;
-//    uint32 dLowGuid = pProp->groupLowGuid;
-//    uint32 dungeonId = pProp->dungeonId;
     bool isSameDungeon = false;
     bool isContinue = false;
 
@@ -1063,6 +1096,71 @@ void WorldSession::SendLfgUpdateProposal(LFGProposal* pProposal)
         }
         data << uint8(pPlayer->GetLFGState()->GetAnswer() != LFG_ANSWER_PENDING); // Answered
         data << uint8(pPlayer->GetLFGState()->GetAnswer() == LFG_ANSWER_AGREE); // Accepted
+    }
+    SendPacket(&data);
+}
+
+void WorldSession::SendLfgRoleCheckUpdate()
+{
+    if (!sWorld.getConfig(CONFIG_BOOL_LFG_ENABLE))
+    {
+        DEBUG_LOG("SendLfgRoleCheckUpdate %u failed - Dungeon finder disabled", GetPlayer()->GetObjectGuid().GetCounter());
+        return;
+    }
+
+    Group* group = GetPlayer()->GetGroup();
+
+    if (!group)
+        return;
+
+    LFGDungeonSet* dungeons = group->GetLFGState()->GetDungeons();
+
+    if (!dungeons)
+        return;
+
+    DEBUG_LOG("SMSG_LFG_ROLE_CHECK_UPDATE %u, dugeons size %u", GetPlayer()->GetObjectGuid().GetCounter(), dungeons->size());
+
+    WorldPacket data(SMSG_LFG_ROLE_CHECK_UPDATE, 4 + 1 + 1 + dungeons->size() * 4 + 1 + group->GetMembersCount() * (8 + 1 + 4 + 1));
+
+    data << uint32(group->GetLFGState()->GetRoleCheckState());                     // Check result
+    data << uint8(group->GetLFGState()->GetRoleCheckState() == LFG_ROLECHECK_INITIALITING);
+    data << uint8(dungeons->size());                                               // Number of dungeons
+
+    if (dungeons->size())
+    {
+        for (LFGDungeonSet::iterator itr = dungeons->begin(); itr != dungeons->end(); ++itr)
+        {
+            data << uint32(*itr ? (*itr)->Entry() : 0); // Dungeon Entry
+        }
+    }
+
+    data << uint8(group->GetMembersCount());               // Players in group
+    if (group->GetMembersCount())
+    {
+        // Leader info MUST be sent 1st :S
+        ObjectGuid   guid = group->GetLeaderGuid();
+        Player*    leader = sObjectMgr.GetPlayer(guid);
+        LFGRoleMask roles = leader->GetLFGState()->GetRoles();
+        data << guid;                                                        // Guid
+        data << uint8(roles != LFG_ROLE_MASK_NONE);                          // Ready
+        data << uint32(roles);                                               // Roles
+        data << uint8(leader->getLevel());                                   // Level
+
+        for (GroupReference* itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
+        {
+            if (Player* member = itr->getSource())
+            {
+                if (member == leader)
+                    continue;
+
+                guid = member->GetObjectGuid();
+                roles = member->GetLFGState()->GetRoles();
+                data << guid;                                                    // Guid
+                data << uint8(roles != LFG_ROLE_MASK_NONE);                      // Ready
+                data << uint32(roles);                                           // Roles
+                data << uint8(member->getLevel());                               // Level
+            }
+        }
     }
     SendPacket(&data);
 }
