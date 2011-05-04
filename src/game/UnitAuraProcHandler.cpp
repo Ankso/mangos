@@ -4490,32 +4490,11 @@ SpellAuraProcResult Unit::HandleAddFlatModifierAuraProc(Unit* /*pVictim*/, uint3
 {
     SpellEntry const *spellInfo = triggeredByAura->GetSpellProto();
 
-    switch(spellInfo->Id)
+    if (spellInfo->Id == 55166)                             // Tidal Force
     {
-        case 55166:                                         // Tidal Force
-        {
-            // Remove only single aura from stack
-            if (triggeredByAura->GetStackAmount() > 1 && !triggeredByAura->GetHolder()->ModStackAmount(-1))
-                return SPELL_AURA_PROC_CANT_TRIGGER;
-        
-            break;
-        }
-        case 70849:
-        {
-            Unit *caster = triggeredByAura->GetCaster();
-            Aura *aura = NULL;
-            if (caster->HasAura(46916))
-                aura = caster->GetAura(46916, EFFECT_INDEX_0);
-            else if (caster->HasAura(52437))
-                aura = caster->GetAura(52437, EFFECT_INDEX_0);
-            
-            if (!aura)
-                return SPELL_AURA_PROC_CANT_TRIGGER; // This should not hapen?
-
-            aura->GetHolder()->SetAuraCharges(2);
-        }
-        default:
-            break;
+        // Remove only single aura from stack
+        if (triggeredByAura->GetStackAmount() > 1 && !triggeredByAura->GetHolder()->ModStackAmount(-1))
+            return SPELL_AURA_PROC_CANT_TRIGGER;
     }
 
     return SPELL_AURA_PROC_OK;
