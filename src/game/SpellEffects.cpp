@@ -4802,11 +4802,6 @@ void Spell::SendLoot(uint64 guid, LootType loottype)
                 // Don't return, let loots been taken
                 break;
 
-            case GAMEOBJECT_TYPE_TRAP:
-                // This is not the prpper way to do this, but...
-                gameObjTarget->Delete();
-                return;
-
             default:
                 sLog.outError("Spell::SendLoot unhandled GameObject type %u (entry %u).", gameObjTarget->GetGoType(), gameObjTarget->GetEntry());
                 return;
