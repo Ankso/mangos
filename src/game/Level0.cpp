@@ -28,6 +28,7 @@
 #include "ScriptMgr.h"
 #include "SystemConfig.h"
 #include "revision_nr.h"
+#include "revision_rdlo.h"
 #include "Util.h"
 #include "ObjectMgr.h"
 
@@ -98,18 +99,12 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
     uint32 maxQueuedClientsNum = sWorld.GetMaxQueuedSessionCount();
     std::string str = secsToTimeString(sWorld.GetUptime());
 
-    char const* full;
-    if(m_session)
-        full = " "; //_FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,"|cffffffff|Hurl:" REVISION_ID "|h" REVISION_ID "|h|r");
-    else
-        full = " "; //_FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,REVISION_ID);
-
-    SendSysMessage("Revision ReinoDeLaOscuridad: [R168] || Conoce los ultimos cambios entrando en www.reinodelaoscuridad.com");
-    //Don't send revision info to normal players, for some hacks, you need the server rev. =/
+    PSendSysMessage("Revision ReinoDeLaOscuridad:|cffffffff|Hurl: [%s] |h|| Conoce los ultimos cambios entrando en www.reinodelaoscuridad.com", REVISION_RDLO_PUBLIC);
     if(chr->isGameMaster())
     {
         SendSysMessage("--------------------- INFORMACION ADICIONAL PARA EL STAFF ---------------------");
-        SendSysMessage(full);
+        PSendSysMessage("Revision real de ReinoDeLaOscuridad: %s", REVISION_RDLO_REAL);
+        PSendSysMessage("MaNGOS rev.: %s", REVISION_NR);
         if (sScriptMgr.IsScriptLibraryLoaded())
         {
             char const* ver = sScriptMgr.GetScriptLibraryVersion();

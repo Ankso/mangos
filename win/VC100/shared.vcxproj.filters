@@ -179,6 +179,7 @@
     <ClInclude Include="..\..\src\shared\Database\SqlPreparedStatement.h">
       <Filter>Database</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\shared\revision_rdlo.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\shared\revision.h" />
