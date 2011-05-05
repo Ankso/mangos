@@ -10853,7 +10853,7 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
         if(!IsTriggeredAtSpellProcEvent(pTarget, itr->second, procSpell, procFlag, procExtra, attType, isVictim, spellProcEvent))
            continue;
 
-        // Frost Nova
+        // Frost Nova prevent to remove root effect on self damage
         if (itr->second->GetCaster() == pTarget)
         {
             SpellEntry const* spellInfo = itr->second->GetSpellProto();
