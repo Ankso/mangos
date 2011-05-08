@@ -3510,25 +3510,33 @@ void Spell::cast(bool skipCheck)
             else if (m_spellInfo->Id == 16870 && m_caster->HasAura(70718))
                 AddTriggeredSpell(70721);
             else if (m_spellInfo->SpellFamilyFlags2 & 0x00000800  && m_caster->GetShapeshiftForm() == FORM_CAT)
+            {
                 if (m_caster->HasSpell(48495))
                     m_caster->SetPower(POWER_ENERGY, m_caster->GetPower(POWER_ENERGY) + 60);
                 else if (m_caster->HasSpell(48494))
                     m_caster->SetPower(POWER_ENERGY, m_caster->GetPower(POWER_ENERGY) + 40);
                 else if (m_caster->HasSpell(48492))
                     m_caster->SetPower(POWER_ENERGY, m_caster->GetPower(POWER_ENERGY) + 20);
-            break;
-        }
-         case SPELLFAMILY_HUNTER:
-        {
-            // Deterrence
-            if (m_spellInfo->Id == 19263)
-                AddTriggeredSpell(67801);
-            // Lock and Load
-            if (m_spellInfo->Id == 56453)
-                AddPrecastSpell(67544);                     // Lock and Load Marker
+            }
             // Berserk (Bear Mangle part)
             else if (m_spellInfo->Id == 50334)
                 AddTriggeredSpell(58923);
+            break;
+        }
+        case SPELLFAMILY_HUNTER:
+        {
+            // Kill Command
+            if (m_spellInfo->Id == 34026)
+            {
+                if (m_caster->HasAura(37483))               // Improved Kill Command - Item set bonus
+                    m_caster->CastSpell(m_caster, 37482, true);// Exploited Weakness
+            }
+            // Deterrence
+            else if (m_spellInfo->Id == 19263)
+                AddTriggeredSpell(67801);
+            // Lock and Load
+            else if (m_spellInfo->Id == 56453)
+                AddPrecastSpell(67544);                     // Lock and Load Marker
             break;
         }
         case SPELLFAMILY_ROGUE:

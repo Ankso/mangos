@@ -18,6 +18,7 @@
 
 #include "Common.h"
 #include "SharedDefines.h"
+#include "ObjectMgr.h"
 #include "LFG.h"
 #include "LFGMgr.h"
 #include "Group.h"
@@ -75,6 +76,11 @@ void LFGPlayerState::SetRoles(uint8 roles)
 LFGRoleMask LFGPlayerState::GetRoles()
 {
     return rolesMask;
+};
+
+void LFGPlayerState::SetJoined()
+{
+    m_jointime = time_t(time(NULL));
 };
 
 bool LFGPlayerState::IsSingleRole()
@@ -167,4 +173,76 @@ LFGType LFGGroupState::GetType()
         return LFG_TYPE_NONE;
     else
         return LFGType((*m_DungeonsList.begin())->type);
+};
+
+LFGQueueInfo::LFGQueueInfo(ObjectGuid _guid)
+{
+    guid = _guid;
+    MANGOS_ASSERT(!guid.IsEmpty());
+
+    tanks = LFG_TANKS_NEEDED;
+    healers = LFG_HEALERS_NEEDED;
+    dps = LFG_DPS_NEEDED;
+    joinTime = time_t(time(NULL));
+
+    if (!guid.IsGroup())
+        m_dungeons = sObjectMgr.GetPlayer(guid)->GetLFGState()->GetDungeons();
+    else if (guid.IsPlayer())
+        m_dungeons = sObjectMgr.GetGroup(guid)->GetLFGState()->GetDungeons();
+
+};
+
+LFGType LFGQueueInfo::GetDungeonType()
+{
+    if (!GetDungeons() || GetDungeons()->empty())
+        return LFG_TYPE_NONE;
+
+    LFGDungeonEntry const* dungeon = *GetDungeons()->begin();
+
+    if (!dungeon)
+        return LFG_TYPE_NONE;
+
+    return LFGType(dungeon->type);
+};
+
+LFGProposal::LFGProposal(LFGDungeonEntry const* _dungeon)
+{
+    m_dungeon = _dungeon;
+    m_state = LFG_PROPOSAL_INITIATING;
+    m_group = NULL;
+    m_cancelTime = 0;
+}
+
+void LFGProposal::Start()
+{
+    m_cancelTime = time_t(time(NULL)) + LFG_TIME_PROPOSAL;
+};
+
+void LFGProposal::RemoveDecliner(ObjectGuid guid)
+{
+    if (guid.IsEmpty())
+        return;
+
+    LFGQueueSet::iterator itr = playerGuids.find(guid);
+    if (itr != playerGuids.end())
+        playerGuids.erase(itr);
+
+    declinerGuids.insert(guid);
+};
+
+void LFGProposal::AddMember(ObjectGuid guid)
+{
+    playerGuids.insert(guid);
+};
+
+bool LFGProposal::IsDecliner(ObjectGuid guid)
+{
+    if (guid.IsEmpty())
+        return true;
+
+    LFGQueueSet::iterator itr = declinerGuids.find(guid);
+    if (itr != declinerGuids.end())
+        return true;
+
+    return false;
 };

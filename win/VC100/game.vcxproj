@@ -422,6 +422,7 @@
     <ClCompile Include="..\..\src\game\GuardAI.cpp" />
     <ClCompile Include="..\..\src\game\Guild.cpp" />
     <ClCompile Include="..\..\src\game\GuildHandler.cpp" />
+    <ClCompile Include="..\..\src\game\GuildMgr.cpp" />
     <ClCompile Include="..\..\src\game\HomeMovementGenerator.cpp" />
     <ClCompile Include="..\..\src\game\HostileRefManager.cpp" />
     <ClCompile Include="..\..\src\game\IdleMovementGenerator.cpp" />
@@ -606,6 +607,7 @@
     <ClInclude Include="..\..\src\game\GroupRefManager.h" />
     <ClInclude Include="..\..\src\game\GuardAI.h" />
     <ClInclude Include="..\..\src\game\Guild.h" />
+    <ClInclude Include="..\..\src\game\GuildMgr.h" />
     <ClInclude Include="..\..\src\game\HomeMovementGenerator.h" />
     <ClInclude Include="..\..\src\game\HostileRefManager.h" />
     <ClInclude Include="..\..\src\game\IdleMovementGenerator.h" />
@@ -620,6 +622,7 @@
     <ClInclude Include="..\..\src\game\Mail.h" />
     <ClInclude Include="..\..\src\game\Map.h" />
     <ClInclude Include="..\..\src\game\MapManager.h" />
+    <ClInclude Include="..\..\src\game\MapUpdater.h" />
     <ClInclude Include="..\..\src\game\MapPersistentStateMgr.h" />
     <ClInclude Include="..\..\src\game\MapReference.h" />
     <ClInclude Include="..\..\src\game\MapRefManager.h" />
@@ -644,6 +647,7 @@
     <ClInclude Include="..\..\src\game\Pet.h" />
     <ClInclude Include="..\..\src\game\PetAI.h" />
     <ClInclude Include="..\..\src\game\Player.h" />
+    <ClInclude Include="..\..\src\game\playerbot\config.h" />
     <ClInclude Include="..\..\src\game\playerbot\PlayerbotAI.h" />
     <ClInclude Include="..\..\src\game\playerbot\PlayerbotClassAI.h" />
     <ClInclude Include="..\..\src\game\playerbot\PlayerbotDeathKnightAI.h" />
@@ -716,9 +720,6 @@
     <ProjectReference Include="g3dlite.vcxproj">
       <Project>{8072769E-CF10-48BF-B9E1-12752A5DAC6E}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
