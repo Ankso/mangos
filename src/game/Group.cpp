@@ -323,6 +323,9 @@ bool Group::AddMember(ObjectGuid guid, const char* name)
 
     SendUpdate();
 
+    if (isLFDGroup())
+        sLFGMgr.AddMemberToLFDGroup(guid);
+
     if (Player *player = sObjectMgr.GetPlayer(guid))
     {
         if (!IsLeader(player->GetObjectGuid()) && !isBGGroup())
@@ -353,7 +356,6 @@ bool Group::AddMember(ObjectGuid guid, const char* name)
         if(isRaidGroup())
             player->UpdateForQuestWorldObjects();
 
-        sLFGMgr.Leave(player);
     }
 
     return true;
@@ -410,7 +412,8 @@ uint32 Group::RemoveMember(ObjectGuid guid, RemoveMethod method)
 
             _homebindIfInstance(player);
 
-            sLFGMgr.Leave(player);
+            if (isLFDGroup())
+                sLFGMgr.RemoveMemberFromLFDGroup(guid);
         }
 
         if (leaderChanged)
@@ -476,6 +479,9 @@ void Group::Disband(bool hideDestroy)
 
         if(!player->GetSession())
             continue;
+
+        if (isLFDGroup())
+            sLFGMgr.RemoveMemberFromLFDGroup(player->GetObjectGuid());
 
         WorldPacket data;
         if(!hideDestroy)
@@ -786,7 +792,7 @@ void Group::StartLootRool(WorldObject* lootTarget, LootMethod method, Loot* loot
 
     LootItem const& lootItem =  loot->items[itemSlot];
 
-    Roll* r = new Roll(lootTarget->GetGUID(), method, lootItem);
+    Roll* r = new Roll(lootTarget->GetObjectGuid(), method, lootItem);
 
     //a vector is filled with only near party members
     for(GroupReference *itr = GetFirstMember(); itr != NULL; itr = itr->next())
@@ -1575,7 +1581,7 @@ void Group::UpdateLooterGuid( WorldObject* object, bool ifneed )
             {
                 if (pl->IsWithinDist(object, sWorld.getConfig(CONFIG_FLOAT_GROUP_XP_DISTANCE), false))
                 {
-                    bool refresh = pl->GetLootGUID() == object->GetGUID();
+                    bool refresh = pl->GetLootGuid() == object->GetObjectGuid();
 
                     //if(refresh)                           // update loot for new looter
                     //    pl->GetSession()->DoLootRelease(pl->GetLootGUID());
@@ -1596,7 +1602,7 @@ void Group::UpdateLooterGuid( WorldObject* object, bool ifneed )
         {
             if (pl->IsWithinDist(object, sWorld.getConfig(CONFIG_FLOAT_GROUP_XP_DISTANCE), false))
             {
-                bool refresh = pl->GetLootGUID() == object->GetGUID();
+                bool refresh = pl->GetLootGuid() == object->GetObjectGuid();
 
                 //if(refresh)                               // update loot for new looter
                 //    pl->GetSession()->DoLootRelease(pl->GetLootGUID());
@@ -1883,7 +1889,7 @@ void Group::_homebindIfInstance(Player *player)
     if (player && !player->isGameMaster())
     {
         Map* map = player->GetMap();
-        if (map->IsDungeon())
+        if (map && map->IsDungeon())
         {
             // leaving the group in an instance, the homebind timer is started
             // unless the player is permanently saved to the instance
@@ -2048,10 +2054,10 @@ bool Group::ConvertToLFG(LFGType type)
         case LFG_TYPE_RAID:
             if (!isRaidGroup())
                 ConvertToRaid();
-            m_groupType = GroupType(m_groupType | GROUPTYPE_LFD | GROUPTYPE_RAID);
+            m_groupType = GroupType(m_groupType | GROUPTYPE_LFD);
             break;
         default:
-            break;
+            return false;
     }
 
     m_lootMethod = NEED_BEFORE_GREED;
@@ -2060,6 +2066,7 @@ bool Group::ConvertToLFG(LFGType type)
     static SqlStatementID updGgoup;
     SqlStatement stmt = CharacterDatabase.CreateStatement(updGgoup, "UPDATE groups SET groupType= ? WHERE groupId= ?");
     stmt.PExecute(uint8(m_groupType), GetObjectGuid().GetCounter());
+    return true;
 }
 
 void Group::SetGroupRoles(ObjectGuid guid, uint8 roles)
