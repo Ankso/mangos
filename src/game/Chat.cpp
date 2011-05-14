@@ -2926,10 +2926,7 @@ ObjectGuid ChatHandler::ExtractGuidFromLink(char** text)
             if (Player* player = sObjectMgr.GetPlayer(name.c_str()))
                 return player->GetObjectGuid();
 
-            if (uint64 guid = sObjectMgr.GetPlayerGUIDByName(name))
-                return ObjectGuid(guid);
-
-            return ObjectGuid();
+            return sObjectMgr.GetPlayerGuidByName(name);
         }
         case GUID_LINK_CREATURE:
         {
@@ -3022,7 +3019,7 @@ bool ChatHandler::ExtractLocationFromLink(char** text, uint32& mapid, float& x, 
                 return true;
             }
 
-            ObjectGuid guid = sObjectMgr.GetPlayerGUIDByName(name);
+            ObjectGuid guid = sObjectMgr.GetPlayerGuidByName(name);
             if (!guid.IsEmpty())
             {
                 // to point where player stay (if loaded)
@@ -3248,7 +3245,7 @@ bool ChatHandler::ExtractPlayerTarget(char** args, Player** player /*= NULL*/, O
             *player = pl;
 
         // if need guid value from DB (in name case for check player existence)
-        ObjectGuid guid = !pl && (player_guid || player_name) ? sObjectMgr.GetPlayerGUIDByName(name) : uint64(0);
+        ObjectGuid guid = !pl && (player_guid || player_name) ? sObjectMgr.GetPlayerGuidByName(name) : ObjectGuid();
 
         // if allowed player guid (if no then only online players allowed)
         if(player_guid)
