@@ -1398,6 +1398,7 @@ void World::SetInitialWorldSettings()
     m_timers[WUPDATE_CORPSES].SetInterval(20*MINUTE*IN_MILLISECONDS);
     m_timers[WUPDATE_DELETECHARS].SetInterval(DAY*IN_MILLISECONDS); // check for chars to delete every day
     m_timers[WUPDATE_AUTOBROADCAST].SetInterval(abtimer);
+    m_timers[WUPDATE_TWITTER].SetInterval(MINUTE*IN_MILLISECONDS);
 
     //to set mailtimer to return mails every day between 4 and 5 am
     //mailtimer is increased when updating auctions
@@ -1468,6 +1469,7 @@ void World::SetInitialWorldSettings()
     auctionbot.Initialize();
 
     sLog.outString("Starting Autobroadcast system by Xeross..." );
+    sLog.outString("Starting TweetsBroadcast system by Ankso...");
 
     sLog.outString( "WORLD: World initialized" );
 
@@ -1664,12 +1666,22 @@ void World::Update(uint32 diff)
     }
     static uint32 autobroadcaston = 0;
     autobroadcaston = sConfig.GetIntDefault("AutoBroadcast.On", 0);
-    if(autobroadcaston == 1)
+    if (autobroadcaston == 1)
     {
         if (m_timers[WUPDATE_AUTOBROADCAST].Passed())
         {
             m_timers[WUPDATE_AUTOBROADCAST].Reset();
             SendBroadcast();
+        }
+    }
+    static bool tweetsBroadcastOn = false;
+    // ---
+    if (tweetsBroadcastOn)
+    {
+        if (m_timers[WUPDATE_TWITTER].Passed())
+        {
+            m_timers[WUPDATE_TWITTER].Reset();
+            SendTweets();
         }
     }
 
@@ -2601,4 +2613,32 @@ bool World::configNoReload(bool reload, eConfigBoolValues index, char const* fie
         sLog.outError("%s option can't be changed at mangosd.conf reload, using current value (%s).", fieldname, getConfig(index) ? "'true'" : "'false'");
 
     return false;
+}
+
+void World::SendTweets()
+{
+    return;
+
+    QueryResult *result = LoginDatabase.PQuery("SELECT * FROM tweets");
+
+    if (!result)
+        return;
+
+    do
+    {
+        Field *fields = result->Fetch();
+
+        uint32 id = fields[0].GetUInt32();
+        std::string username = fields[1].GetString();
+        std::string tweet = fields[2].GetString();
+        bool isNew = fields[3].GetBool();
+        std::string message = "[Twitter @" + username + "] " + tweet;
+
+        if (isNew)
+        {
+            World::SendWorldText(LANG_AUTO_BROADCAST, message.c_str());
+            sLog.outString(message.c_str());
+            LoginDatabase.PExecute("UPDATE tweets SET isNew = false WHERE id = %u", id);
+        }
+    } while(result->NextRow());
 }

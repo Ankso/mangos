@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <db>
+        <host>localhost</host>              <!-- DB host -->
+        <user>root</user>                   <!-- DB username-->
+        <password>password</password>       <!-- DB password -->
+        <realmd>realmd</realmd>             <!-- Name of your realmd database -->
+    </db>
+    <twitterData type="array">
+        <username>username</username>       <!-- Twitter username #1. Each username should be between a new <username></username> tag -->
+    </twitterData>
+    <app>
+        <sleep>30</sleep>                   <!-- Time between checks. In seconds. -->
+    </app>
+</config>
