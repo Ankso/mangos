@@ -413,7 +413,7 @@ uint32 Group::RemoveMember(ObjectGuid guid, RemoveMethod method)
             _homebindIfInstance(player);
 
             if (isLFDGroup())
-                sLFGMgr.RemoveMemberFromLFDGroup(guid);
+                sLFGMgr.RemoveMemberFromLFDGroup(this,guid);
         }
 
         if (leaderChanged)
@@ -481,7 +481,7 @@ void Group::Disband(bool hideDestroy)
             continue;
 
         if (isLFDGroup())
-            sLFGMgr.RemoveMemberFromLFDGroup(player->GetObjectGuid());
+            sLFGMgr.RemoveMemberFromLFDGroup(this, player->GetObjectGuid());
 
         WorldPacket data;
         if(!hideDestroy)
